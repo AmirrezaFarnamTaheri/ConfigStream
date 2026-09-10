@@ -1,0 +1,141 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+"""One-shot exact-anchor helper for the remaining functional PR #593 review fixes."""
+from __future__ import annotations
+
+from pathlib import Path
+
+
+def replace_once(path: str, old: str, new: str) -> None:
+    target = Path(path)
+    text = target.read_text(encoding="utf-8")
+    if new in text:
+        return
+    if old not in text:
+        raise SystemExit(f"anchor not found in {path}: {old[:120]!r}")
+    target.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+
+def write_new(path: str, content: str) -> None:
+    target = Path(path)
+    if target.exists():
+        if target.read_text(encoding="utf-8") == content:
+            return
+        raise SystemExit(f"refusing to overwrite unexpected existing file: {path}")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(content, encoding="utf-8")
+
+
+# ---------------------------------------------------------------------------
+# Shard artifact evidence must be semantic and must survive matrix-download
+# failure long enough to record every stage outcome.
+# ---------------------------------------------------------------------------
+replace_once(
+    ".github/workflows/main.yml",
+    '''          shard_status="${{ steps.shard_download.outcome }}"\n          if [ "$shard_status" = success ]; then\n            if ! python - <<'PYCODE'\n          import json\n          from pathlib import Path\n\n          matrix = json.loads(Path("matrix-artifact/source-matrix.json").read_text(encoding="utf-8"))\n          expected = sum(1 for row in matrix.get("include", []) if row.get("enabled", True))\n          lineage = list(Path("artifacts").rglob("shard_lineage.json"))\n          if expected <= 0 or len(lineage) != expected:\n              raise SystemExit(\n                  f"shard artifact lineage mismatch: expected {expected}, found {len(lineage)}"\n              )\n          PYCODE\n            then\n              shard_status=failure\n            fi\n          fi\n''',
+    '''          shard_status="${{ steps.shard_download.outcome }}"\n          matrix_download_status="${{ steps.matrix_artifact_download.outcome }}"\n          if [ "$shard_status" = success ]; then\n            if [ "$matrix_download_status" != success ] || [ ! -s matrix-artifact/source-matrix.json ]; then\n              echo "::error::Shard validation cannot run without the exact source matrix artifact"\n              shard_status=failure\n            elif ! python - <<'PYCODE'\n          import json\n          from collections import Counter\n          from pathlib import Path\n\n          matrix = json.loads(Path("matrix-artifact/source-matrix.json").read_text(encoding="utf-8"))\n          rows = [row for row in matrix.get("include", []) if row.get("enabled", True)]\n          expected = {\n              (\n                  str(row.get("batch")),\n                  int(row.get("part")),\n                  str(row.get("source_file")),\n                  str(row.get("source_sha256")),\n              )\n              for row in rows\n          }\n          if not expected or len(expected) != len(rows):\n              raise SystemExit("source matrix contains empty or duplicate shard identities")\n\n          observed = []\n          for path in Path("artifacts").rglob("shard_lineage.json"):\n              payload = json.loads(path.read_text(encoding="utf-8"))\n              observed.append(\n                  (\n                      str(payload.get("batch")),\n                      int(payload.get("part")),\n                      str(payload.get("source_file")),\n                      str(payload.get("source_sha256")),\n                  )\n              )\n          counts = Counter(observed)\n          observed_set = set(observed)\n          missing = sorted(expected - observed_set)\n          unexpected = sorted(observed_set - expected)\n          duplicates = sorted(identity for identity, count in counts.items() if count != 1)\n          if missing or unexpected or duplicates or len(observed) != len(expected):\n              raise SystemExit(\n                  "shard artifact lineage mismatch: "\n                  f"expected={len(expected)} found={len(observed)} "\n                  f"missing={missing[:3]} unexpected={unexpected[:3]} duplicates={duplicates[:3]}"\n              )\n          PYCODE\n            then\n              shard_status=failure\n            fi\n          fi\n''',
+)
+
+# ---------------------------------------------------------------------------
+# Shared/exclusive advisory lease used by long-lived SQLite owners and restore.
+# ---------------------------------------------------------------------------
+maintenance_module = '''# SPDX-License-Identifier: AGPL-3.0-or-later\n"""Cross-process advisory leases protecting SQLite database replacement.\n\nNormal database owners hold a shared activity lease for the lifetime of their\nconnections. Destructive maintenance such as atomic restore takes the exclusive\nlease, which prevents a new application connection from entering and waits for\nexisting owners to close before replacing the database inode.\n"""\n\nfrom __future__ import annotations\n\nimport logging\nimport os\nimport threading\nimport time\nfrom pathlib import Path\nfrom typing import BinaryIO\n\nlogger = logging.getLogger(__name__)\n\n\nclass DatabaseMaintenanceTimeout(TimeoutError):\n    """Raised when a database activity/maintenance lease cannot be acquired."""\n\n\nclass DatabaseLease:\n    """A re-entrant-per-instance shared or exclusive filesystem lease."""\n\n    def __init__(\n        self,\n        db_path: Path | str,\n        *,\n        exclusive: bool,\n        timeout: float = 5.0,\n        poll_interval: float = 0.05,\n    ) -> None:\n        resolved = Path(db_path).expanduser().resolve(strict=False)\n        self.lock_path = resolved.parent / f".{resolved.name}.maintenance.lock"\n        self.exclusive = bool(exclusive)\n        self.timeout = max(float(timeout), 0.0)\n        self.poll_interval = max(float(poll_interval), 0.005)\n        self._handle: BinaryIO | None = None\n        self._guard = threading.RLock()\n\n    @property\n    def held(self) -> bool:\n        with self._guard:\n            return self._handle is not None\n\n    def acquire(self) -> "DatabaseLease":\n        with self._guard:\n            if self._handle is not None:\n                return self\n            self.lock_path.parent.mkdir(parents=True, exist_ok=True)\n            handle = self.lock_path.open("a+b")\n            if os.name == "nt":\n                handle.seek(0, os.SEEK_END)\n                if handle.tell() == 0:\n                    handle.write(b"\\0")\n                    handle.flush()\n                handle.seek(0)\n\n            deadline = time.monotonic() + self.timeout\n            while True:\n                try:\n                    _try_lock(handle, exclusive=self.exclusive)\n                    self._handle = handle\n                    return self\n                except (BlockingIOError, OSError) as exc:\n                    if time.monotonic() >= deadline:\n                        handle.close()\n                        mode = "maintenance" if self.exclusive else "activity"\n                        raise DatabaseMaintenanceTimeout(\n                            f"timed out acquiring {mode} lease for {self.lock_path.name}"\n                        ) from exc\n                    time.sleep(self.poll_interval)\n\n    def release(self) -> None:\n        with self._guard:\n            handle = self._handle\n            if handle is None:\n                return\n            self._handle = None\n            try:\n                _unlock(handle)\n            except OSError as exc:\n                logger.warning("failed to release database maintenance lease: %s", type(exc).__name__)\n            finally:\n                handle.close()\n\n    def __enter__(self) -> "DatabaseLease":\n        return self.acquire()\n\n    def __exit__(self, exc_type: object, exc: object, traceback: object) -> None:\n        self.release()\n\n\ndef database_activity_lease(\n    db_path: Path | str, *, timeout: float = 5.0\n) -> DatabaseLease:\n    """Return a shared lease held while application SQLite connections are live."""\n    return DatabaseLease(db_path, exclusive=False, timeout=timeout)\n\n\ndef database_maintenance_lease(\n    db_path: Path | str, *, timeout: float = 5.0\n) -> DatabaseLease:\n    """Return an exclusive lease for inode-replacing database maintenance."""\n    return DatabaseLease(db_path, exclusive=True, timeout=timeout)\n\n\ndef _try_lock(handle: BinaryIO, *, exclusive: bool) -> None:\n    if os.name == "posix":\n        import fcntl\n\n        mode = fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH\n        fcntl.flock(handle.fileno(), mode | fcntl.LOCK_NB)\n        return\n    if os.name == "nt":\n        import msvcrt\n\n        handle.seek(0)\n        mode = msvcrt.LK_NBLCK if exclusive else msvcrt.LK_NBRLCK\n        msvcrt.locking(handle.fileno(), mode, 1)\n        return\n    raise OSError(f"unsupported database maintenance lock platform: {os.name}")\n\n\ndef _unlock(handle: BinaryIO) -> None:\n    if os.name == "posix":\n        import fcntl\n\n        fcntl.flock(handle.fileno(), fcntl.LOCK_UN)\n        return\n    if os.name == "nt":\n        import msvcrt\n\n        handle.seek(0)\n        msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)\n        return\n    raise OSError(f"unsupported database maintenance lock platform: {os.name}")\n'''
+write_new("src/configstream/database_maintenance.py", maintenance_module)
+
+# Anomaly detector owns a persistent SQLite connection, so hold an activity
+# lease while it is connected and reacquire on later reconnection.
+replace_once(
+    "src/configstream/anomaly.py",
+    "from .constants import Z_SCORE_NORMAL_CONSTANT\nfrom .security_validator import safe_log_text\n",
+    "from .constants import Z_SCORE_NORMAL_CONSTANT\nfrom .database_maintenance import database_activity_lease\nfrom .security_validator import safe_log_text\n",
+)
+replace_once(
+    "src/configstream/anomaly.py",
+    '''        self._lock = threading.Lock()\n        self._conn = None  # Persistent connection\n        with self._lock:\n''',
+    '''        self._lock = threading.Lock()\n        self._conn = None  # Persistent connection\n        self._maintenance_lease = database_activity_lease(self.db_path)\n        with self._lock:\n''',
+)
+replace_once(
+    "src/configstream/anomaly.py",
+    '''    def _init_db(self):\n        try:\n            # Keep connection open, disable check_same_thread as we use a lock\n            self._conn = sqlite3.connect(self.db_path, check_same_thread=False)\n''',
+    '''    def _init_db(self):\n        try:\n            self._maintenance_lease.acquire()\n            # Keep connection open, disable check_same_thread as we use a lock\n            self._conn = sqlite3.connect(self.db_path, check_same_thread=False)\n''',
+)
+replace_once(
+    "src/configstream/anomaly.py",
+    '''        if not other_db_path.exists():\n            return\n        if other_db_path.stat().st_size > MAX_MERGE_DB_BYTES:\n            logger.error("Refusing oversized anomaly database merge: %s", other_db_path)\n            return\n\n        try:\n            with self._lock:\n''',
+    '''        try:\n            if not other_db_path.exists():\n                return\n            if other_db_path.stat().st_size > MAX_MERGE_DB_BYTES:\n                logger.error("Refusing oversized anomaly database merge: %s", other_db_path)\n                return\n\n            with self._lock:\n''',
+)
+replace_once(
+    "src/configstream/anomaly.py",
+    '''                self._conn = None\n\n    def __enter__(self) -> "AnomalyDetector":\n''',
+    '''                self._conn = None\n        self._maintenance_lease.release()\n\n    def __enter__(self) -> "AnomalyDetector":\n''',
+)
+
+# QualityStorage may keep one connection per worker thread; the instance lease
+# spans every tracked connection and is released only after close() shuts them.
+replace_once(
+    "src/configstream/quality/storage.py",
+    "from configstream.security_validator import SecurityValidator\n",
+    "from configstream.database_maintenance import database_activity_lease\nfrom configstream.security_validator import SecurityValidator\n",
+)
+replace_once(
+    "src/configstream/quality/storage.py",
+    '''        self._all_connections: set[sqlite3.Connection] = set()\n        self._generation = 0\n        self._init_db()\n''',
+    '''        self._all_connections: set[sqlite3.Connection] = set()\n        self._generation = 0\n        self._maintenance_lease = database_activity_lease(self.db_path)\n        self._maintenance_lease.acquire()\n        try:\n            self._init_db()\n        except QualityStorageError:\n            self._maintenance_lease.release()\n            raise\n''',
+)
+replace_once(
+    "src/configstream/quality/storage.py",
+    '''        if conn is None:\n            try:\n                conn = sqlite3.connect(\n''',
+    '''        if conn is None:\n            try:\n                self._maintenance_lease.acquire()\n                conn = sqlite3.connect(\n''',
+)
+replace_once(
+    "src/configstream/quality/storage.py",
+    '''            self._all_connections.clear()\n\n    def execute_write(self, sql: str, params: Tuple = ()) -> None:\n''',
+    '''            self._all_connections.clear()\n        self._maintenance_lease.release()\n\n    def execute_write(self, sql: str, params: Tuple = ()) -> None:\n''',
+)
+replace_once(
+    "src/configstream/quality/storage.py",
+    '''        other = Path(other_db_path)\n        if not other.exists():\n            return\n        if other.stat().st_size > MAX_MERGE_DB_BYTES:\n            raise QualityStorageError("refusing oversized source quality database")\n        src: Optional[sqlite3.Connection] = None\n        try:\n            src = sqlite3.connect(other, timeout=20)\n''',
+    '''        other = Path(other_db_path)\n        src: Optional[sqlite3.Connection] = None\n        try:\n            if not other.exists():\n                return\n            if other.stat().st_size > MAX_MERGE_DB_BYTES:\n                raise QualityStorageError("refusing oversized source quality database")\n            src = sqlite3.connect(other, timeout=20)\n''',
+)
+
+# Backup readers also take an activity lease; restore holds the exclusive lease
+# from the first sidecar observation through atomic replacement.
+replace_once(
+    "src/configstream/backup.py",
+    "from .security_validator import safe_log_text\n",
+    "from .database_maintenance import (\n    DatabaseMaintenanceTimeout,\n    database_activity_lease,\n    database_maintenance_lease,\n)\nfrom .security_validator import safe_log_text\n",
+)
+replace_once(
+    "src/configstream/backup.py",
+    "RESTORE_COPY_CHUNK_BYTES = 1024 * 1024\n",
+    "RESTORE_COPY_CHUNK_BYTES = 1024 * 1024\nDATABASE_MAINTENANCE_TIMEOUT_SECONDS = 5.0\n",
+)
+replace_once(
+    "src/configstream/backup.py",
+    '''        try:\n            # Participate in SQLite's normal read/locking protocol. ``immutable=1``\n            # must not be used against a live WAL database because it can ignore\n            # committed pages that have not yet been checkpointed into the main file.\n            src_conn = sqlite3.connect(f"file:{db_file}?mode=ro", uri=True, timeout=5.0)\n            src_conn.execute("PRAGMA query_only=ON")\n            dst_conn = None\n            try:\n                dst_conn = sqlite3.connect(backup_path_temp, timeout=5.0)\n                try:\n                    src_conn.backup(dst_conn, pages=1000, progress=None)\n                except TypeError:\n                    src_conn.backup(dst_conn)\n            finally:\n                if dst_conn is not None:\n                    dst_conn.close()\n                src_conn.close()\n''',
+    '''        try:\n            # Keep restore from replacing the source inode while this live backup\n            # owns a SQLite connection.\n            with database_activity_lease(\n                db_file, timeout=DATABASE_MAINTENANCE_TIMEOUT_SECONDS\n            ):\n                # Participate in SQLite's normal read/locking protocol. ``immutable=1``\n                # must not be used against a live WAL database because it can ignore\n                # committed pages that have not yet been checkpointed into the main file.\n                src_conn = sqlite3.connect(\n                    f"file:{db_file}?mode=ro", uri=True, timeout=5.0\n                )\n                src_conn.execute("PRAGMA query_only=ON")\n                dst_conn = None\n                try:\n                    dst_conn = sqlite3.connect(backup_path_temp, timeout=5.0)\n                    try:\n                        src_conn.backup(dst_conn, pages=1000, progress=None)\n                    except TypeError:\n                        src_conn.backup(dst_conn)\n                finally:\n                    if dst_conn is not None:\n                        dst_conn.close()\n                    src_conn.close()\n''',
+)
+old_restore = '''    for suffix in ("-wal", "-shm"):\n        sidecar = Path(f"{target_file}{suffix}")\n        if sidecar.exists():\n            logger.error("Refusing restore while SQLite sidecar exists: %s", sidecar)\n            return False\n\n    target_file.parent.mkdir(parents=True, exist_ok=True)\n    fd, temp_name = tempfile.mkstemp(\n        prefix=f".{target_file.name}.restore-", dir=target_file.parent\n    )\n    os.close(fd)\n    temp_path = Path(temp_name)\n\n    try:\n        opener = gzip.open if backup_file.name.endswith(".gz") else open\n        with opener(backup_file, "rb") as f_in, temp_path.open("wb") as f_out:\n            restored_bytes = 0\n            while chunk := f_in.read(RESTORE_COPY_CHUNK_BYTES):\n                restored_bytes += len(chunk)\n                if restored_bytes > MAX_RESTORE_DATABASE_BYTES:\n                    raise ValueError("restored database exceeds the safety limit")\n                f_out.write(chunk)\n            if restored_bytes == 0:\n                raise ValueError("restored database is empty")\n            f_out.flush()\n            os.fsync(f_out.fileno())\n\n        check_conn = sqlite3.connect(f"file:{temp_path}?mode=ro", uri=True, timeout=5.0)\n        try:\n            row = check_conn.execute("PRAGMA quick_check").fetchone()\n        finally:\n            check_conn.close()\n        if row is None or str(row[0]).lower() != "ok":\n            raise sqlite3.DatabaseError("restored backup failed PRAGMA quick_check")\n\n        if target_file.exists():\n            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")\n            pre_restore_backup = target_file.with_suffix(f".pre_restore_{timestamp}.db")\n            shutil.copy2(target_file, pre_restore_backup)\n            logger.info("Created pre-restore backup: %s", pre_restore_backup.name)\n\n        os.replace(temp_path, target_file)\n        logger.info("Restored %s from %s", target_file.name, backup_file.name)\n        return True\n    except Exception as exc:\n        logger.error("Failed to restore database: %s", safe_log_text(exc))\n        return False\n    finally:\n        try:\n            temp_path.unlink(missing_ok=True)\n        except OSError as cleanup_exc:\n            logger.debug(\n                "Failed to remove restore temp file %s: %s",\n                temp_path.name,\n                safe_log_text(cleanup_exc),\n            )\n'''
+new_restore = '''    temp_path: Path | None = None\n    try:\n        with database_maintenance_lease(\n            target_file, timeout=DATABASE_MAINTENANCE_TIMEOUT_SECONDS\n        ):\n            for suffix in ("-wal", "-shm"):\n                sidecar = Path(f"{target_file}{suffix}")\n                if sidecar.exists():\n                    raise DatabaseMaintenanceTimeout(\n                        f"SQLite sidecar still active: {sidecar.name}"\n                    )\n\n            target_file.parent.mkdir(parents=True, exist_ok=True)\n            fd, temp_name = tempfile.mkstemp(\n                prefix=f".{target_file.name}.restore-", dir=target_file.parent\n            )\n            os.close(fd)\n            temp_path = Path(temp_name)\n\n            opener = gzip.open if backup_file.name.endswith(".gz") else open\n            with opener(backup_file, "rb") as f_in, temp_path.open("wb") as f_out:\n                restored_bytes = 0\n                while chunk := f_in.read(RESTORE_COPY_CHUNK_BYTES):\n                    restored_bytes += len(chunk)\n                    if restored_bytes > MAX_RESTORE_DATABASE_BYTES:\n                        raise ValueError("restored database exceeds the safety limit")\n                    f_out.write(chunk)\n                if restored_bytes == 0:\n                    raise ValueError("restored database is empty")\n                f_out.flush()\n                os.fsync(f_out.fileno())\n\n            check_conn = sqlite3.connect(\n                f"file:{temp_path}?mode=ro", uri=True, timeout=5.0\n            )\n            try:\n                row = check_conn.execute("PRAGMA quick_check").fetchone()\n            finally:\n                check_conn.close()\n            if row is None or str(row[0]).lower() != "ok":\n                raise sqlite3.DatabaseError("restored backup failed PRAGMA quick_check")\n\n            if target_file.exists():\n                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")\n                pre_restore_backup = target_file.with_suffix(\n                    f".pre_restore_{timestamp}.db"\n                )\n                shutil.copy2(target_file, pre_restore_backup)\n                logger.info("Created pre-restore backup: %s", pre_restore_backup.name)\n\n            # Defense in depth for uncooperative external SQLite clients that do\n            # not participate in the ConfigStream maintenance lease protocol.\n            active_sidecars = [\n                Path(f"{target_file}{suffix}")\n                for suffix in ("-wal", "-shm")\n                if Path(f"{target_file}{suffix}").exists()\n            ]\n            if active_sidecars:\n                raise DatabaseMaintenanceTimeout(\n                    "SQLite sidecar appeared during restore: "\n                    + ", ".join(path.name for path in active_sidecars)\n                )\n\n            os.replace(temp_path, target_file)\n            logger.info("Restored %s from %s", target_file.name, backup_file.name)\n            return True\n    except Exception as exc:\n        logger.error("Failed to restore database: %s", safe_log_text(exc))\n        return False\n    finally:\n        if temp_path is not None:\n            try:\n                temp_path.unlink(missing_ok=True)\n            except OSError as cleanup_exc:\n                logger.debug(\n                    "Failed to remove restore temp file %s: %s",\n                    temp_path.name,\n                    safe_log_text(cleanup_exc),\n                )\n'''
+replace_once("src/configstream/backup.py", old_restore, new_restore)
+
+# Slipstream resolution is optional and must not make unsupported platforms fail
+# during TUI construction.
+replace_once(
+    "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
+    '''    def get_platform_key(self) -> str:\n        """Return an architecture-specific key present in the pinned manifest."""\n        key = f"{self.system}-{self.machine}"\n        if key not in self.ARTIFACTS:\n            raise RuntimeError(f"Unsupported platform: {self.system} {self.machine}")\n        return key\n''',
+    '''    def is_supported(self) -> bool:\n        """Return whether this platform has a pinned Slipstream artifact."""\n        return f"{self.system}-{self.machine}" in self.ARTIFACTS\n\n    def get_platform_key(self) -> str:\n        """Return an architecture-specific key present in the pinned manifest."""\n        key = f"{self.system}-{self.machine}"\n        if key not in self.ARTIFACTS:\n            raise RuntimeError(f"Unsupported platform: {self.system} {self.machine}")\n        return key\n''',
+)
+replace_once(
+    "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
+    '''        self.slipstream_manager = SlipstreamManager()\n        self.slipstream_path = str(self.slipstream_manager.get_executable_path())\n        self.slipstream_domain = ""\n''',
+    '''        self.slipstream_manager = SlipstreamManager()\n        self.slipstream_path = ""\n        self.slipstream_domain = ""\n''',
+)
+replace_once(
+    "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
+    '''        # Check if slipstream needs to be downloaded\n        if self.test_slipstream and not self.slipstream_manager.is_installed():\n''',
+    '''        # Resolve Slipstream only when the optional feature is requested.\n        if self.test_slipstream and not self.slipstream_manager.is_supported():\n            self.notify(\n                f"Slipstream is unsupported on {self.slipstream_manager.system} {self.slipstream_manager.machine}",\n                severity="error",\n            )\n            return\n        if self.test_slipstream and self.slipstream_manager.is_installed():\n            self.slipstream_path = str(self.slipstream_manager.get_executable_path())\n        if self.test_slipstream and not self.slipstream_manager.is_installed():\n''',
+)
+
+# Focused regressions for the maintenance protocol and the restore race.
+maintenance_tests = '''# SPDX-License-Identifier: AGPL-3.0-or-later\nfrom __future__ import annotations\n\nimport sqlite3\nfrom pathlib import Path\n\nimport pytest\n\nfrom configstream import backup\nfrom configstream.anomaly import AnomalyDetector\nfrom configstream.database_maintenance import (\n    DatabaseMaintenanceTimeout,\n    database_activity_lease,\n    database_maintenance_lease,\n)\nfrom configstream.quality.storage import QualityStorage\n\n\ndef _create_db(path: Path, value: int) -> None:\n    with sqlite3.connect(path) as conn:\n        conn.execute("CREATE TABLE payload(value INTEGER NOT NULL)")\n        conn.execute("INSERT INTO payload(value) VALUES (?)", (value,))\n\n\ndef _read_value(path: Path) -> int:\n    with sqlite3.connect(path) as conn:\n        row = conn.execute("SELECT value FROM payload").fetchone()\n    assert row is not None\n    return int(row[0])\n\n\ndef test_shared_activity_lease_blocks_exclusive_maintenance(tmp_path: Path) -> None:\n    db = tmp_path / "state.db"\n    with database_activity_lease(db, timeout=0.05):\n        with pytest.raises(DatabaseMaintenanceTimeout):\n            database_maintenance_lease(db, timeout=0.05).acquire()\n\n\ndef test_restore_refuses_while_application_owner_is_active(\n    tmp_path: Path, monkeypatch: pytest.MonkeyPatch\n) -> None:\n    target = tmp_path / "state.db"\n    candidate = tmp_path / "candidate.db"\n    _create_db(target, 1)\n    _create_db(candidate, 2)\n    monkeypatch.setattr(backup, "DATABASE_MAINTENANCE_TIMEOUT_SECONDS", 0.05)\n\n    with database_activity_lease(target, timeout=0.05):\n        assert backup.restore_database(candidate, target) is False\n\n    assert _read_value(target) == 1\n    assert backup.restore_database(candidate, target) is True\n    assert _read_value(target) == 2\n\n\ndef test_anomaly_detector_holds_activity_lease(\n    tmp_path: Path, monkeypatch: pytest.MonkeyPatch\n) -> None:\n    db = tmp_path / "anomaly.db"\n    detector = AnomalyDetector(db)\n    try:\n        with pytest.raises(DatabaseMaintenanceTimeout):\n            database_maintenance_lease(db, timeout=0.05).acquire()\n    finally:\n        detector.close()\n\n    with database_maintenance_lease(db, timeout=0.05):\n        pass\n\n\ndef test_quality_storage_holds_activity_lease(tmp_path: Path) -> None:\n    db = tmp_path / "quality.db"\n    storage = QualityStorage(db)\n    try:\n        with pytest.raises(DatabaseMaintenanceTimeout):\n            database_maintenance_lease(db, timeout=0.05).acquire()\n    finally:\n        storage.close()\n\n    with database_maintenance_lease(db, timeout=0.05):\n        pass\n'''
+write_new("tests/unit/test_database_maintenance.py", maintenance_tests)
