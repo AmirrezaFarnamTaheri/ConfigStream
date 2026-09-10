@@ -11,7 +11,6 @@ from pathlib import Path
 
 import click
 import httpx
-import maxminddb
 from rich.console import Console
 from rich.logging import RichHandler
 from rich.progress import (
@@ -56,19 +55,22 @@ def _validate_mmdb(path: Path, expected_type: str) -> bool:
 
     try:
         import geoip2.database
+        from maxminddb.errors import InvalidDatabaseError
+    except ImportError as exc:
+        logging.getLogger(__name__).warning(
+            "GeoIP database validation unavailable for %s: %s",
+            path,
+            type(exc).__name__,
+        )
+        return False
 
+    try:
         if not path.is_file() or path.stat().st_size <= 0:
             return False
         with geoip2.database.Reader(path) as reader:
             database_type = reader.metadata().database_type
         return expected_type in database_type
-    except (
-        ImportError,
-        OSError,
-        ValueError,
-        TypeError,
-        maxminddb.InvalidDatabaseError,
-    ) as exc:
+    except (OSError, ValueError, TypeError, InvalidDatabaseError) as exc:
         logging.getLogger(__name__).warning(
             "GeoIP database validation failed for %s: %s", path, type(exc).__name__
         )
