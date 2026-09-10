@@ -1,0 +1,120 @@
+name: Temporary fix mypy findings for PR 593
+
+on:
+  push:
+    branches:
+      - codex/fix-run-34268254683-audit
+
+permissions:
+  contents: write
+
+concurrency:
+  group: temporary-fix-mypy-pr593
+  cancel-in-progress: false
+
+jobs:
+  fix:
+    if: github.repository == 'AmirrezaFarnamTaheri/ConfigStream'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.11'
+      - name: Install pinned development dependencies
+        run: |
+          python -m pip install -r requirements-dev.txt
+          python -m pip install -e . --no-deps
+      - name: Fix localized mypy findings
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          workflow_test = Path('tests/unit/test_validate_workflows_resilient.py')
+          text = workflow_test.read_text(encoding='utf-8')
+          old = '''    triggers = data.get("on") or data.get(True)\n    dispatch = triggers["workflow_dispatch"]\n'''
+          new = '''    triggers = data.get("on") or data.get(True)\n    assert isinstance(triggers, dict)\n    dispatch = triggers["workflow_dispatch"]\n'''
+          if old in text:
+              text = text.replace(old, new, 1)
+          elif new not in text:
+              raise SystemExit('workflow trigger assertion anchor not found')
+          workflow_test.write_text(text, encoding='utf-8')
+
+          blocklist_test = Path('tests/unit/test_blocklist_hardening.py')
+          text = blocklist_test.read_text(encoding='utf-8')
+          if 'from collections.abc import Iterator\n' not in text:
+              text = text.replace(
+                  'from __future__ import annotations\n\n',
+                  'from __future__ import annotations\n\nfrom collections.abc import Iterator\n',
+                  1,
+              )
+          old_sig = 'def _reset_blocklist_singleton() -> None:\n'
+          new_sig = 'def _reset_blocklist_singleton() -> Iterator[None]:\n'
+          if old_sig in text:
+              text = text.replace(old_sig, new_sig, 1)
+          elif new_sig not in text:
+              raise SystemExit('blocklist fixture signature anchor not found')
+          blocklist_test.write_text(text, encoding='utf-8')
+
+          native = Path('src/configstream/testers/native_conformance.py')
+          text = native.read_text(encoding='utf-8')
+          old_loop = '''    for protocol, passed, error in results:\n        by_protocol[protocol].append((passed, error))\n'''
+          new_loop = '''    for protocol, probe_passed, error in results:\n        by_protocol[protocol].append((probe_passed, error))\n'''
+          if old_loop in text:
+              text = text.replace(old_loop, new_loop, 1)
+          elif new_loop not in text:
+              raise SystemExit('native conformance result-loop anchor not found')
+          old_count = '''        passed = sum(ok for ok, _ in outcomes)\n        attempted = len(outcomes)\n        status = "passed" if passed > 0 else "failed"\n'''
+          new_count = '''        passed_count = sum(ok for ok, _ in outcomes)\n        attempted = len(outcomes)\n        status = "passed" if passed_count > 0 else "failed"\n'''
+          if old_count in text:
+              text = text.replace(old_count, new_count, 1)
+          elif new_count not in text:
+              raise SystemExit('native conformance count anchor not found')
+          old_field = '            "passed": passed,\n'
+          new_field = '            "passed": passed_count,\n'
+          if old_field in text:
+              text = text.replace(old_field, new_field, 1)
+          elif new_field not in text:
+              raise SystemExit('native conformance passed-field anchor not found')
+          native.write_text(text, encoding='utf-8')
+          PY
+          python -m black --fast --target-version py310 \
+            tests/unit/test_validate_workflows_resilient.py \
+            tests/unit/test_blocklist_hardening.py \
+            src/configstream/testers/native_conformance.py
+          git diff --check
+      - name: Verify mypy and focused regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m mypy .
+          pytest -q \
+            tests/unit/test_validate_workflows_resilient.py \
+            tests/unit/test_blocklist_hardening.py \
+            tests/unit/test_native_runtime_conformance.py \
+            --disable-warnings --maxfail=1
+          python scripts/generate_debt_matrix.py --check
+          python scripts/generate_environment_catalog.py --check
+          python scripts/validate_function_size_budget.py
+          python scripts/validate_exception_boundaries.py
+      - name: Commit verified type fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            tests/unit/test_validate_workflows_resilient.py \
+            tests/unit/test_blocklist_hardening.py \
+            src/configstream/testers/native_conformance.py
+          if git diff --cached --quiet; then
+            echo "Localized mypy findings already fixed."
+            exit 0
+          fi
+          git commit -m "fix(types): resolve final mypy findings"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
