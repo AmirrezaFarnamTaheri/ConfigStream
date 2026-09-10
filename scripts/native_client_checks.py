@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 import hashlib
 import json
 import os
@@ -16,6 +17,10 @@ from pathlib import Path
 from typing import Any
 
 from configstream.security_validator import SecurityValidator
+from configstream.testers.native_conformance import (
+    conformance_checks,
+    run_release_runtime_conformance,
+)
 
 try:
     from scripts.public_client_configs import (
@@ -135,6 +140,38 @@ def missing_artifact(core: str, relative: str, binary_digest: str) -> dict[str, 
     }
 
 
+def _native_connectivity_evidence(
+    root: Path,
+    singbox_binary: Path,
+    singbox_digest: str,
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Run bounded release-runtime probes and convert them to enforced checks."""
+    proxies_path = root / "proxies.json"
+    proxies_digest = digest(proxies_path) if proxies_path.is_file() else ""
+    try:
+        conformance = asyncio.run(
+            run_release_runtime_conformance(
+                root,
+                singbox_binary=singbox_binary,
+                repo_root=Path(__file__).resolve().parents[1],
+            )
+        )
+    except Exception as exc:
+        conformance = {
+            "status": "failed",
+            "protocols": {},
+            "error": SecurityValidator.sanitize_log_message(type(exc).__name__),
+        }
+    return (
+        conformance,
+        conformance_checks(
+            conformance,
+            proxies_digest=proxies_digest,
+            binary_digest=singbox_digest,
+        ),
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("artifact_dir", type=Path)
@@ -169,6 +206,7 @@ def main() -> int:
         for name, binary in binaries.items()
     }
 
+    runtime_conformance: dict[str, Any] | None = None
     singbox_binary = binaries["sing-box"]
     singbox_digest = binary_digests["sing-box"]
     if singbox_binary is not None and singbox_digest is not None:
@@ -185,6 +223,10 @@ def main() -> int:
                     singbox_digest,
                 )
             )
+        runtime_conformance, conformance_items = _native_connectivity_evidence(
+            root, singbox_binary, singbox_digest
+        )
+        checks.extend(conformance_items)
 
     mihomo_binary = binaries["mihomo"]
     mihomo_digest = binary_digests["mihomo"]
@@ -239,6 +281,7 @@ def main() -> int:
             }
             for name, binary in binaries.items()
         },
+        "runtime_conformance": runtime_conformance,
         "checks": checks,
         "summary": summary,
     }
