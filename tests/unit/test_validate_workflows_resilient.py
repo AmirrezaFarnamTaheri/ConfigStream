@@ -293,3 +293,38 @@ def test_main_has_no_noncanonical_side_product_publishers() -> None:
 
     summary = _step_by_name(merge, "Final self-describing summary")["run"]
     assert 'stage.get("criticality", "required") == "required"' in summary
+
+
+def test_pages_requires_verified_rollback_baseline_before_mutation() -> None:
+    """Keep automated production deploys fail-closed when no rollback baseline exists."""
+
+    data = _load_local_workflow("deploy-pages.yml")
+    triggers = data.get("on") or data.get(True)
+    dispatch = triggers["workflow_dispatch"]
+    bootstrap = dispatch["inputs"]["allow_bootstrap_without_lkg"]
+    assert bootstrap["default"] is False
+    assert bootstrap["type"] == "boolean"
+
+    deploy = data["jobs"]["deploy"]
+    baseline = _step_by_name(deploy, "Require rollback baseline before production mutation")
+    command = baseline["run"]
+    assert "ROLLBACK_READY=true" in command
+    assert "DEPLOY_READY=false" in command
+    assert "rollback-baseline" in command
+    assert "ALLOW_BOOTSTRAP_WITHOUT_LKG" in baseline["env"]
+
+    upload = _step_by_name(deploy, "Upload sealed Pages artifact")
+    deployment = _step_by_name(deploy, "Deploy to GitHub Pages")
+    assert "env.ROLLBACK_READY == 'true'" in str(upload["if"])
+    assert "env.ROLLBACK_READY == 'true'" in str(deployment["if"])
+
+
+def test_pages_bootstrap_without_lkg_is_manual_only() -> None:
+    """Prevent workflow_run events from bypassing the rollback-baseline requirement."""
+
+    data = _load_local_workflow("deploy-pages.yml")
+    deploy = data["jobs"]["deploy"]
+    baseline = _step_by_name(deploy, "Require rollback baseline before production mutation")
+    expression = str(baseline["env"]["ALLOW_BOOTSTRAP_WITHOUT_LKG"])
+    assert "github.event_name == 'workflow_dispatch'" in expression
+    assert "inputs.allow_bootstrap_without_lkg" in expression
