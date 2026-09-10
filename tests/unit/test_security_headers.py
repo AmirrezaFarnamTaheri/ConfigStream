@@ -37,7 +37,10 @@ def test_security_headers_present_on_root() -> None:
 def test_output_compat_route_denies_private_runtime_state(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr("configstream.server.OUTPUT_DIR", tmp_path)
+    # server.utils.OUTPUT_DIR is a DynamicPathProxy backed by this environment
+    # variable; patching configstream.server.OUTPUT_DIR would only replace the
+    # package re-export and leave _serve_output_file() on the old binding.
+    monkeypatch.setenv("OUTPUT_DIR", str(tmp_path))
     (tmp_path / "proxies.json").write_text("[]", encoding="utf-8")
     data_dir = tmp_path / "data"
     data_dir.mkdir()
