@@ -1,0 +1,358 @@
+name: PR593 finalize remaining review fixes
+
+on:
+  push:
+    branches:
+      - codex/fix-run-34268254683-audit
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pr593-finalize-review-fixes
+  cancel-in-progress: false
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: codex/fix-run-34268254683-audit
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.11'
+      - name: Apply still-live review fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install -r requirements-dev.txt >/dev/null
+          python -m pip install -e . --no-deps >/dev/null
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              text = target.read_text(encoding="utf-8")
+              if new in text:
+                  return
+              if old not in text:
+                  raise SystemExit(f"anchor not found in {path}: {old[:100]!r}")
+              target.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          # Semantic shard coverage: exact enabled matrix identities must match
+          # every downloaded lineage record, not merely the artifact count.
+          replace_once(
+              ".github/workflows/main.yml",
+              '''          shard_status="${{ steps.shard_download.outcome }}"
+          if [ "$shard_status" = success ]; then
+            if ! python - <<'PYCODE'
+          import json
+          from pathlib import Path
+
+          matrix = json.loads(Path("matrix-artifact/source-matrix.json").read_text(encoding="utf-8"))
+          expected = sum(1 for row in matrix.get("include", []) if row.get("enabled", True))
+          lineage = list(Path("artifacts").rglob("shard_lineage.json"))
+          if expected <= 0 or len(lineage) != expected:
+              raise SystemExit(
+                  f"shard artifact lineage mismatch: expected {expected}, found {len(lineage)}"
+              )
+          PYCODE
+            then
+              shard_status=failure
+            fi
+          fi
+''',
+              '''          shard_status="${{ steps.shard_download.outcome }}"
+          matrix_download_status="${{ steps.matrix_artifact_download.outcome }}"
+          if [ "$shard_status" = success ]; then
+            if [ "$matrix_download_status" != success ] || [ ! -s matrix-artifact/source-matrix.json ]; then
+              echo "::error::Shard validation requires the exact source matrix artifact"
+              shard_status=failure
+            elif ! python - <<'PYCODE'
+          import json
+          from collections import Counter
+          from pathlib import Path
+
+          matrix = json.loads(Path("matrix-artifact/source-matrix.json").read_text(encoding="utf-8"))
+          rows = [row for row in matrix.get("include", []) if row.get("enabled", True)]
+          expected = {
+              (
+                  str(row.get("batch")),
+                  int(row.get("part")),
+                  str(row.get("source_file")),
+                  str(row.get("source_sha256")),
+              )
+              for row in rows
+          }
+          if not expected or len(expected) != len(rows):
+              raise SystemExit("source matrix contains empty or duplicate shard identities")
+
+          observed = []
+          for path in Path("artifacts").rglob("shard_lineage.json"):
+              payload = json.loads(path.read_text(encoding="utf-8"))
+              observed.append(
+                  (
+                      str(payload.get("batch")),
+                      int(payload.get("part")),
+                      str(payload.get("source_file")),
+                      str(payload.get("source_sha256")),
+                  )
+              )
+          counts = Counter(observed)
+          observed_set = set(observed)
+          missing = sorted(expected - observed_set)
+          unexpected = sorted(observed_set - expected)
+          duplicates = sorted(identity for identity, count in counts.items() if count != 1)
+          if missing or unexpected or duplicates or len(observed) != len(expected):
+              raise SystemExit(
+                  "shard artifact lineage mismatch: "
+                  f"expected={len(expected)} found={len(observed)} "
+                  f"missing={missing[:3]} unexpected={unexpected[:3]} duplicates={duplicates[:3]}"
+              )
+          PYCODE
+            then
+              shard_status=failure
+            fi
+          fi
+''',
+          )
+
+          # Slipstream is optional: unsupported platforms must be able to launch
+          # the TUI and fail only if the user requests Slipstream testing.
+          replace_once(
+              "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
+              '''    def get_platform_key(self) -> str:
+        """Return an architecture-specific key present in the pinned manifest."""
+        key = f"{self.system}-{self.machine}"
+        if key not in self.ARTIFACTS:
+            raise RuntimeError(f"Unsupported platform: {self.system} {self.machine}")
+        return key
+''',
+              '''    def is_supported(self) -> bool:
+        """Return whether this platform has a pinned Slipstream artifact."""
+        return f"{self.system}-{self.machine}" in self.ARTIFACTS
+
+    def get_platform_key(self) -> str:
+        """Return an architecture-specific key present in the pinned manifest."""
+        key = f"{self.system}-{self.machine}"
+        if key not in self.ARTIFACTS:
+            raise RuntimeError(f"Unsupported platform: {self.system} {self.machine}")
+        return key
+''',
+          )
+          replace_once(
+              "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
+              '''        self.slipstream_manager = SlipstreamManager()
+        self.slipstream_path = str(self.slipstream_manager.get_executable_path())
+        self.slipstream_domain = ""
+''',
+              '''        self.slipstream_manager = SlipstreamManager()
+        self.slipstream_path = ""
+        self.slipstream_domain = ""
+''',
+          )
+          replace_once(
+              "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
+              '''        # Check if slipstream needs to be downloaded
+        if self.test_slipstream and not self.slipstream_manager.is_installed():
+            self.notify(
+                "Slipstream not found. Starting download...", severity="information"
+            )
+            self.run_worker(self._download_and_start_scan(), exclusive=True)
+            return
+''',
+              '''        # Resolve the optional Slipstream dependency only when requested.
+        if self.test_slipstream:
+            if not self.slipstream_manager.is_supported():
+                self.notify(
+                    "Slipstream is not supported on "
+                    f"{self.slipstream_manager.system} {self.slipstream_manager.machine}.",
+                    severity="error",
+                )
+                return
+            if self.slipstream_manager.is_installed():
+                self.slipstream_path = str(
+                    self.slipstream_manager.get_executable_path()
+                )
+            else:
+                self.notify(
+                    "Slipstream not found. Starting download...",
+                    severity="information",
+                )
+                self.run_worker(self._download_and_start_scan(), exclusive=True)
+                return
+''',
+          )
+
+          # Strengthen the workflow regression to require identity-level checks.
+          replace_once(
+              "tests/unit/test_main_artifact_semantics.py",
+              '''    assert 'Path("artifacts").rglob("shard_lineage.json")' in workflow
+    assert "shard artifact lineage mismatch" in workflow
+''',
+              '''    assert 'Path("artifacts").rglob("shard_lineage.json")' in workflow
+    assert "source_sha256" in workflow
+    assert "Counter(observed)" in workflow
+    assert "missing=" in workflow
+    assert "unexpected=" in workflow
+    assert "duplicates=" in workflow
+    assert "shard artifact lineage mismatch" in workflow
+''',
+          )
+
+          # Close the still-live strict typing sites from the consolidated review.
+          replace_once(
+              "tests/unit/test_backup_extended.py",
+              '''def test_restore_rejects_oversized_gzip_before_publication(
+    data_dir, backup_dir, monkeypatch
+):
+''',
+              '''def test_restore_rejects_oversized_gzip_before_publication(
+    data_dir: Path, backup_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+''',
+          )
+          replace_once(
+              "tests/unit/test_cache_paths.py",
+              '''from unittest.mock import patch
+
+from configstream.test_cache import TestResultCache
+''',
+              '''from pathlib import Path
+from unittest.mock import patch
+
+import pytest
+
+from configstream.test_cache import TestResultCache
+''',
+          )
+          replace_once(
+              "tests/unit/test_cache_paths.py",
+              '''def test_oversized_cache_file_fails_empty(tmp_path, monkeypatch):
+''',
+              '''def test_oversized_cache_file_fails_empty(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+''',
+          )
+          replace_once(
+              "tests/unit/test_cli_extended.py",
+              '''def test_update_databases_rejects_pinned_mirror_digest_mismatch(runner):
+''',
+              '''def test_update_databases_rejects_pinned_mirror_digest_mismatch(
+    runner: CliRunner,
+) -> None:
+''',
+          )
+          replace_once(
+              "tests/unit/test_publication_policy.py",
+              '''import json
+from datetime import datetime, timedelta, timezone
+
+import pytest
+''',
+              '''import json
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+
+import pytest
+''',
+          )
+          replace_once(
+              "tests/unit/test_publication_policy.py",
+              '''def test_sanitized_event_stream_is_public_when_allowlisted(tmp_path):
+''',
+              '''def test_sanitized_event_stream_is_public_when_allowlisted(
+    tmp_path: Path,
+) -> None:
+''',
+          )
+
+          lifecycle = Path("tests/unit/test_dnsscanner_tui_lifecycle.py")
+          text = lifecycle.read_text(encoding="utf-8")
+          replacements = {
+              "async def test_cancel_and_await_tasks_runs_task_finalizers():": "async def test_cancel_and_await_tasks_runs_task_finalizers() -> None:",
+              "    async def worker():": "    async def worker() -> None:",
+              "async def test_kill_and_reap_processes_waits_for_children():": "async def test_kill_and_reap_processes_waits_for_children() -> None:",
+              "async def test_kill_and_reap_processes_reaps_already_exited_child():": "async def test_kill_and_reap_processes_reaps_already_exited_child() -> None:",
+              "        def __init__(self):": "        def __init__(self) -> None:",
+              "        def kill(self):": "        def kill(self) -> None:",
+              "        async def wait(self):": "        async def wait(self) -> int | None:",
+          }
+          for old, new in replacements.items():
+              text = text.replace(old, new)
+          lifecycle.write_text(text, encoding="utf-8")
+
+          # Direct regression for the reported unsupported-platform constructor path.
+          text = lifecycle.read_text(encoding="utf-8")
+          if "test_tui_initialization_defers_unsupported_slipstream" not in text:
+              text += '''
+
+
+def test_tui_initialization_defers_unsupported_slipstream(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from configstream.tools.dns_scanner.python import dnsscanner_tui
+
+    monkeypatch.setattr(dnsscanner_tui.platform, "system", lambda: "Linux")
+    monkeypatch.setattr(dnsscanner_tui.platform, "machine", lambda: "armv7l")
+
+    app = dnsscanner_tui.DNSScannerTUI()
+
+    assert app.slipstream_path == ""
+    assert app.slipstream_manager.is_supported() is False
+    assert app.slipstream_manager.get_download_url() is None
+    with pytest.raises(RuntimeError, match="Unsupported platform"):
+        app.slipstream_manager.get_executable_path()
+'''
+              lifecycle.write_text(text, encoding="utf-8")
+          PY
+
+          python -m black --fast --target-version py310 \
+            src/configstream/tools/dns_scanner/python/dnsscanner_tui.py \
+            tests/unit/test_backup_extended.py \
+            tests/unit/test_cache_paths.py \
+            tests/unit/test_cli_extended.py \
+            tests/unit/test_dnsscanner_tui_lifecycle.py \
+            tests/unit/test_publication_policy.py \
+            tests/unit/test_main_artifact_semantics.py
+
+          # The one-shot workflow must not exist in the tree being validated/committed.
+          git rm -f --ignore-unmatch .github/workflows/pr593-finalize-review-fixes.yml
+
+          python scripts/generate_debt_matrix.py
+          python scripts/generate_environment_catalog.py
+          if [ -f scripts/generate_triage_report.py ]; then
+            python scripts/generate_triage_report.py
+          fi
+          python scripts/validate_workflows.py
+          pytest -q \
+            tests/unit/test_main_artifact_semantics.py \
+            tests/unit/test_validate_workflow_shells.py \
+            tests/unit/test_dnsscanner_tui_lifecycle.py \
+            tests/unit/test_backup_extended.py \
+            tests/unit/test_cache_paths.py \
+            tests/unit/test_cli_extended.py \
+            tests/unit/test_publication_policy.py \
+            --disable-warnings --maxfail=1
+          python scripts/verify_repository.py --profile static
+          git diff --check
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix(review): close remaining PR593 review findings"
+
+          # Preserve concurrent branch work if another commit landed during validation.
+          for attempt in 1 2 3; do
+            if git push origin HEAD:codex/fix-run-34268254683-audit; then
+              exit 0
+            fi
+            git fetch origin codex/fix-run-34268254683-audit
+            git rebase origin/codex/fix-run-34268254683-audit
+          done
+          exit 1
