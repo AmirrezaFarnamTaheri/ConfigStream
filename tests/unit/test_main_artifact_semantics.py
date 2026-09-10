@@ -10,7 +10,13 @@ def test_main_records_shard_download_only_after_lineage_count_matches_matrix() -
     assert 'shard_status="${{ steps.shard_download.outcome }}"' in workflow
     assert 'Path("artifacts").rglob("shard_lineage.json")' in workflow
     assert "shard artifact lineage mismatch" in workflow
-    assert 'record --name shard-download --status "$shard_status"' in workflow
+    record = 'record --name shard-download --status "$shard_status"'
+    assert record in workflow
+
+    record_step = workflow.split("      - name: Record artifact downloads", 1)[1].split(
+        "      - name: Restore available artifacts", 1
+    )[0]
+    assert record_step.index("shard artifact lineage mismatch") < record_step.index(record)
 
 
 def test_geoip_prerequisite_is_geoip_only_and_retained_for_reruns() -> None:
