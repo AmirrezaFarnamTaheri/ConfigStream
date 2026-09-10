@@ -8,7 +8,7 @@ from configstream.hard_stop import HardStopWatcher
 
 
 class _FakeProc:
-    def __init__(self):
+    def __init__(self) -> None:
         self.returncode = None
         self.killed = False
         self.wait_called = False
@@ -23,12 +23,12 @@ class _FakeProc:
 
 
 @pytest.mark.asyncio
-async def test_hard_stop_kills_hung_tester_process():
+async def test_hard_stop_kills_hung_tester_process() -> None:
     proc = _FakeProc()
     go_tester = SimpleNamespace(_proc=proc)
 
     class _HungTester:
-        def __init__(self):
+        def __init__(self) -> None:
             self.go_tester = go_tester
 
         async def close(self) -> None:
@@ -45,12 +45,12 @@ async def test_hard_stop_kills_hung_tester_process():
 
 
 @pytest.mark.asyncio
-async def test_hard_stop_kills_process_when_close_raises():
+async def test_hard_stop_kills_process_when_close_raises() -> None:
     proc = _FakeProc()
     go_tester = SimpleNamespace(_proc=proc)
 
     class _BrokenTester:
-        def __init__(self):
+        def __init__(self) -> None:
             self.go_tester = go_tester
 
         async def close(self) -> None:
@@ -69,12 +69,12 @@ async def test_hard_stop_kills_process_when_close_raises():
 
 
 @pytest.mark.asyncio
-async def test_hard_stop_kills_process_when_close_returns_early():
+async def test_hard_stop_kills_process_when_close_returns_early() -> None:
     proc = _FakeProc()
     go_tester = SimpleNamespace(_proc=proc)
 
     class _IncompleteTester:
-        def __init__(self):
+        def __init__(self) -> None:
             self.go_tester = go_tester
 
         async def close(self) -> None:
@@ -91,13 +91,13 @@ async def test_hard_stop_kills_process_when_close_returns_early():
 
 
 @pytest.mark.asyncio
-async def test_hard_stop_does_not_clear_newer_process_reference():
+async def test_hard_stop_does_not_clear_newer_process_reference() -> None:
     old_proc = _FakeProc()
     new_proc = _FakeProc()
     go_tester = SimpleNamespace(_proc=old_proc)
 
     class _RacingTester:
-        def __init__(self):
+        def __init__(self) -> None:
             self.go_tester = go_tester
 
         async def close(self) -> None:
@@ -114,7 +114,7 @@ async def test_hard_stop_does_not_clear_newer_process_reference():
 
 
 @pytest.mark.asyncio
-async def test_hard_stop_flushes_event_stream():
+async def test_hard_stop_flushes_event_stream() -> None:
     state = {"closed": False}
 
     class _EventStream:
