@@ -471,12 +471,13 @@ class QualityStorage:
         """Idempotently merge a shard database into this database."""
 
         other = Path(other_db_path)
-        if not other.exists():
-            return
-        if other.stat().st_size > MAX_MERGE_DB_BYTES:
-            raise QualityStorageError("refusing oversized source quality database")
         src: Optional[sqlite3.Connection] = None
         try:
+            if not other.exists():
+                return
+            if other.stat().st_size > MAX_MERGE_DB_BYTES:
+                raise QualityStorageError("refusing oversized source quality database")
+
             src = sqlite3.connect(other, timeout=20)
             src.row_factory = sqlite3.Row
             src.execute("PRAGMA query_only=ON")
