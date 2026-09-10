@@ -161,23 +161,23 @@ async def run_release_runtime_conformance(
     results = await asyncio.gather(*tasks)
 
     by_protocol: dict[str, list[tuple[bool, str | None]]] = defaultdict(list)
-    for protocol, passed, error in results:
-        by_protocol[protocol].append((passed, error))
+    for protocol, probe_passed, error in results:
+        by_protocol[protocol].append((probe_passed, error))
 
     failed_protocols: list[str] = []
     rendered: dict[str, Any] = {}
     for protocol in sorted(samples):
         outcomes = by_protocol.get(protocol, [])
-        passed = sum(ok for ok, _ in outcomes)
+        passed_count = sum(ok for ok, _ in outcomes)
         attempted = len(outcomes)
-        status = "passed" if passed > 0 else "failed"
+        status = "passed" if passed_count > 0 else "failed"
         if status != "passed":
             failed_protocols.append(protocol)
         errors = sorted({error for ok, error in outcomes if not ok and error})
         rendered[protocol] = {
             "status": status,
             "attempted": attempted,
-            "passed": passed,
+            "passed": passed_count,
             "errors": errors[:3],
         }
 

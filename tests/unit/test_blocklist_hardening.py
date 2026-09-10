@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from __future__ import annotations
 
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
@@ -10,7 +11,7 @@ from configstream.security.blocklist import BlocklistManager
 
 
 @pytest.fixture(autouse=True)
-def _reset_blocklist_singleton() -> None:
+def _reset_blocklist_singleton() -> Iterator[None]:
     BlocklistManager._instance = None
     yield
     BlocklistManager._instance = None

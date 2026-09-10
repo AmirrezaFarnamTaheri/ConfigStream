@@ -300,6 +300,7 @@ def test_pages_requires_verified_rollback_baseline_before_mutation() -> None:
 
     data = _load_local_workflow("deploy-pages.yml")
     triggers = data.get("on") or data.get(True)
+    assert isinstance(triggers, dict)
     dispatch = triggers["workflow_dispatch"]
     bootstrap = dispatch["inputs"]["allow_bootstrap_without_lkg"]
     assert bootstrap["default"] is False
