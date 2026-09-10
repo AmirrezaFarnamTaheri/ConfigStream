@@ -1,0 +1,47 @@
+name: PR593 one-shot DNS TUI logging fix
+
+on:
+  push:
+    branches:
+      - codex/fix-run-34268254683-audit
+    paths:
+      - .github/workflows/tmp-pr593-stdlib-logging.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: codex/fix-run-34268254683-audit
+          fetch-depth: 0
+      - name: Replace undeclared Loguru dependency and self-remove
+        shell: bash
+        run: |
+          set -euo pipefail
+          git pull --ff-only origin codex/fix-run-34268254683-audit
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("src/configstream/tools/dns_scanner/python/dnsscanner_tui.py")
+          text = path.read_text(encoding="utf-8")
+          text = text.replace("from loguru import logger\n", "")
+          old = '''# Configure logging (disabled by default)\nlogger.remove()  # Remove default handler to disable all logging\n# Uncomment below to enable file logging for debugging\n# logger.add(\n#     "logs/dnsscanner_{time}.log",\n#     rotation="50 MB",\n#     compression="zip",\n#     level="DEBUG",\n# )\n'''
+          new = '''# Keep scanner diagnostics silent by default without requiring an optional\n# logging framework at import time. Applications may attach their own handler.\nlogger = logging.getLogger(__name__)\nlogger.addHandler(logging.NullHandler())\nlogger.propagate = False\n'''
+          if old not in text:
+              raise SystemExit("expected Loguru configuration block not found")
+          path.write_text(text.replace(old, new, 1), encoding="utf-8")
+          PY
+          python -m py_compile src/configstream/tools/dns_scanner/python/dnsscanner_tui.py
+          git diff --check
+          git rm -f .github/workflows/tmp-pr593-stdlib-logging.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix(dns): remove undeclared Loguru runtime dependency"
+          git push origin HEAD:codex/fix-run-34268254683-audit
