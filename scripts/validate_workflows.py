@@ -166,6 +166,25 @@ _BASH_ONLY_RUN_MARKERS = (
     "<(",
     "<<<",
 )
+_BASH_ARRAY_ASSIGNMENT_RE = re.compile(
+    r"(?m)^\s*(?:(?:local|readonly|declare)\s+)?[A-Za-z_][A-Za-z0-9_]*\s*=\s*\("
+)
+_BASH_ARITHMETIC_COMMAND_RE = re.compile(r"(?m)(?:^|[;&|]\s*)\(\(")
+_BASH_DOUBLE_BRACKET_RE = re.compile(r"\[\[")
+
+
+def _uses_bash_only_syntax(command: str) -> bool:
+    """Return whether a run block contains syntax that requires Bash."""
+    if any(marker in command for marker in _BASH_ONLY_RUN_MARKERS):
+        return True
+    return any(
+        pattern.search(command) is not None
+        for pattern in (
+            _BASH_ARRAY_ASSIGNMENT_RE,
+            _BASH_ARITHMETIC_COMMAND_RE,
+            _BASH_DOUBLE_BRACKET_RE,
+        )
+    )
 
 
 def _is_bash_shell(value: object) -> bool:
@@ -200,9 +219,7 @@ def _container_bash_shell_errors(data: dict[Any, Any]) -> list[str]:
             if not isinstance(step, dict):
                 continue
             command = _run(step)
-            if not command or not any(
-                marker in command for marker in _BASH_ONLY_RUN_MARKERS
-            ):
+            if not command or not _uses_bash_only_syntax(command):
                 continue
             effective_shell = step.get("shell") or default_shell
             if _is_bash_shell(effective_shell):
