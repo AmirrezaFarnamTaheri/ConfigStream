@@ -159,6 +159,12 @@ _BASH_ONLY_RUN_MARKERS = (
     "shopt ",
     "mapfile ",
     "[[ ",
+    "declare -a ",
+    "declare -A ",
+    "readarray ",
+    "source ",
+    "<(",
+    "<<<",
 )
 
 
@@ -169,17 +175,24 @@ def _is_bash_shell(value: object) -> bool:
     return shell == "bash" or shell.startswith("bash ")
 
 
+def _default_run_shell(node: dict[Any, Any]) -> object:
+    defaults = node.get("defaults")
+    if not isinstance(defaults, dict):
+        return None
+    run_defaults = defaults.get("run")
+    if not isinstance(run_defaults, dict):
+        return None
+    return run_defaults.get("shell")
+
+
 def _container_bash_shell_errors(data: dict[Any, Any]) -> list[str]:
-    """Reject Bash-only run syntax that would execute with a container's /bin/sh."""
+    """Reject Bash-only container commands unless their effective shell is Bash."""
     errors: list[str] = []
+    workflow_shell = _default_run_shell(data)
     for job_name, job in _jobs(data).items():
         if not isinstance(job, dict) or "container" not in job:
             continue
-        defaults = job.get("defaults", {})
-        default_run = defaults.get("run", {}) if isinstance(defaults, dict) else {}
-        default_shell = (
-            default_run.get("shell") if isinstance(default_run, dict) else None
-        )
+        default_shell = _default_run_shell(job) or workflow_shell
         steps = job.get("steps", [])
         if not isinstance(steps, list):
             continue
@@ -191,7 +204,7 @@ def _container_bash_shell_errors(data: dict[Any, Any]) -> list[str]:
                 marker in command for marker in _BASH_ONLY_RUN_MARKERS
             ):
                 continue
-            effective_shell = step.get("shell", default_shell)
+            effective_shell = step.get("shell") or default_shell
             if _is_bash_shell(effective_shell):
                 continue
             name = str(step.get("name") or f"step {index}")

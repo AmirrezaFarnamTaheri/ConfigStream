@@ -15,26 +15,33 @@ def test_rejects_bash_only_syntax_under_container_default_sh() -> None:
             }
         }
     }
+    errors = validate_container_shells.validate_workflow(workflow)
+    assert len(errors) == 1
+    assert "Strict shell" in errors[0]
+    assert "shell: bash" in errors[0]
 
-    assert validate_container_shells.validate_workflow(workflow) == [
-        "container job geoip step 'Strict shell' uses Bash-only syntax without an explicit Bash shell"
-    ]
 
-
-def test_accepts_job_level_bash_default() -> None:
-    workflow = {
+def test_accepts_job_and_workflow_level_bash_defaults() -> None:
+    job_default = {
         "jobs": {
             "geoip": {
                 "container": {"image": "example.invalid/image@sha256:deadbeef"},
                 "defaults": {"run": {"shell": "bash"}},
-                "steps": [
-                    {"name": "Strict shell", "run": "set -euo pipefail\necho ok"}
-                ],
+                "steps": [{"run": "set -euo pipefail\necho ok"}],
             }
         }
     }
-
-    assert validate_container_shells.validate_workflow(workflow) == []
+    workflow_default = {
+        "defaults": {"run": {"shell": "bash"}},
+        "jobs": {
+            "geoip": {
+                "container": {"image": "example.invalid/image@sha256:deadbeef"},
+                "steps": [{"run": "set -euo pipefail\necho ok"}],
+            }
+        },
+    }
+    assert validate_container_shells.validate_workflow(job_default) == []
+    assert validate_container_shells.validate_workflow(workflow_default) == []
 
 
 def test_accepts_step_level_bash_shell() -> None:
@@ -42,17 +49,10 @@ def test_accepts_step_level_bash_shell() -> None:
         "jobs": {
             "geoip": {
                 "container": {"image": "example.invalid/image@sha256:deadbeef"},
-                "steps": [
-                    {
-                        "name": "Strict shell",
-                        "shell": "bash",
-                        "run": "set -euo pipefail\necho ok",
-                    }
-                ],
+                "steps": [{"shell": "bash", "run": "set -euo pipefail\necho ok"}],
             }
         }
     }
-
     assert validate_container_shells.validate_workflow(workflow) == []
 
 
