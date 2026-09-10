@@ -1,6 +1,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Regression tests for HTTP-layer security headers."""
 
+from pathlib import Path
+
+import pytest
 from fastapi.testclient import TestClient
 
 from configstream.server import create_app
@@ -32,9 +35,9 @@ def test_security_headers_present_on_root() -> None:
 
 
 def test_output_compat_route_denies_private_runtime_state(
-    tmp_path, monkeypatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setenv("OUTPUT_DIR", str(tmp_path))
+    monkeypatch.setattr("configstream.server.OUTPUT_DIR", tmp_path)
     (tmp_path / "proxies.json").write_text("[]", encoding="utf-8")
     data_dir = tmp_path / "data"
     data_dir.mkdir()
