@@ -140,12 +140,10 @@ class VwarpTunnel:
             tasks = list(self._stream_tasks)
             for task in tasks:
                 task.cancel()
-            try:
-                if tasks:
-                    await asyncio.gather(*tasks, return_exceptions=True)
-            finally:
-                self._stream_tasks.clear()
-                self._cleanup_config_file()
+            self._stream_tasks.clear()
+            self._cleanup_config_file()
+            if tasks:
+                await asyncio.gather(*tasks, return_exceptions=True)
 
     async def _wait_for_port(self, host: str, port: int, timeout: int = 45) -> bool:
         """Polls the given host:port until it accepts connections."""
