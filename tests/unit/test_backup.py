@@ -1,11 +1,12 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import gzip
 import sqlite3
+from pathlib import Path
 
 from configstream.backup import backup_databases, cleanup_old_backups, restore_database
 
 
-def test_backup_manager(tmp_path):
+def test_backup_manager(tmp_path: Path) -> None:
     data_dir = tmp_path / "data"
     backup_dir = tmp_path / "backups"
     data_dir.mkdir()
@@ -27,7 +28,7 @@ def test_backup_manager(tmp_path):
     assert backups[0].exists()
 
 
-def test_backup_includes_committed_wal_state(tmp_path):
+def test_backup_includes_committed_wal_state(tmp_path: Path) -> None:
     data_dir = tmp_path / "data"
     backup_dir = tmp_path / "backups"
     data_dir.mkdir()
@@ -56,7 +57,7 @@ def test_backup_includes_committed_wal_state(tmp_path):
     writer.close()
 
 
-def test_restore_invalid_backup_preserves_existing_database(tmp_path):
+def test_restore_invalid_backup_preserves_existing_database(tmp_path: Path) -> None:
     target = tmp_path / "target.db"
     with sqlite3.connect(target) as conn:
         conn.execute("CREATE TABLE records(value TEXT)")
@@ -71,7 +72,7 @@ def test_restore_invalid_backup_preserves_existing_database(tmp_path):
         assert conn.execute("SELECT value FROM records").fetchone()[0] == "original"
 
 
-def test_restore_refuses_active_wal_generation(tmp_path):
+def test_restore_coordinates_with_active_wal_generation(tmp_path: Path) -> None:
     target = tmp_path / "target.db"
     writer = sqlite3.connect(target)
     assert writer.execute("PRAGMA journal_mode=WAL").fetchone()[0].lower() == "wal"
@@ -87,6 +88,8 @@ def test_restore_refuses_active_wal_generation(tmp_path):
         conn.execute("INSERT INTO records VALUES ('backup')")
         conn.commit()
 
-    assert restore_database(backup, target) is False
-    assert writer.execute("SELECT value FROM records").fetchone()[0] == "live"
+    assert restore_database(backup, target) is True
+    # The pre-existing WAL connection remains attached to the same database
+    # generation and observes the restored contents; no inode swap occurred.
+    assert writer.execute("SELECT value FROM records").fetchone()[0] == "backup"
     writer.close()
