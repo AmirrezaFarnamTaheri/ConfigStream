@@ -153,6 +153,51 @@ def _find_unresolvable_action_refs(data: dict[Any, Any]) -> list[str]:
     return sorted(ref for ref in UNRESOLVABLE_ACTION_REFS if ref in refs)
 
 
+_BASH_ONLY_RUN_MARKERS = (
+    "pipefail",
+    "${PIPESTATUS",
+    "shopt ",
+    "mapfile ",
+    "[[ ",
+)
+
+
+def _is_bash_shell(value: object) -> bool:
+    if not isinstance(value, str):
+        return False
+    shell = value.strip().lower()
+    return shell == "bash" or shell.startswith("bash ")
+
+
+def _container_bash_shell_errors(data: dict[Any, Any]) -> list[str]:
+    """Reject Bash-only run syntax that would execute with a container's /bin/sh."""
+    errors: list[str] = []
+    for job_name, job in _jobs(data).items():
+        if not isinstance(job, dict) or "container" not in job:
+            continue
+        defaults = job.get("defaults", {})
+        default_run = defaults.get("run", {}) if isinstance(defaults, dict) else {}
+        default_shell = default_run.get("shell") if isinstance(default_run, dict) else None
+        steps = job.get("steps", [])
+        if not isinstance(steps, list):
+            continue
+        for index, step in enumerate(steps, start=1):
+            if not isinstance(step, dict):
+                continue
+            command = _run(step)
+            if not command or not any(marker in command for marker in _BASH_ONLY_RUN_MARKERS):
+                continue
+            effective_shell = step.get("shell", default_shell)
+            if _is_bash_shell(effective_shell):
+                continue
+            name = str(step.get("name") or f"step {index}")
+            errors.append(
+                f"container job {job_name!s} step {name!r} uses Bash-only syntax "
+                "without shell: bash or defaults.run.shell: bash"
+            )
+    return errors
+
+
 def _has_contract_validators(data: dict[Any, Any]) -> bool:
     return all(
         _has_command(data, command)
@@ -484,6 +529,9 @@ def main() -> int:
             )
         for ref in _find_unresolvable_action_refs(data):
             errors.append(f"{path}: stale action ref {ref}")
+        errors.extend(
+            f"{path}: {error}" for error in _container_bash_shell_errors(data)
+        )
         if path.name == "ci.yml":
             errors.extend(f"{path}: {error}" for error in _ci_safe(data))
         if path.name == "release.yml" and not _has_contract_validators(data):
