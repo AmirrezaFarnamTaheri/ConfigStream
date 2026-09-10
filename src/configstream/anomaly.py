@@ -331,13 +331,15 @@ CREATE TABLE IF NOT EXISTS history (
         """
         Merge history from another Anomaly DB.
         """
-        if not other_db_path.exists():
-            return
-        if other_db_path.stat().st_size > MAX_MERGE_DB_BYTES:
-            logger.error("Refusing oversized anomaly database merge: %s", other_db_path)
-            return
-
         try:
+            if not other_db_path.exists():
+                return
+            if other_db_path.stat().st_size > MAX_MERGE_DB_BYTES:
+                logger.error(
+                    "Refusing oversized anomaly database merge: %s", other_db_path
+                )
+                return
+
             with self._lock:
                 with (
                     sqlite3.connect(other_db_path) as src,
