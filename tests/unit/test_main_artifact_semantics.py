@@ -15,7 +15,9 @@ def test_main_records_shard_download_only_after_exact_lineage_validation() -> No
     record_step = _artifact_record_step()
 
     assert 'shard_status="${{ steps.shard_download.outcome }}"' in record_step
-    assert 'matrix_status="${{ steps.matrix_artifact_download.outcome }}"' in record_step
+    assert (
+        'matrix_status="${{ steps.matrix_artifact_download.outcome }}"' in record_step
+    )
     assert '[ "$matrix_status" != success ]' in record_step
     assert "matrix-artifact/source-matrix.json" in record_step
     assert 'Path("artifacts").rglob("shard_lineage.json")' in record_step
@@ -30,13 +32,18 @@ def test_main_records_shard_download_only_after_exact_lineage_validation() -> No
 
     record = 'record --name shard-download --status "$shard_status"'
     assert record in record_step
-    assert record_step.index("shard artifact lineage mismatch") < record_step.index(record)
+    assert record_step.index("shard artifact lineage mismatch") < record_step.index(
+        record
+    )
 
 
 def test_main_records_matrix_failure_even_when_matrix_file_is_missing() -> None:
     record_step = _artifact_record_step()
 
-    assert "Shard artifact validation requires the exact runtime source matrix" in record_step
+    assert (
+        "Shard artifact validation requires the exact runtime source matrix"
+        in record_step
+    )
     assert "shard_status=failure" in record_step
     matrix_record = 'record --name matrix-artifact-download --status "$matrix_status"'
     assert matrix_record in record_step

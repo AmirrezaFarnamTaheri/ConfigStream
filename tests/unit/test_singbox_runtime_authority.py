@@ -22,7 +22,9 @@ def test_legacy_tester_is_not_release_authority() -> None:
 
 def test_release_artifacts_are_checked_by_governed_native_sing_box() -> None:
     native_checks = Path("scripts/native_client_checks.py").read_text(encoding="utf-8")
-    workflow = yaml.safe_load(Path(".github/workflows/main.yml").read_text(encoding="utf-8"))
+    workflow = yaml.safe_load(
+        Path(".github/workflows/main.yml").read_text(encoding="utf-8")
+    )
     runtime = json.loads(
         Path("config/runtime-versions.json").read_text(encoding="utf-8")
     )
