@@ -23,7 +23,6 @@ from typing import Set, AsyncGenerator, Optional, Deque, cast
 import aiodns
 import httpx
 import orjson
-from loguru import logger
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical
 from textual.reactive import reactive
@@ -65,15 +64,11 @@ except ImportError:  # pragma: no cover - direct script execution compatibility
         verify_artifact,
     )
 
-# Configure logging (disabled by default)
-logger.remove()  # Remove default handler to disable all logging
-# Uncomment below to enable file logging for debugging
-# logger.add(
-#     "logs/dnsscanner_{time}.log",
-#     rotation="50 MB",
-#     compression="zip",
-#     level="DEBUG",
-# )
+# Keep scanner diagnostics silent by default without requiring an optional
+# logging framework at import time. Applications may attach their own handler.
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
+logger.propagate = False
 
 
 class SlipstreamManager:
