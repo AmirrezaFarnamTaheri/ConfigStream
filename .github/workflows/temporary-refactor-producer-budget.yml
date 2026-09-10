@@ -1,0 +1,100 @@
+name: Temporary producer budget refactor
+
+on:
+  push:
+    branches:
+      - codex/fix-run-34268254683-audit
+
+permissions:
+  contents: write
+
+concurrency:
+  group: temporary-producer-budget-pr593
+  cancel-in-progress: false
+
+jobs:
+  refactor:
+    if: github.repository == 'AmirrezaFarnamTaheri/ConfigStream'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.11'
+      - name: Install pinned development dependencies
+        run: |
+          python -m pip install -r requirements-dev.txt
+          python -m pip install -e . --no-deps
+      - name: Extract stateless direct-proxy helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          from textwrap import dedent
+
+          path = Path('src/configstream/pipeline/producer.py')
+          text = path.read_text(encoding='utf-8')
+          nested = '    def _is_direct_proxy(candidate: str) -> bool:\n'
+          comment = '    # Set when this coroutine is cancelled, so the sentinel-delivery loop in the\n'
+          source_marker = '\n\nasync def source_producer('
+          if nested not in text:
+              raise SystemExit('nested _is_direct_proxy helper not found')
+          start = text.index(nested)
+          end = text.index(comment, start)
+          helper = dedent(text[start:end]).rstrip()
+          text = text[:start] + text[end:]
+          insert_at = text.index(source_marker)
+          text = text[:insert_at] + '\n\n' + helper + text[insert_at:]
+          path.write_text(text, encoding='utf-8')
+          PY
+          python -m black --fast --target-version py310 src/configstream/pipeline/producer.py
+          python -m py_compile src/configstream/pipeline/producer.py
+      - name: Lower structural budget and refresh positional evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp config/function-size-budget.json /tmp/function-size-budget.before.json
+          python scripts/validate_function_size_budget.py --write
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          before = json.loads(Path('/tmp/function-size-budget.before.json').read_text())['functions']
+          after = json.loads(Path('config/function-size-budget.json').read_text())['functions']
+          for key, value in after.items():
+              if key not in before:
+                  raise SystemExit(f'new oversized function unexpectedly added: {key}')
+              if int(value) > int(before[key]):
+                  raise SystemExit(f'function-size ceiling increased unexpectedly: {key}: {before[key]} -> {value}')
+          PY
+          python scripts/generate_debt_matrix.py
+          python scripts/generate_environment_catalog.py
+          python scripts/generate_triage_report.py
+          python scripts/validate_function_size_budget.py
+          python scripts/generate_debt_matrix.py --check
+          python scripts/generate_environment_catalog.py --check
+          python scripts/generate_triage_report.py --check
+          git diff --check
+      - name: Run focused producer regressions
+        run: pytest -q tests/unit/test_pipeline_stages.py --disable-warnings --maxfail=1
+      - name: Commit verified refactor
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            src/configstream/pipeline/producer.py \
+            config/function-size-budget.json \
+            docs/DEBT_MATRIX.md \
+            docs/debt_matrix.json \
+            docs/generated/environment-variables.json \
+            docs/generated/environment-variables.md \
+            TRIAGE_REPORT.md
+          if git diff --cached --quiet; then
+            echo "No verified refactor changes to commit."
+            exit 0
+          fi
+          git commit -m "refactor: shrink source producer below budget"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
