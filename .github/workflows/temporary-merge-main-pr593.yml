@@ -24,6 +24,10 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: '3.11'
+      - name: Install pinned validation dependencies
+        run: |
+          python -m pip install -r requirements-dev.txt
+          python -m pip install -e . --no-deps
       - name: Merge current main without discarding PR hardening
         shell: bash
         run: |
@@ -41,11 +45,53 @@ jobs:
 
           path = Path('scripts/validate_workflows.py')
           text = path.read_text(encoding='utf-8')
-          old = '''def _is_bash_shell(value: object) -> bool:\n    if not isinstance(value, str):\n        return False\n    shell = value.strip().lower()\n    return shell == "bash" or shell.startswith("bash ")\n\n\ndef _container_bash_shell_errors(data: dict[Any, Any]) -> list[str]:\n    """Reject Bash-only run syntax that would execute with a container's /bin/sh."""\n    errors: list[str] = []\n    for job_name, job in _jobs(data).items():\n        if not isinstance(job, dict) or "container" not in job:\n            continue\n        defaults = job.get("defaults", {})\n        default_run = defaults.get("run", {}) if isinstance(defaults, dict) else {}\n        default_shell = (\n            default_run.get("shell") if isinstance(default_run, dict) else None\n        )\n        steps = job.get("steps", [])\n        if not isinstance(steps, list):\n            continue\n        for index, step in enumerate(steps, start=1):\n            if not isinstance(step, dict):\n                continue\n            command = _run(step)\n            if not command or not any(\n                marker in command for marker in _BASH_ONLY_RUN_MARKERS\n            ):\n                continue\n            effective_shell = step.get("shell", default_shell)\n            if _is_bash_shell(effective_shell):\n                continue\n            name = str(step.get("name") or f"step {index}")\n            errors.append(\n                f"container job {job_name!s} step {name!r} uses Bash-only syntax "\n                "without shell: bash or defaults.run.shell: bash"\n            )\n    return errors\n'''
-          new = '''def _is_bash_shell(value: object) -> bool:\n    if not isinstance(value, str):\n        return False\n    shell = value.strip().lower()\n    return shell == "bash" or shell.startswith("bash ")\n\n\ndef _default_run_shell(node: dict[Any, Any]) -> object:\n    defaults = node.get("defaults")\n    if not isinstance(defaults, dict):\n        return None\n    run_defaults = defaults.get("run")\n    if not isinstance(run_defaults, dict):\n        return None\n    return run_defaults.get("shell")\n\n\ndef _container_bash_shell_errors(data: dict[Any, Any]) -> list[str]:\n    """Reject Bash-only container commands unless their effective shell is Bash."""\n    errors: list[str] = []\n    workflow_shell = _default_run_shell(data)\n    for job_name, job in _jobs(data).items():\n        if not isinstance(job, dict) or "container" not in job:\n            continue\n        default_shell = _default_run_shell(job) or workflow_shell\n        steps = job.get("steps", [])\n        if not isinstance(steps, list):\n            continue\n        for index, step in enumerate(steps, start=1):\n            if not isinstance(step, dict):\n                continue\n            command = _run(step)\n            if not command or not any(\n                marker in command for marker in _BASH_ONLY_RUN_MARKERS\n            ):\n                continue\n            effective_shell = step.get("shell") or default_shell\n            if _is_bash_shell(effective_shell):\n                continue\n            name = str(step.get("name") or f"step {index}")\n            errors.append(\n                f"container job {job_name!s} step {name!r} uses Bash-only syntax "\n                "without shell: bash or defaults.run.shell: bash"\n            )\n    return errors\n'''
-          if old not in text:
-              raise SystemExit('expected current shell validator block not found')
-          path.write_text(text.replace(old, new), encoding='utf-8')
+
+          # Keep main's workflow-aware _default_run_shell helper, but remove its
+          # stricter duplicate validator so one implementation owns the policy.
+          strict_start = text.find('def _container_run_shell_errors(')
+          if strict_start >= 0:
+              strict_end = text.find('def _has_command(', strict_start)
+              if strict_end < 0:
+                  raise SystemExit('cannot locate end of upstream duplicate shell validator')
+              text = text[:strict_start] + text[strict_end:]
+          text = text.replace(
+              '        for error in _container_run_shell_errors(data):\n'
+              '            errors.append(f"{path}: {error}")\n',
+              '',
+          )
+
+          marker_anchor = '    "[[ ",\n)'
+          marker_replacement = (
+              '    "[[ ",\n'
+              '    "declare -a ",\n'
+              '    "declare -A ",\n'
+              '    "readarray ",\n'
+              '    "source ",\n'
+              '    "<(\",\n'
+              '    "<<<",\n'
+              ')'
+          )
+          if marker_anchor not in text:
+              raise SystemExit('Bash-only marker tuple anchor not found')
+          text = text.replace(marker_anchor, marker_replacement, 1)
+
+          old_start = '''def _container_bash_shell_errors(data: dict[Any, Any]) -> list[str]:\n    """Reject Bash-only run syntax that would execute with a container's /bin/sh."""\n    errors: list[str] = []\n    for job_name, job in _jobs(data).items():'''
+          new_start = '''def _container_bash_shell_errors(data: dict[Any, Any]) -> list[str]:\n    """Reject Bash-only container commands unless their effective shell is Bash."""\n    errors: list[str] = []\n    workflow_shell = _default_run_shell(data)\n    for job_name, job in _jobs(data).items():'''
+          if old_start not in text:
+              raise SystemExit('current shell validator start not found')
+          text = text.replace(old_start, new_start, 1)
+
+          old_defaults = '''        defaults = job.get("defaults", {})\n        default_run = defaults.get("run", {}) if isinstance(defaults, dict) else {}\n        default_shell = (\n            default_run.get("shell") if isinstance(default_run, dict) else None\n        )'''
+          new_defaults = '''        default_shell = _default_run_shell(job) or workflow_shell'''
+          if old_defaults not in text:
+              raise SystemExit('current job shell inheritance block not found')
+          text = text.replace(old_defaults, new_defaults, 1)
+          text = text.replace(
+              '            effective_shell = step.get("shell", default_shell)\n',
+              '            effective_shell = step.get("shell") or default_shell\n',
+              1,
+          )
+          path.write_text(text, encoding='utf-8')
 
           main = Path('.github/workflows/main.yml')
           workflow = main.read_text(encoding='utf-8')
@@ -94,9 +140,7 @@ jobs:
                   if not isinstance(data, dict):
                       errors.append(f"{path}: workflow root must be a mapping")
                       continue
-                  errors.extend(
-                      f"{path}: {error}" for error in validate_workflow(data)
-                  )
+                  errors.extend(f"{path}: {error}" for error in validate_workflow(data))
               if errors:
                   for error in errors:
                       print(f"ERROR: {error}")
@@ -128,87 +172,137 @@ jobs:
               failures: list[str] = []
               for workflow_path in sorted(WORKFLOW_DIR.glob("*.y*ml")):
                   payload = yaml.safe_load(workflow_path.read_text(encoding="utf-8")) or {}
-                  if not isinstance(payload, dict):
-                      continue
-                  failures.extend(
-                      f"{workflow_path.name}: {error}"
-                      for error in _container_bash_shell_errors(payload)
-                  )
+                  if isinstance(payload, dict):
+                      failures.extend(
+                          f"{workflow_path.name}: {error}"
+                          for error in _container_bash_shell_errors(payload)
+                      )
               assert not failures, "\n".join(failures)
 
 
-          def test_container_shell_validator_rejects_default_sh_for_bash_syntax() -> None:
-              workflow: dict[str, Any] = {
-                  "jobs": {
-                      "container_job": {
-                          "container": {"image": "example.invalid/image@sha256:deadbeef"},
-                          "steps": [{"name": "strict", "run": "set -euo pipefail\necho ok"}],
-                      }
-                  }
+          def _container(run: str, **job_fields: Any) -> dict[str, Any]:
+              job = {
+                  "container": {"image": "example.invalid/image@sha256:deadbeef"},
+                  "steps": [{"name": "strict", "run": run}],
               }
-              assert len(_container_bash_shell_errors(workflow)) == 1
+              job.update(job_fields)
+              return {"jobs": {"container_job": job}}
+
+
+          def test_container_shell_validator_rejects_default_sh_for_bash_syntax() -> None:
+              assert len(_container_bash_shell_errors(_container("set -euo pipefail\necho ok"))) == 1
 
 
           def test_container_shell_validator_accepts_step_job_and_workflow_bash() -> None:
-              explicit: dict[str, Any] = {
-                  "jobs": {
-                      "container_job": {
-                          "container": {"image": "example.invalid/image@sha256:deadbeef"},
-                          "steps": [{"run": "set -euo pipefail\necho ok", "shell": "bash"}],
-                      }
-                  }
-              }
-              inherited_job: dict[str, Any] = {
-                  "jobs": {
-                      "container_job": {
-                          "container": {"image": "example.invalid/image@sha256:deadbeef"},
-                          "defaults": {"run": {"shell": "bash"}},
-                          "steps": [{"run": "set -euo pipefail\necho ok"}],
-                      }
-                  }
-              }
-              inherited_workflow: dict[str, Any] = {
-                  "defaults": {"run": {"shell": "bash"}},
-                  "jobs": {
-                      "container_job": {
-                          "container": {"image": "example.invalid/image@sha256:deadbeef"},
-                          "steps": [{"run": "set -euo pipefail\necho ok"}],
-                      }
-                  },
-              }
+              explicit = _container("set -euo pipefail\necho ok")
+              explicit["jobs"]["container_job"]["steps"][0]["shell"] = "bash"
+              inherited_job = _container(
+                  "set -euo pipefail\necho ok",
+                  defaults={"run": {"shell": "bash"}},
+              )
+              inherited_workflow = _container("set -euo pipefail\necho ok")
+              inherited_workflow["defaults"] = {"run": {"shell": "bash"}}
               assert _container_bash_shell_errors(explicit) == []
               assert _container_bash_shell_errors(inherited_job) == []
               assert _container_bash_shell_errors(inherited_workflow) == []
 
 
           def test_posix_only_container_command_does_not_require_bash() -> None:
-              workflow: dict[str, Any] = {
+              assert _container_bash_shell_errors(_container("echo ok")) == []
+
+
+          def test_extended_bash_only_markers_are_guarded() -> None:
+              for command in (
+                  "declare -a values=()",
+                  "declare -A values=()",
+                  "readarray values < input.txt",
+                  "source ./env.sh",
+                  "cat <(printf ok)",
+                  "cat <<< value",
+              ):
+                  assert _container_bash_shell_errors(_container(command)), command
+          PY
+
+          cat > tests/unit/test_validate_container_shells.py <<'PY'
+          # SPDX-License-Identifier: AGPL-3.0-or-later
+          from __future__ import annotations
+
+          from scripts import validate_container_shells
+
+
+          def test_rejects_bash_only_syntax_under_container_default_sh() -> None:
+              workflow = {
                   "jobs": {
-                      "container_job": {
+                      "geoip": {
                           "container": {"image": "example.invalid/image@sha256:deadbeef"},
-                          "steps": [{"run": "echo ok"}],
+                          "steps": [{"name": "Strict shell", "run": "set -euo pipefail\necho ok"}],
                       }
                   }
               }
-              assert _container_bash_shell_errors(workflow) == []
+              errors = validate_container_shells.validate_workflow(workflow)
+              assert len(errors) == 1
+              assert "Strict shell" in errors[0]
+              assert "shell: bash" in errors[0]
+
+
+          def test_accepts_job_and_workflow_level_bash_defaults() -> None:
+              job_default = {
+                  "jobs": {
+                      "geoip": {
+                          "container": {"image": "example.invalid/image@sha256:deadbeef"},
+                          "defaults": {"run": {"shell": "bash"}},
+                          "steps": [{"run": "set -euo pipefail\necho ok"}],
+                      }
+                  }
+              }
+              workflow_default = {
+                  "defaults": {"run": {"shell": "bash"}},
+                  "jobs": {
+                      "geoip": {
+                          "container": {"image": "example.invalid/image@sha256:deadbeef"},
+                          "steps": [{"run": "set -euo pipefail\necho ok"}],
+                      }
+                  },
+              }
+              assert validate_container_shells.validate_workflow(job_default) == []
+              assert validate_container_shells.validate_workflow(workflow_default) == []
+
+
+          def test_accepts_step_level_bash_shell() -> None:
+              workflow = {
+                  "jobs": {
+                      "geoip": {
+                          "container": {"image": "example.invalid/image@sha256:deadbeef"},
+                          "steps": [{"shell": "bash", "run": "set -euo pipefail\necho ok"}],
+                      }
+                  }
+              }
+              assert validate_container_shells.validate_workflow(workflow) == []
+
+
+          def test_repository_workflows_satisfy_container_shell_contract() -> None:
+              assert validate_container_shells.main() == 0
           PY
 
           python -m black --fast --target-version py310 \
             scripts/validate_workflows.py \
             scripts/validate_container_shells.py \
-            tests/unit/test_container_run_shell_contract.py
+            tests/unit/test_container_run_shell_contract.py \
+            tests/unit/test_validate_container_shells.py
           python -m py_compile scripts/validate_workflows.py scripts/validate_container_shells.py
           git diff --check
-      - name: Install validation dependencies
-        run: |
-          python -m pip install -r requirements-dev.txt
-          python -m pip install -e . --no-deps
       - name: Validate reconciled merge
         shell: bash
         run: |
           set -euo pipefail
+          helper=.github/workflows/temporary-merge-main-pr593.yml
+          cp "$helper" /tmp/temporary-merge-main-pr593.yml
+          rm "$helper"
+          trap 'cp /tmp/temporary-merge-main-pr593.yml "$helper"' EXIT
           python scripts/validate_workflows.py
           python scripts/validate_container_shells.py
+          cp /tmp/temporary-merge-main-pr593.yml "$helper"
+          trap - EXIT
           python scripts/generate_debt_matrix.py --check
           python scripts/generate_environment_catalog.py --check
           python scripts/validate_function_size_budget.py
