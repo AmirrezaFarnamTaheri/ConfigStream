@@ -1,6 +1,7 @@
 import hashlib
 import asyncio
 from pathlib import Path
+from typing import Awaitable
 
 import pytest
 
@@ -219,8 +220,8 @@ async def test_vwarp_verification_kills_timed_out_process(monkeypatch):
 
 
 def test_install_directory_falls_back_when_user_bin_creation_fails(
-    monkeypatch, tmp_path
-):
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     home = tmp_path / "home"
     preferred = home / ".local" / "bin"
     original_mkdir = Path.mkdir
@@ -241,7 +242,9 @@ def test_install_directory_falls_back_when_user_bin_creation_fails(
 
 
 @pytest.mark.asyncio
-async def test_tunnel_stop_kills_reaps_and_awaits_stream_tasks(monkeypatch):
+async def test_tunnel_stop_kills_reaps_and_awaits_stream_tasks(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     from configstream.tools.vwarp import tunnel as tunnel_module
 
     class _Process:
@@ -250,20 +253,20 @@ async def test_tunnel_stop_kills_reaps_and_awaits_stream_tasks(monkeypatch):
         killed = False
         waited = 0
 
-        def terminate(self):
+        def terminate(self) -> None:
             self.terminated = True
 
-        def kill(self):
+        def kill(self) -> None:
             self.killed = True
 
-        async def wait(self):
+        async def wait(self) -> int:
             self.waited += 1
             self.returncode = -9 if self.killed else 0
             return self.returncode
 
     calls = 0
 
-    async def _wait(awaitable, timeout):
+    async def _wait(awaitable: Awaitable[int], timeout: float) -> int:
         nonlocal calls
         calls += 1
         if calls == 1:
@@ -280,7 +283,7 @@ async def test_tunnel_stop_kills_reaps_and_awaits_stream_tasks(monkeypatch):
 
     finalized = asyncio.Event()
 
-    async def _reader():
+    async def _reader() -> None:
         try:
             await asyncio.Event().wait()
         finally:
