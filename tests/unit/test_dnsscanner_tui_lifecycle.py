@@ -79,12 +79,16 @@ async def test_kill_and_reap_processes_reaps_already_exited_child() -> None:
     assert process.waited == 1
 
 
-def test_tui_initialization_defers_unsupported_slipstream() -> None:
-    """Lock the lazy-init contract without importing optional TUI dependencies."""
+def _tui_source_tree() -> ast.Module:
     source = Path(
         "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py"
     ).read_text(encoding="utf-8")
-    tree = ast.parse(source)
+    return ast.parse(source)
+
+
+def test_tui_initialization_defers_unsupported_slipstream() -> None:
+    """Lock the lazy-init contract without importing optional TUI dependencies."""
+    tree = _tui_source_tree()
 
     tui_class = next(
         node
@@ -134,3 +138,29 @@ def test_tui_initialization_defers_unsupported_slipstream() -> None:
     }
     assert "is_supported" in called_attributes
     assert "get_executable_path" in called_attributes
+
+
+def test_tui_does_not_require_undeclared_loguru_dependency() -> None:
+    """The scanner TUI must import using only dependencies declared by the project."""
+    tree = _tui_source_tree()
+
+    imported_modules = {
+        alias.name.split(".", 1)[0]
+        for node in tree.body
+        if isinstance(node, ast.Import)
+        for alias in node.names
+    }
+    imported_modules.update(
+        node.module.split(".", 1)[0]
+        for node in tree.body
+        if isinstance(node, ast.ImportFrom) and node.module
+    )
+
+    assert "loguru" not in imported_modules
+    assert any(
+        isinstance(node, ast.Assign)
+        and isinstance(node.value, ast.Call)
+        and isinstance(node.value.func, ast.Attribute)
+        and node.value.func.attr == "getLogger"
+        for node in tree.body
+    )
