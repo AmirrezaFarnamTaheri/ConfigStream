@@ -345,7 +345,9 @@ CREATE TABLE IF NOT EXISTS history (
                 ):
                     src.execute("PRAGMA journal_mode=WAL")
                     dst.execute("PRAGMA journal_mode=WAL")
-                    row_count = int(src.execute("SELECT COUNT(*) FROM history").fetchone()[0])
+                    row_count = int(
+                        src.execute("SELECT COUNT(*) FROM history").fetchone()[0]
+                    )
                     if row_count > MAX_MERGE_HISTORY_ROWS:
                         raise ValueError("anomaly merge row limit exceeded")
 

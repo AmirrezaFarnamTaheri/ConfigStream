@@ -177,7 +177,9 @@ def _container_bash_shell_errors(data: dict[Any, Any]) -> list[str]:
             continue
         defaults = job.get("defaults", {})
         default_run = defaults.get("run", {}) if isinstance(defaults, dict) else {}
-        default_shell = default_run.get("shell") if isinstance(default_run, dict) else None
+        default_shell = (
+            default_run.get("shell") if isinstance(default_run, dict) else None
+        )
         steps = job.get("steps", [])
         if not isinstance(steps, list):
             continue
@@ -185,7 +187,9 @@ def _container_bash_shell_errors(data: dict[Any, Any]) -> list[str]:
             if not isinstance(step, dict):
                 continue
             command = _run(step)
-            if not command or not any(marker in command for marker in _BASH_ONLY_RUN_MARKERS):
+            if not command or not any(
+                marker in command for marker in _BASH_ONLY_RUN_MARKERS
+            ):
                 continue
             effective_shell = step.get("shell", default_shell)
             if _is_bash_shell(effective_shell):

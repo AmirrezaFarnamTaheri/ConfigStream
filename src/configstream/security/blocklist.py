@@ -113,7 +113,9 @@ class BlocklistManager:
                     f"Blocklist candidate contains only {len(networks)} valid networks"
                 )
             if candidate_lines and invalid / candidate_lines > MAX_INVALID_LINE_RATIO:
-                raise ValueError("Blocklist candidate contains too many invalid entries")
+                raise ValueError(
+                    "Blocklist candidate contains too many invalid entries"
+                )
         return networks
 
     @classmethod

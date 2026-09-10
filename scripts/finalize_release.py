@@ -46,9 +46,7 @@ def _load_json(path: Path) -> Any:
     try:
         size = path.stat().st_size
         if size > MAX_REQUIRED_JSON_BYTES:
-            raise ValueError(
-                f"required JSON exceeds {MAX_REQUIRED_JSON_BYTES} bytes"
-            )
+            raise ValueError(f"required JSON exceeds {MAX_REQUIRED_JSON_BYTES} bytes")
         return json.loads(path.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
         raise SystemExit(f"invalid required JSON file {path}: {exc}") from exc

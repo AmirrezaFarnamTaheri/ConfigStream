@@ -248,7 +248,9 @@ class StandardPipeline(IPipeline):
                 washer=washer,
                 seen_bloom=seen_bloom,
                 hard_stop_watcher=HardStopWatcher(
-                    grace_seconds=float(getattr(settings, "SHUTDOWN_GRACE_SECONDS", 5.0)),
+                    grace_seconds=float(
+                        getattr(settings, "SHUTDOWN_GRACE_SECONDS", 5.0)
+                    ),
                     flush_timeout_seconds=float(
                         getattr(settings, "EVENT_STREAM_FLUSH_TIMEOUT_SECONDS", 2.0)
                     ),

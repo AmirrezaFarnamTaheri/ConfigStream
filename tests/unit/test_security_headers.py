@@ -31,7 +31,9 @@ def test_security_headers_present_on_root() -> None:
     assert "camera=()" in response.headers.get("Permissions-Policy", "")
 
 
-def test_output_compat_route_denies_private_runtime_state(tmp_path, monkeypatch) -> None:
+def test_output_compat_route_denies_private_runtime_state(
+    tmp_path, monkeypatch
+) -> None:
     monkeypatch.setenv("OUTPUT_DIR", str(tmp_path))
     (tmp_path / "proxies.json").write_text("[]", encoding="utf-8")
     data_dir = tmp_path / "data"

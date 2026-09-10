@@ -131,7 +131,9 @@ def test_update_databases_prefers_maxmind(runner):
         router.get(re.compile(r"https://.*")).mock(side_effect=respond)
         with runner.isolated_filesystem():
             result = runner.invoke(
-                main, ["update-databases", "--geoip-only"], env={"MAXMIND_LICENSE_KEY": "abc123"}
+                main,
+                ["update-databases", "--geoip-only"],
+                env={"MAXMIND_LICENSE_KEY": "abc123"},
             )
             assert result.exit_code == 0
             assert Path("data/GeoLite2-City.mmdb").is_file()

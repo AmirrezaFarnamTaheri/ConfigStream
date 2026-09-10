@@ -366,10 +366,12 @@ def main() -> int:
         part = int(lineage.get("part") or 0)
         source_count = int(lineage.get("source_count") or 0)
         fetch_log = log_root / f"pipeline_batch_{batch}_part_{part}.log"
-        covered_sources, transport_success_sources, source_attempts = source_summary_counts(
-            fetch_log,
-            source_count=source_count,
-            fallback_fetched_sources=int(metadata.get("fetched_sources") or 0),
+        covered_sources, transport_success_sources, source_attempts = (
+            source_summary_counts(
+                fetch_log,
+                source_count=source_count,
+                fallback_fetched_sources=int(metadata.get("fetched_sources") or 0),
+            )
         )
         shard_failures = fetch_failure_counts(fetch_log)
         failure_categories.update(shard_failures["by_category"])

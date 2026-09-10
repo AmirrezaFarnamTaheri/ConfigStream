@@ -196,7 +196,9 @@ def test_timestamp_parsing():
     assert _parse_timestamp_from_name("invalid.db") is None
 
 
-def test_restore_rejects_oversized_gzip_before_publication(data_dir, backup_dir, monkeypatch):
+def test_restore_rejects_oversized_gzip_before_publication(
+    data_dir, backup_dir, monkeypatch
+):
     target = data_dir / "target.db"
     create_db(target)
     original = target.read_bytes()

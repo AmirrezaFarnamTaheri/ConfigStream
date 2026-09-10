@@ -177,7 +177,9 @@ def _normalize_cache_entry(raw: Any) -> Optional[Dict[str, Any]]:
     return item
 
 
-def _merge_cache_entry(existing: Optional[Dict[str, Any]], incoming: Dict[str, Any]) -> Dict[str, Any]:
+def _merge_cache_entry(
+    existing: Optional[Dict[str, Any]], incoming: Dict[str, Any]
+) -> Dict[str, Any]:
     if existing is None:
         return dict(incoming)
     # Every shard can start from the same inherited cache. Summing counters would
@@ -410,14 +412,19 @@ def _merge_logs(output_dir: str) -> None:
     with consolidated.open("w", encoding="utf-8") as out_f:
         for log_path in log_files:
             if total_written >= MAX_CONSOLIDATED_LOG_BYTES:
-                logger.warning("Consolidated log byte limit reached; remaining logs skipped.")
+                logger.warning(
+                    "Consolidated log byte limit reached; remaining logs skipped."
+                )
                 break
             header = f"===== {log_path.name} =====\n"
             out_f.write(header)
             total_written += len(header.encode("utf-8"))
             file_written = 0
             with log_path.open("r", encoding="utf-8", errors="ignore") as source:
-                while file_written < MAX_LOG_FILE_BYTES and total_written < MAX_CONSOLIDATED_LOG_BYTES:
+                while (
+                    file_written < MAX_LOG_FILE_BYTES
+                    and total_written < MAX_CONSOLIDATED_LOG_BYTES
+                ):
                     chunk = source.read(LOG_COPY_CHUNK_CHARS)
                     if not chunk:
                         break

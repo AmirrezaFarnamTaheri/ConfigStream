@@ -494,8 +494,14 @@ async def source_producer(
 
                         if count == 0:
                             await _report_unusable_content(
-                                loop, quality_tracker, settings, source, safe_source,
-                                res.content or "", drop_stats, res.response_time or 0.0,
+                                loop,
+                                quality_tracker,
+                                settings,
+                                source,
+                                safe_source,
+                                res.content or "",
+                                drop_stats,
+                                res.response_time or 0.0,
                             )
                             continue
 

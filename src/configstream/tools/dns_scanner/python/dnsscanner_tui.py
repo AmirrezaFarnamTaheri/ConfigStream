@@ -102,7 +102,6 @@ class SlipstreamManager:
         "Linux": "linux",
     }
 
-
     def __init__(self):
         self.base_dir = Path(__file__).parent.parent / "slipstream-client"
         self.system = platform.system()
@@ -134,9 +133,8 @@ class SlipstreamManager:
         """Return a verified installed path or the primary download destination."""
         artifact = self._artifact()
         expected_sha256 = artifact["sha256"]
-        if (
-            self._cached_executable_path
-            and verify_artifact(self._cached_executable_path, expected_sha256)
+        if self._cached_executable_path and verify_artifact(
+            self._cached_executable_path, expected_sha256
         ):
             return self._cached_executable_path
 
@@ -175,7 +173,6 @@ class SlipstreamManager:
         except RuntimeError:
             return None
 
-
     async def download(
         self, progress_callback=None, max_retries: int = 5, retry_delay: float = 2.0
     ) -> bool:
@@ -204,11 +201,14 @@ class SlipstreamManager:
                 self._cached_executable_path = exe_path
                 return True
             if progress_callback:
-                progress_callback(0, 0, f"Retry {attempt}/{max_retries}: verification or download failed")
+                progress_callback(
+                    0,
+                    0,
+                    f"Retry {attempt}/{max_retries}: verification or download failed",
+                )
             if attempt < max_retries:
                 await asyncio.sleep(retry_delay * attempt)
         return False
-
 
     async def download_with_ui(
         self, progress_bar, log_widget, max_retries: int = 5, retry_delay: float = 2.0
@@ -240,7 +240,6 @@ class SlipstreamManager:
                 "[red]Slipstream download failed or did not match the pinned SHA-256[/red]"
             )
         return ok
-
 
     def get_run_command(self, dns_ip: str, port: int, domain: str) -> list:
         """Get the command to run slipstream (same args for all platforms).

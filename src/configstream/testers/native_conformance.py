@@ -39,7 +39,9 @@ def expected_singbox_version(repo_root: Path) -> str:
     )
     value = payload.get("sing_box", {}).get("release_validator")
     if not isinstance(value, str) or not re.fullmatch(r"\d+\.\d+\.\d+", value):
-        raise ValueError("runtime-versions.json has no valid sing_box.release_validator")
+        raise ValueError(
+            "runtime-versions.json has no valid sing_box.release_validator"
+        )
     return value
 
 
@@ -219,15 +221,15 @@ def conformance_checks(
             {
                 "core": f"sing-box-connectivity:{protocol}",
                 "path": "proxies.json",
-                "status": "passed"
-                if result.get("status") == "passed"
-                else "failed",
+                "status": "passed" if result.get("status") == "passed" else "failed",
                 "command": ["sing-box", "release-runtime-connectivity", protocol],
                 "artifact_sha256": proxies_digest,
                 "binary_sha256": binary_digest,
-                "error": None
-                if result.get("status") == "passed"
-                else str(conformance.get("error") or "native connectivity failed"),
+                "error": (
+                    None
+                    if result.get("status") == "passed"
+                    else str(conformance.get("error") or "native connectivity failed")
+                ),
             }
         )
     return checks

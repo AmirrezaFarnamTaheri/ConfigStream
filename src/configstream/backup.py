@@ -63,9 +63,7 @@ def backup_databases(
             # Participate in SQLite's normal read/locking protocol. ``immutable=1``
             # must not be used against a live WAL database because it can ignore
             # committed pages that have not yet been checkpointed into the main file.
-            src_conn = sqlite3.connect(
-                f"file:{db_file}?mode=ro", uri=True, timeout=5.0
-            )
+            src_conn = sqlite3.connect(f"file:{db_file}?mode=ro", uri=True, timeout=5.0)
             src_conn.execute("PRAGMA query_only=ON")
             dst_conn = None
             try:
@@ -149,7 +147,11 @@ def cleanup_old_backups(backup_dir: Path, retention_days: int) -> int:
             elif stem.endswith(".db"):
                 stem = stem[:-3]
             parts = stem.split("_")
-            db_name = "_".join(parts[:-2]) if len(parts) >= 3 and len(parts[-1]) == 6 and len(parts[-2]) == 8 else "unknown"
+            db_name = (
+                "_".join(parts[:-2])
+                if len(parts) >= 3 and len(parts[-1]) == 6 and len(parts[-2]) == 8
+                else "unknown"
+            )
             key = (db_name, mtime.strftime("%Y-%m-%d"))
             by_db_date.setdefault(key, []).append((mtime, backup_file))
         except Exception as exc:
@@ -215,9 +217,7 @@ def restore_database(backup_file: Path, target_file: Path) -> bool:
             f_out.flush()
             os.fsync(f_out.fileno())
 
-        check_conn = sqlite3.connect(
-            f"file:{temp_path}?mode=ro", uri=True, timeout=5.0
-        )
+        check_conn = sqlite3.connect(f"file:{temp_path}?mode=ro", uri=True, timeout=5.0)
         try:
             row = check_conn.execute("PRAGMA quick_check").fetchone()
         finally:
@@ -227,9 +227,7 @@ def restore_database(backup_file: Path, target_file: Path) -> bool:
 
         if target_file.exists():
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            pre_restore_backup = target_file.with_suffix(
-                f".pre_restore_{timestamp}.db"
-            )
+            pre_restore_backup = target_file.with_suffix(f".pre_restore_{timestamp}.db")
             shutil.copy2(target_file, pre_restore_backup)
             logger.info("Created pre-restore backup: %s", pre_restore_backup.name)
 

@@ -187,7 +187,6 @@ class TestLabConfigBounds:
             await _validate_and_build_lab_config(config)
         assert exc.value.status_code == 400
 
-
     @pytest.mark.asyncio
     async def test_filesystem_capability_fields_are_rejected(self) -> None:
         from fastapi import HTTPException

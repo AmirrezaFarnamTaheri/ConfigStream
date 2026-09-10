@@ -38,7 +38,9 @@ def validate_workflow(data: dict[Any, Any]) -> list[str]:
             continue
         defaults = raw_job.get("defaults", {})
         run_defaults = defaults.get("run", {}) if isinstance(defaults, dict) else {}
-        default_shell = run_defaults.get("shell") if isinstance(run_defaults, dict) else None
+        default_shell = (
+            run_defaults.get("shell") if isinstance(run_defaults, dict) else None
+        )
         steps = raw_job.get("steps", [])
         if not isinstance(steps, list):
             continue

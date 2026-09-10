@@ -6,7 +6,9 @@ import pytest
 from scripts import finalize_release
 
 
-def test_required_json_rejected_before_parse_when_oversized(tmp_path: Path, monkeypatch) -> None:
+def test_required_json_rejected_before_parse_when_oversized(
+    tmp_path: Path, monkeypatch
+) -> None:
     payload = tmp_path / "proxies.json"
     payload.write_text("[]", encoding="utf-8")
     monkeypatch.setattr(finalize_release, "MAX_REQUIRED_JSON_BYTES", 1)

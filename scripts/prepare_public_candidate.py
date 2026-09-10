@@ -23,7 +23,9 @@ def _copy_optional(source: Path, destination: Path) -> bool:
     if not source.exists():
         return False
     if source.is_symlink():
-        raise ValueError(f"optional publication source must not be a symbolic link: {source}")
+        raise ValueError(
+            f"optional publication source must not be a symbolic link: {source}"
+        )
     if source.is_dir():
         _reject_symlinks(source, label="optional publication source")
         shutil.copytree(source, destination, dirs_exist_ok=True)

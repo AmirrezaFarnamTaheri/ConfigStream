@@ -29,7 +29,6 @@ from .source_admission import (
     resolve_source_admission_manifest,
 )
 
-
 PINNED_GEOLITE_RELEASE = "1788904440"
 PINNED_GEOLITE_ASSETS = {
     "GeoLite2-City.mmdb": {
@@ -563,7 +562,9 @@ def update_databases(geoip_only: bool):
                     console.print(f"[red]Archive entry for {edition} is empty[/red]")
                     return False
                 if member.size > MAX_DATABASE_DOWNLOAD_BYTES:
-                    console.print(f"[red]Archive entry for {edition} is too large[/red]")
+                    console.print(
+                        f"[red]Archive entry for {edition} is too large[/red]"
+                    )
                     return False
                 fd, temp_name = tempfile.mkstemp(
                     prefix=f".{target.name}.", dir=target.parent
@@ -631,9 +632,13 @@ def update_databases(geoip_only: bool):
 
     if geoip_only:
         if success:
-            console.print("[bold green]GeoIP databases updated successfully[/bold green]")
+            console.print(
+                "[bold green]GeoIP databases updated successfully[/bold green]"
+            )
             return
-        raise click.ClickException("Failed to download one or more verified GeoIP databases")
+        raise click.ClickException(
+            "Failed to download one or more verified GeoIP databases"
+        )
 
     # These legacy routing databases are not release-pipeline prerequisites. Keep
     # their update path separate so a mutable auxiliary feed cannot break GeoIP.
@@ -651,7 +656,9 @@ def update_databases(geoip_only: bool):
         target = singbox_data_dir / db_name
         if target.exists() and target.stat().st_size > 0:
             size_mb = target.stat().st_size / (1024 * 1024)
-            console.print(f"[green]OK {db_name} already exists ({size_mb:.1f} MB)[/green]")
+            console.print(
+                f"[green]OK {db_name} already exists ({size_mb:.1f} MB)[/green]"
+            )
             continue
         console.print(f"[cyan]Downloading {db_name}...[/cyan]")
         if not stream_download(db_url, target):
@@ -659,7 +666,9 @@ def update_databases(geoip_only: bool):
             singbox_success = False
 
     if not success:
-        raise click.ClickException("Failed to download one or more verified GeoIP databases")
+        raise click.ClickException(
+            "Failed to download one or more verified GeoIP databases"
+        )
     if not singbox_success:
         console.print(
             "[yellow]GeoIP databases updated, but optional Sing-box databases failed[/yellow]"

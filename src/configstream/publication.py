@@ -79,7 +79,11 @@ def is_private_publication_path(path: str | PurePosixPath) -> bool:
     sanitized each record; caches, databases, logs, locks, temporary files and
     private-state directories remain fail-closed.
     """
-    relative = path if isinstance(path, PurePosixPath) else PurePosixPath(path.replace("\\", "/"))
+    relative = (
+        path
+        if isinstance(path, PurePosixPath)
+        else PurePosixPath(path.replace("\\", "/"))
+    )
     return _is_private_path(relative)
 
 

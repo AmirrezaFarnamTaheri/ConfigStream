@@ -49,7 +49,10 @@ def test_backup_includes_committed_wal_state(tmp_path):
     with gzip.open(backups[0], "rb") as source:
         restored_copy.write_bytes(source.read())
     with sqlite3.connect(restored_copy) as check:
-        assert check.execute("SELECT value FROM records").fetchone()[0] == "committed-in-wal"
+        assert (
+            check.execute("SELECT value FROM records").fetchone()[0]
+            == "committed-in-wal"
+        )
     writer.close()
 
 

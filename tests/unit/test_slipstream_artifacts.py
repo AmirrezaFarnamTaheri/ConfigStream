@@ -59,7 +59,8 @@ def test_manifest_uses_immutable_release_and_arch_specific_linux_assets() -> Non
     assert artifacts["Linux-arm64"]["filename"].endswith("linux-arm64")
     assert all("/latest/" not in artifact["url"] for artifact in artifacts.values())
     assert all(
-        f"/releases/download/{slipstream_artifacts.SLIPSTREAM_RELEASE}/" in artifact["url"]
+        f"/releases/download/{slipstream_artifacts.SLIPSTREAM_RELEASE}/"
+        in artifact["url"]
         for artifact in artifacts.values()
     )
 

@@ -52,7 +52,9 @@ class HardStopWatcher:
             return
 
         if not graceful_failed:
-            logger.warning("Tester close returned while child was still alive; hard-stopping it.")
+            logger.warning(
+                "Tester close returned while child was still alive; hard-stopping it."
+            )
 
         try:
             proc.kill()

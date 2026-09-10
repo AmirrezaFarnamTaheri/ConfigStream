@@ -306,7 +306,9 @@ def test_pages_requires_verified_rollback_baseline_before_mutation() -> None:
     assert bootstrap["type"] == "boolean"
 
     deploy = data["jobs"]["deploy"]
-    baseline = _step_by_name(deploy, "Require rollback baseline before production mutation")
+    baseline = _step_by_name(
+        deploy, "Require rollback baseline before production mutation"
+    )
     command = baseline["run"]
     assert "ROLLBACK_READY=true" in command
     assert "DEPLOY_READY=false" in command
@@ -324,7 +326,9 @@ def test_pages_bootstrap_without_lkg_is_manual_only() -> None:
 
     data = _load_local_workflow("deploy-pages.yml")
     deploy = data["jobs"]["deploy"]
-    baseline = _step_by_name(deploy, "Require rollback baseline before production mutation")
+    baseline = _step_by_name(
+        deploy, "Require rollback baseline before production mutation"
+    )
     expression = str(baseline["env"]["ALLOW_BOOTSTRAP_WITHOUT_LKG"])
     assert "github.event_name == 'workflow_dispatch'" in expression
     assert "inputs.allow_bootstrap_without_lkg" in expression

@@ -17,5 +17,7 @@ def test_geoip_prerequisite_is_geoip_only_and_retained_for_reruns() -> None:
     workflow = Path(".github/workflows/main.yml").read_text(encoding="utf-8")
 
     assert "python -m configstream.cli update-databases --geoip-only" in workflow
-    geoip_section = workflow.split("  setup_geoip:", 1)[1].split("  setup_matrix:", 1)[0]
+    geoip_section = workflow.split("  setup_geoip:", 1)[1].split("  setup_matrix:", 1)[
+        0
+    ]
     assert "retention-days: 30" in geoip_section
