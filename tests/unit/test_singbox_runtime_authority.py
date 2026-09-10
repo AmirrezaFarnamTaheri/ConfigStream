@@ -42,12 +42,15 @@ def test_release_artifacts_are_checked_by_governed_native_sing_box() -> None:
         steps = job.get("steps")
         if not isinstance(steps, list):
             continue
-        executable_steps.extend(
-            step
-            for step in steps
-            if isinstance(step, dict)
-            and "native_client_checks.py" in str(step.get("run") or "")
-        )
+        for step in steps:
+            if not isinstance(step, dict):
+                continue
+            command = str(step.get("run") or "")
+            if any(
+                line.strip().startswith("python scripts/native_client_checks.py ")
+                for line in command.splitlines()
+            ):
+                executable_steps.append(step)
 
     assert len(executable_steps) == 1
     command = str(executable_steps[0]["run"])
