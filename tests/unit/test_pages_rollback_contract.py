@@ -7,7 +7,7 @@ from typing import Any
 import yaml
 
 
-def _workflow() -> dict[str, Any]:
+def _workflow() -> dict[Any, Any]:
     loaded = yaml.safe_load(
         Path(".github/workflows/deploy-pages.yml").read_text(encoding="utf-8")
     )
