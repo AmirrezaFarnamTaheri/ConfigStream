@@ -104,15 +104,11 @@ async def _probe(
             )
         except asyncio.TimeoutError:
             return protocol, False, "native connectivity probe timed out"
-        except Exception as exc:
-            return (
-                protocol,
-                False,
-                SecurityValidator.sanitize_log_message(type(exc).__name__),
-            )
         if result.is_working:
             return protocol, True, None
-        category = str((result.details or {}).get("tester_error_category") or "probe_failed")
+        category = str(
+            (result.details or {}).get("tester_error_category") or "probe_failed"
+        )
         return protocol, False, SecurityValidator.sanitize_log_message(category)
 
 
@@ -151,7 +147,9 @@ async def run_release_runtime_conformance(
         base["error"] = "no working release proxies are eligible for native conformance"
         return base
 
-    tester = PythonTester(AppSettings(), timeout=PROBE_TIMEOUT_SECONDS, strict_security=False)
+    tester = PythonTester(
+        AppSettings(), timeout=PROBE_TIMEOUT_SECONDS, strict_security=False
+    )
     semaphore = asyncio.Semaphore(MAX_CONCURRENCY)
     tasks = [
         _probe(tester, protocol, proxy, semaphore)
@@ -207,7 +205,9 @@ def conformance_checks(
                 "command": ["sing-box", "release-runtime-connectivity"],
                 "artifact_sha256": proxies_digest,
                 "binary_sha256": binary_digest,
-                "error": str(conformance.get("error") or "native conformance unavailable"),
+                "error": str(
+                    conformance.get("error") or "native conformance unavailable"
+                ),
             }
         ]
 
@@ -219,7 +219,9 @@ def conformance_checks(
             {
                 "core": f"sing-box-connectivity:{protocol}",
                 "path": "proxies.json",
-                "status": "passed" if result.get("status") == "passed" else "failed",
+                "status": "passed"
+                if result.get("status") == "passed"
+                else "failed",
                 "command": ["sing-box", "release-runtime-connectivity", protocol],
                 "artifact_sha256": proxies_digest,
                 "binary_sha256": binary_digest,
