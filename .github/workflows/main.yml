@@ -171,6 +171,7 @@ jobs:
         PYTHONPATH: /app/src
     steps:
       - name: Download and validate GeoIP databases once per run
+        shell: bash
         env:
           MAXMIND_LICENSE_KEY: ${{ secrets.MAXMIND_LICENSE_KEY }}
         run: |

@@ -66,6 +66,47 @@ def _run_steps(data: dict[Any, Any]) -> Iterable[str]:
             yield command
 
 
+def _default_run_shell(node: dict[Any, Any]) -> str:
+    defaults = node.get("defaults")
+    if not isinstance(defaults, dict):
+        return ""
+    run_defaults = defaults.get("run")
+    if not isinstance(run_defaults, dict):
+        return ""
+    return str(run_defaults.get("shell") or "").strip()
+
+
+def _container_run_shell_errors(data: dict[Any, Any]) -> list[str]:
+    """Reject container ``run`` steps that would fall back to POSIX ``sh``.
+
+    GitHub Actions uses ``sh -e`` for run steps inside job containers unless a
+    shell is explicitly selected. The production workflows use Bash semantics
+    such as ``pipefail`` and ``PIPESTATUS``, so container jobs must resolve run
+    steps to Bash rather than relying on the host-job default.
+    """
+
+    errors: list[str] = []
+    workflow_shell = _default_run_shell(data)
+    for job_name, raw_job in _jobs(data).items():
+        if not isinstance(raw_job, dict) or "container" not in raw_job:
+            continue
+        job_shell = _default_run_shell(raw_job) or workflow_shell
+        raw_steps = raw_job.get("steps", [])
+        if not isinstance(raw_steps, list):
+            continue
+        for index, raw_step in enumerate(raw_steps, start=1):
+            if not isinstance(raw_step, dict) or not _run(raw_step):
+                continue
+            shell = str(raw_step.get("shell") or job_shell).strip()
+            if shell and shell.split(maxsplit=1)[0] == "bash":
+                continue
+            step_name = str(raw_step.get("name") or f"step-{index}")
+            errors.append(
+                f"container job {job_name!r} run step {step_name!r} must resolve to bash"
+            )
+    return errors
+
+
 def _has_command(data: dict[Any, Any], text: str) -> bool:
     return any(text in command for command in _run_steps(data))
 
@@ -484,6 +525,8 @@ def main() -> int:
             )
         for ref in _find_unresolvable_action_refs(data):
             errors.append(f"{path}: stale action ref {ref}")
+        for error in _container_run_shell_errors(data):
+            errors.append(f"{path}: {error}")
         if path.name == "ci.yml":
             errors.extend(f"{path}: {error}" for error in _ci_safe(data))
         if path.name == "release.yml" and not _has_contract_validators(data):
