@@ -488,17 +488,51 @@ jobs:
         run: |
           set -euo pipefail
           shard_status="${{ steps.shard_download.outcome }}"
+          matrix_status="${{ steps.matrix_artifact_download.outcome }}"
           if [ "$shard_status" = success ]; then
-            if ! python - <<'PYCODE'
+            if [ "$matrix_status" != success ] || [ ! -s matrix-artifact/source-matrix.json ]; then
+              echo "::error::Shard artifact validation requires the exact runtime source matrix"
+              shard_status=failure
+            elif ! python - <<'PYCODE'
           import json
+          from collections import Counter
           from pathlib import Path
 
           matrix = json.loads(Path("matrix-artifact/source-matrix.json").read_text(encoding="utf-8"))
-          expected = sum(1 for row in matrix.get("include", []) if row.get("enabled", True))
-          lineage = list(Path("artifacts").rglob("shard_lineage.json"))
-          if expected <= 0 or len(lineage) != expected:
+          rows = [row for row in matrix.get("include", []) if row.get("enabled", True)]
+          expected = {
+              (
+                  str(row.get("batch")),
+                  int(row.get("part")),
+                  str(row.get("source_file")),
+                  str(row.get("source_sha256")),
+              )
+              for row in rows
+          }
+          if not expected or len(expected) != len(rows):
+              raise SystemExit("source matrix contains empty or duplicate shard identities")
+
+          observed = []
+          for path in Path("artifacts").rglob("shard_lineage.json"):
+              payload = json.loads(path.read_text(encoding="utf-8"))
+              observed.append(
+                  (
+                      str(payload.get("batch")),
+                      int(payload.get("part")),
+                      str(payload.get("source_file")),
+                      str(payload.get("source_sha256")),
+                  )
+              )
+          counts = Counter(observed)
+          observed_set = set(observed)
+          missing = sorted(expected - observed_set)
+          unexpected = sorted(observed_set - expected)
+          duplicates = sorted(identity for identity, count in counts.items() if count != 1)
+          if missing or unexpected or duplicates or len(observed) != len(expected):
               raise SystemExit(
-                  f"shard artifact lineage mismatch: expected {expected}, found {len(lineage)}"
+                  "shard artifact lineage mismatch: "
+                  f"expected={len(expected)} found={len(observed)} "
+                  f"missing={missing[:3]} unexpected={unexpected[:3]} duplicates={duplicates[:3]}"
               )
           PYCODE
             then
@@ -507,7 +541,7 @@ jobs:
           fi
           python scripts/resilient_stage.py record --name shard-download --status "$shard_status"
           python scripts/resilient_stage.py record --name wasm-download --status "${{ steps.wasm_download.outcome }}"
-          python scripts/resilient_stage.py record --name matrix-artifact-download --status "${{ steps.matrix_artifact_download.outcome }}"
+          python scripts/resilient_stage.py record --name matrix-artifact-download --status "$matrix_status"
       - name: Restore available artifacts
         run: |
           python scripts/resilient_stage.py run --name restore-shards -- bash -lc '
