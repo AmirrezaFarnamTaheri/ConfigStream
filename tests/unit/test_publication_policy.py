@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import json
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 import pytest
 
@@ -102,7 +103,9 @@ def test_symlink_is_rejected(tmp_path):
     assert "symlink_forbidden" in violation_codes(raised.value)
 
 
-def test_sanitized_event_stream_is_public_when_allowlisted(tmp_path):
+def test_sanitized_event_stream_is_public_when_allowlisted(
+    tmp_path: Path,
+) -> None:
     events = tmp_path / "pipeline_events.jsonl"
     events.write_text('{"event_type":"info","message":"safe"}\n', encoding="utf-8")
     digests = validate_public_artifact(

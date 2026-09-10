@@ -10,10 +10,10 @@ from configstream.tools.dns_scanner.python.dnsscanner_lifecycle import (
 
 
 @pytest.mark.asyncio
-async def test_cancel_and_await_tasks_runs_task_finalizers():
+async def test_cancel_and_await_tasks_runs_task_finalizers() -> None:
     finalized = asyncio.Event()
 
-    async def worker():
+    async def worker() -> None:
         try:
             await asyncio.Event().wait()
         finally:
@@ -29,19 +29,19 @@ async def test_cancel_and_await_tasks_runs_task_finalizers():
 
 
 @pytest.mark.asyncio
-async def test_kill_and_reap_processes_waits_for_children():
+async def test_kill_and_reap_processes_waits_for_children() -> None:
     class Process:
         returncode = None
 
-        def __init__(self):
+        def __init__(self) -> None:
             self.killed = False
             self.waited = 0
 
-        def kill(self):
+        def kill(self) -> None:
             self.killed = True
             self.returncode = -9
 
-        async def wait(self):
+        async def wait(self) -> int | None:
             self.waited += 1
             return self.returncode
 
@@ -54,18 +54,18 @@ async def test_kill_and_reap_processes_waits_for_children():
 
 
 @pytest.mark.asyncio
-async def test_kill_and_reap_processes_reaps_already_exited_child():
+async def test_kill_and_reap_processes_reaps_already_exited_child() -> None:
     class Process:
         returncode = 0
 
-        def __init__(self):
+        def __init__(self) -> None:
             self.killed = False
             self.waited = 0
 
-        def kill(self):
+        def kill(self) -> None:
             self.killed = True
 
-        async def wait(self):
+        async def wait(self) -> int | None:
             self.waited += 1
             return self.returncode
 
@@ -75,3 +75,21 @@ async def test_kill_and_reap_processes_reaps_already_exited_child():
 
     assert process.killed is False
     assert process.waited == 1
+
+
+
+def test_tui_initialization_defers_unsupported_slipstream(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from configstream.tools.dns_scanner.python import dnsscanner_tui
+
+    monkeypatch.setattr(dnsscanner_tui.platform, "system", lambda: "Linux")
+    monkeypatch.setattr(dnsscanner_tui.platform, "machine", lambda: "armv7l")
+
+    app = dnsscanner_tui.DNSScannerTUI()
+
+    assert app.slipstream_path == ""
+    assert app.slipstream_manager.is_supported() is False
+    assert app.slipstream_manager.get_download_url() is None
+    with pytest.raises(RuntimeError, match="Unsupported platform"):
+        app.slipstream_manager.get_executable_path()

@@ -180,7 +180,9 @@ def test_update_databases_mirror_fallback(runner):
             assert Path("data/GeoLite2-ASN.mmdb").read_bytes() == b"asn-bytes"
 
 
-def test_update_databases_rejects_pinned_mirror_digest_mismatch(runner):
+def test_update_databases_rejects_pinned_mirror_digest_mismatch(
+    runner: CliRunner,
+) -> None:
     pinned = {
         "GeoLite2-City.mmdb": {
             "url": "https://mirror.invalid/GeoLite2-City.mmdb",

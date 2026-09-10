@@ -114,6 +114,10 @@ class SlipstreamManager:
         elif self.machine == "aarch64":
             self.machine = "arm64"
 
+    def is_supported(self) -> bool:
+        """Return whether this platform has a pinned Slipstream artifact."""
+        return f"{self.system}-{self.machine}" in self.ARTIFACTS
+
     def get_platform_key(self) -> str:
         """Return an architecture-specific key present in the pinned manifest."""
         key = f"{self.system}-{self.machine}"
@@ -472,7 +476,7 @@ class DNSScannerTUI(App):
         self.random_subdomain = False
         self.test_slipstream = False
         self.slipstream_manager = SlipstreamManager()
-        self.slipstream_path = str(self.slipstream_manager.get_executable_path())
+        self.slipstream_path = ""
         self.slipstream_domain = ""
         self.found_servers: Set[str] = set()
         self.server_times: dict[str, float] = {}
@@ -728,13 +732,26 @@ class DNSScannerTUI(App):
             self.notify("Please enter a domain!", severity="error")
             return
 
-        # Check if slipstream needs to be downloaded
-        if self.test_slipstream and not self.slipstream_manager.is_installed():
-            self.notify(
-                "Slipstream not found. Starting download...", severity="information"
-            )
-            self.run_worker(self._download_and_start_scan(), exclusive=True)
-            return
+        # Resolve the optional Slipstream dependency only when requested.
+        if self.test_slipstream:
+            if not self.slipstream_manager.is_supported():
+                self.notify(
+                    "Slipstream is not supported on "
+                    f"{self.slipstream_manager.system} {self.slipstream_manager.machine}.",
+                    severity="error",
+                )
+                return
+            if self.slipstream_manager.is_installed():
+                self.slipstream_path = str(
+                    self.slipstream_manager.get_executable_path()
+                )
+            else:
+                self.notify(
+                    "Slipstream not found. Starting download...",
+                    severity="information",
+                )
+                self.run_worker(self._download_and_start_scan(), exclusive=True)
+                return
 
         # Switch to scan screen
         self.query_one("#start-screen").display = False

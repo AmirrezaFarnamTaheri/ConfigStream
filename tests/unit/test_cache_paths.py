@@ -1,5 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+from pathlib import Path
 from unittest.mock import patch
+
+import pytest
 
 from configstream.test_cache import TestResultCache
 
@@ -32,7 +35,9 @@ def test_absolute_cache_path_is_preserved(tmp_path):
     assert cache.db_path == cache_path.resolve()
 
 
-def test_oversized_cache_file_fails_empty(tmp_path, monkeypatch):
+def test_oversized_cache_file_fails_empty(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     cache_path = tmp_path / "cache.json"
     cache_path.write_text('{"entry": {"tested_at": 1}}', encoding="utf-8")
     monkeypatch.setattr("configstream.test_cache.MAX_CACHE_FILE_BYTES", 1)

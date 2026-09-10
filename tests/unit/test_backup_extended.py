@@ -197,8 +197,8 @@ def test_timestamp_parsing():
 
 
 def test_restore_rejects_oversized_gzip_before_publication(
-    data_dir, backup_dir, monkeypatch
-):
+    data_dir: Path, backup_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     target = data_dir / "target.db"
     create_db(target)
     original = target.read_bytes()
