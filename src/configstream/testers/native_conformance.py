@@ -19,6 +19,8 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any, Iterable
 
+from pydantic import ValidationError
+
 from ..config import AppSettings
 from ..models import Proxy
 from ..security_validator import SecurityValidator
@@ -65,7 +67,7 @@ def select_samples(records: Iterable[object]) -> dict[str, list[Proxy]]:
             continue
         try:
             proxy = Proxy.model_validate(raw)
-        except Exception:
+        except ValidationError:
             continue
         protocol = proxy.protocol.lower()
         if protocol in _EXCLUDED_PROTOCOLS or not proxy.config or not proxy.is_working:
