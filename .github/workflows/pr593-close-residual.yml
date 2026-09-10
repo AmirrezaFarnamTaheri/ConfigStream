@@ -158,3 +158,5 @@ jobs:
           git fetch origin codex/fix-run-34268254683-audit
           git rebase origin/codex/fix-run-34268254683-audit
           git push origin HEAD:codex/fix-run-34268254683-audit
+
+# Triggered after the helper existed on the branch; this commit is intentional and self-removing.
