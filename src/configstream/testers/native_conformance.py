@@ -106,6 +106,14 @@ async def _probe(
             )
         except asyncio.TimeoutError:
             return protocol, False, "native connectivity probe timed out"
+        except (OSError, RuntimeError, ValueError, TypeError) as exc:
+            return (
+                protocol,
+                False,
+                SecurityValidator.sanitize_log_message(
+                    f"native connectivity probe errored: {type(exc).__name__}"
+                ),
+            )
         if result.is_working:
             return protocol, True, None
         category = str(
