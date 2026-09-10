@@ -287,20 +287,13 @@ def _native_connectivity_evidence(
 
     proxies_path = root / "proxies.json"
     proxies_digest = digest(proxies_path) if proxies_path.is_file() else ""
-    try:
-        conformance = asyncio.run(
-            run_release_runtime_conformance(
-                root,
-                singbox_binary=singbox_binary,
-                repo_root=Path(__file__).resolve().parents[1],
-            )
+    conformance = asyncio.run(
+        run_release_runtime_conformance(
+            root,
+            singbox_binary=singbox_binary,
+            repo_root=Path(__file__).resolve().parents[1],
         )
-    except Exception as exc:
-        conformance = {
-            "status": "failed",
-            "protocols": {},
-            "error": SecurityValidator.sanitize_log_message(type(exc).__name__),
-        }
+    )
     return (
         conformance,
         conformance_checks(
