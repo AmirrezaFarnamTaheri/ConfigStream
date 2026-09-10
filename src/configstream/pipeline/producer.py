@@ -185,6 +185,44 @@ async def _report_unusable_content(
     )
 
 
+def _is_direct_proxy(candidate: str) -> bool:
+    lower = candidate.lower()
+    if lower.startswith(
+        (
+            "ss://",
+            "vmess://",
+            "vless://",
+            "trojan://",
+            "hysteria://",
+            "hy2://",
+            "hysteria2://",
+            "hy3://",
+            "hysteria3://",
+            "tuic://",
+            "ssh://",
+            "wg://",
+            "wireguard://",
+            "naive://",
+            "naive+https://",
+            "naive+http://",
+            "socks://",
+            "socks4://",
+            "socks5://",
+        )
+    ):
+        return True
+    if lower.startswith(("http://", "https://")):
+        parsed = urlparse(candidate)
+        return (
+            parsed.hostname is not None
+            and parsed.port is not None
+            and parsed.path in ("", "/")
+            and not parsed.query
+            and not parsed.fragment
+        )
+    return False
+
+
 async def source_producer(
     sources: List[str],
     work_queue: asyncio.Queue,
@@ -301,43 +339,6 @@ async def source_producer(
                 break
 
         return queued_chunks
-
-    def _is_direct_proxy(candidate: str) -> bool:
-        lower = candidate.lower()
-        if lower.startswith(
-            (
-                "ss://",
-                "vmess://",
-                "vless://",
-                "trojan://",
-                "hysteria://",
-                "hy2://",
-                "hysteria2://",
-                "hy3://",
-                "hysteria3://",
-                "tuic://",
-                "ssh://",
-                "wg://",
-                "wireguard://",
-                "naive://",
-                "naive+https://",
-                "naive+http://",
-                "socks://",
-                "socks4://",
-                "socks5://",
-            )
-        ):
-            return True
-        if lower.startswith(("http://", "https://")):
-            parsed = urlparse(candidate)
-            return (
-                parsed.hostname is not None
-                and parsed.port is not None
-                and parsed.path in ("", "/")
-                and not parsed.query
-                and not parsed.fragment
-            )
-        return False
 
     # Set when this coroutine is cancelled, so the sentinel-delivery loop in the
     # finally block can tell a forced teardown from a normal completion.

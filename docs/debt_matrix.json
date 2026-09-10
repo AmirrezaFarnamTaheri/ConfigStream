@@ -1256,15 +1256,15 @@
     },
     {
       "path": "src/configstream/pipeline/producer.py",
-      "line": 188,
+      "line": 226,
       "marker": "LARGE_FUNCTION",
       "category": "production",
       "priority": "P1 - High",
-      "text": "Function source_producer spans 500 lines (threshold: 300)."
+      "text": "Function source_producer spans 463 lines (threshold: 300)."
     },
     {
       "path": "src/configstream/pipeline/producer.py",
-      "line": 514,
+      "line": 515,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1272,7 +1272,7 @@
     },
     {
       "path": "src/configstream/pipeline/producer.py",
-      "line": 539,
+      "line": 540,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1280,7 +1280,7 @@
     },
     {
       "path": "src/configstream/pipeline/producer.py",
-      "line": 589,
+      "line": 590,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1288,7 +1288,7 @@
     },
     {
       "path": "src/configstream/pipeline/producer.py",
-      "line": 633,
+      "line": 634,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
