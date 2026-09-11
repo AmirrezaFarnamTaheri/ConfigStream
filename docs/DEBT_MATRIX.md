@@ -233,11 +233,11 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - L139 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/backup.py`
-- L101 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L157 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L168 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L256 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L307 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L105 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L161 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L172 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L262 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L313 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/bot_cli.py`
 - L153 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
@@ -394,7 +394,7 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - L634 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/publication.py`
-- L35 [`PLACEHOLDER`] **P1 - High**: `r\"(?!example|placeholder|your[-_])[A-Za-z0-9._~+/=-]{8,}\"`
+- L35 [`PLACEHOLDER`] **P1 - High**: `r"(?!example|placeholder|your[-_])[A-Za-z0-9._~+/=-]{8,}"`
 
 ### `src/configstream/quality/storage.py`
 - L92 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
@@ -433,7 +433,7 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - L92 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/signer.py`
-- L30 [`PLACEHOLDER`] **P1 - High**: `if not candidate or \"PLACEHOLDER\" in candidate or \"79e/79e/\" in candidate:`
+- L30 [`PLACEHOLDER`] **P1 - High**: `if not candidate or "PLACEHOLDER" in candidate or "79e/79e/" in candidate:`
 
 ### `src/configstream/testers/go_tester/manager.py`
 - L72 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
