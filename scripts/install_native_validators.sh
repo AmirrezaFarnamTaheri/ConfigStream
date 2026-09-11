@@ -7,6 +7,12 @@ set -euo pipefail
 : "${XRAY_VERSION:?XRAY_VERSION is required}"
 : "${MIHOMO_VERSION:?MIHOMO_VERSION is required}"
 
+# Repository-owned trust anchors for the exact Linux/amd64 release artifacts.
+# Version bumps must update these digests in the same reviewed change.
+readonly SING_BOX_ARCHIVE_SHA256="d34d987ed6ae39ca3760269264fb502b867e5477db45518c829b07776245c495"
+readonly XRAY_ARCHIVE_SHA256="8195d909f1109b8f3d99eefe401a3c451d7bf4af71f24d3815420f77e5dd2a40"
+readonly MIHOMO_ARCHIVE_SHA256="343b2046967b236bc868b82537040cd0cecdedd20f3c6796ac96170f96b2debe"
+
 install_dir="${INSTALL_DIR:-${HOME}/.local/bin}"
 work_dir="$(mktemp -d)"
 staging_dir="$work_dir/staged"
@@ -28,28 +34,18 @@ retry() {
   done
 }
 
-release_asset_digest() {
-  local repository="$1"
-  local tag="$2"
-  local asset="$3"
-  local digest
-
-  digest="$(gh api "repos/${repository}/releases/tags/${tag}" \
-    --jq "first(.assets[] | select(.name == \"${asset}\") | .digest) // empty")"
-  if [[ ! "$digest" =~ ^sha256:[0-9a-fA-F]{64}$ ]]; then
-    echo "Missing or invalid SHA-256 digest metadata for ${repository}@${tag}:${asset}" >&2
-    return 1
-  fi
-  printf '%s\n' "${digest#sha256:}" | tr '[:upper:]' '[:lower:]'
-}
-
 download_verified_asset() {
   local repository="$1"
   local tag="$2"
   local asset="$3"
-  local expected actual
+  local expected="$4"
+  local actual
 
-  expected="$(release_asset_digest "$repository" "$tag" "$asset")"
+  if [[ ! "$expected" =~ ^[0-9a-fA-F]{64}$ ]]; then
+    echo "Invalid pinned SHA-256 for ${repository}@${tag}:${asset}" >&2
+    return 1
+  fi
+  expected="$(printf '%s' "$expected" | tr '[:upper:]' '[:lower:]')"
   retry gh release download "$tag" \
     --repo "$repository" \
     --pattern "$asset" \
@@ -83,14 +79,22 @@ atomic_install() {
 }
 
 sing_box_archive="sing-box-${SING_BOX_VERSION}-linux-amd64.tar.gz"
-download_verified_asset "SagerNet/sing-box" "v${SING_BOX_VERSION}" "$sing_box_archive"
+download_verified_asset \
+  "SagerNet/sing-box" \
+  "v${SING_BOX_VERSION}" \
+  "$sing_box_archive" \
+  "$SING_BOX_ARCHIVE_SHA256"
 tar -xzf "$sing_box_archive"
 install -m 0755 \
   "sing-box-${SING_BOX_VERSION}-linux-amd64/sing-box" \
   "$staging_dir/sing-box"
 
 xray_archive="Xray-linux-64.zip"
-download_verified_asset "XTLS/Xray-core" "$XRAY_VERSION" "$xray_archive"
+download_verified_asset \
+  "XTLS/Xray-core" \
+  "$XRAY_VERSION" \
+  "$xray_archive" \
+  "$XRAY_ARCHIVE_SHA256"
 mkdir -p xray
 unzip -oq "$xray_archive" -d xray
 install -m 0755 xray/xray "$staging_dir/xray"
@@ -102,13 +106,12 @@ for geodata in geoip.dat geosite.dat; do
   install -m 0644 "xray/$geodata" "$staging_dir/$geodata"
 done
 
-mihomo_asset="$(gh api "repos/MetaCubeX/mihomo/releases/tags/${MIHOMO_VERSION}" \
-  --jq 'first(.assets[].name | select(test("^mihomo-linux-amd64-v[0-9]+-v[0-9.]+\\.gz$"))) // empty')"
-if [[ -z "$mihomo_asset" ]]; then
-  echo "No exact linux-amd64 Mihomo asset found for ${MIHOMO_VERSION}" >&2
-  exit 1
-fi
-download_verified_asset "MetaCubeX/mihomo" "$MIHOMO_VERSION" "$mihomo_asset"
+mihomo_asset="mihomo-linux-amd64-v3-${MIHOMO_VERSION}.gz"
+download_verified_asset \
+  "MetaCubeX/mihomo" \
+  "$MIHOMO_VERSION" \
+  "$mihomo_asset" \
+  "$MIHOMO_ARCHIVE_SHA256"
 mihomo_temp="$(mktemp "${staging_dir}/.mihomo.XXXXXX")"
 gzip -dc "$mihomo_asset" > "$mihomo_temp"
 chmod 0755 "$mihomo_temp"
