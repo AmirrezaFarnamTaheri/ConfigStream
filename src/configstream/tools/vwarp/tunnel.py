@@ -103,6 +103,9 @@ class VwarpTunnel:
                 task.add_done_callback(self._stream_tasks.discard)
 
             return True
+        except asyncio.CancelledError:
+            await self.stop()
+            raise
         except Exception as e:
             logger.error(
                 "Failed to start Vwarp tunnel: %s",
