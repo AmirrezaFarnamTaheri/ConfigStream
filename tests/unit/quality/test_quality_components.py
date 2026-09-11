@@ -191,7 +191,9 @@ def test_record_run_without_explicit_key_is_idempotent(tmp_path):
         storage.close()
 
 
-def test_storage_merge_rejects_row_limit(tmp_path, monkeypatch):
+def test_storage_merge_rejects_row_limit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     destination = QualityStorage(tmp_path / "dest.db")
     source = QualityStorage(tmp_path / "source.db")
     for index in range(3):
