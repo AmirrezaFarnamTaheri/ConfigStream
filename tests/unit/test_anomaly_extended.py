@@ -170,7 +170,7 @@ def test_merge_rejects_row_limit(
 ) -> None:
     other_db = tmp_path / "oversized-anomaly.db"
     other = AnomalyDetector(other_db)
-    with patch("time.time", side_effect=[1000, 1001, 1002]):
+    with patch("time.time", return_value=1000):
         other.record("http://one", 10)
         other.record("http://two", 20)
         other.record("http://three", 30)
