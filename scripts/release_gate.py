@@ -470,11 +470,15 @@ def _validate_native_binary_bindings(report: dict[str, Any]) -> list[str]:
         for tool_name in REQUIRED_NATIVE_TARGETS:
             tool = tools.get(tool_name)
             if not isinstance(tool, dict):
-                errors.append(f"native client report tool metadata missing: {tool_name}")
+                errors.append(
+                    f"native client report tool metadata missing: {tool_name}"
+                )
                 continue
             tool_digest = tool.get("binary_sha256")
             if not isinstance(tool_digest, str) or not _is_sha256(tool_digest):
-                errors.append(f"native client report tool lacks binary digest: {tool_name}")
+                errors.append(
+                    f"native client report tool lacks binary digest: {tool_name}"
+                )
                 continue
             tool_digests[tool_name] = tool_digest
 
@@ -497,7 +501,9 @@ def _validate_native_binary_bindings(report: dict[str, Any]) -> list[str]:
         if tool_digest is None:
             errors.append(f"native validation references unbound validator: {core}")
         elif check_digest != tool_digest:
-            errors.append(f"native validation binary digest mismatch: {core}:{relative}")
+            errors.append(
+                f"native validation binary digest mismatch: {core}:{relative}"
+            )
     return errors
 
 
