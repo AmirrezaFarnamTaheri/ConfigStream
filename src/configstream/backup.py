@@ -46,8 +46,12 @@ def backup_databases(
         if not db_file.is_file():
             continue
 
-        safe_stem = db_file.stem.replace("..", "_").replace("/", "_").replace("\\", "_")
-        backup_path_temp = backup_dir / f".{safe_stem}_{timestamp}.{os.urandom(8).hex()}.db"
+        safe_stem = (
+            db_file.stem.replace("..", "_").replace("/", "_").replace("\\", "_")
+        )
+        backup_path_temp = (
+            backup_dir / f".{safe_stem}_{timestamp}.{os.urandom(8).hex()}.db"
+        )
         backup_path_final = backup_dir / f"{safe_stem}_{timestamp}.db.gz"
         compressed_temp = backup_dir / f".{backup_path_final.name}.{os.getpid()}.tmp"
 
@@ -232,7 +236,9 @@ def restore_database(backup_file: Path, target_file: Path) -> bool:
             f_out.flush()
             os.fsync(f_out.fileno())
 
-        check_conn = sqlite3.connect(f"file:{temp_path}?mode=ro", uri=True, timeout=5.0)
+        check_conn = sqlite3.connect(
+            f"file:{temp_path}?mode=ro", uri=True, timeout=5.0
+        )
         try:
             row = check_conn.execute("PRAGMA quick_check").fetchone()
         finally:
