@@ -211,7 +211,9 @@ def _unique_raw_source_candidate(
     prefix = url.split("[BASE64]", 1)[0].strip()
     if not prefix:
         return None
-    candidates = [candidate for candidate in allowed_urls if candidate.startswith(prefix)]
+    candidates = [
+        candidate for candidate in allowed_urls if candidate.startswith(prefix)
+    ]
     return candidates[0] if len(candidates) == 1 else None
 
 

@@ -32,7 +32,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 264,
+      "line": 266,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -40,7 +40,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 269,
+      "line": 271,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -48,7 +48,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 291,
+      "line": 293,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -56,7 +56,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 301,
+      "line": 303,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -64,7 +64,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 308,
+      "line": 310,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -72,7 +72,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 315,
+      "line": 317,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -80,7 +80,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 322,
+      "line": 324,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -88,7 +88,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 424,
+      "line": 426,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -96,7 +96,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 447,
+      "line": 449,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -104,7 +104,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 548,
+      "line": 550,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -112,7 +112,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 599,
+      "line": 601,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -120,7 +120,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 670,
+      "line": 672,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -504,7 +504,7 @@
     },
     {
       "path": "src/configstream/backup.py",
-      "line": 105,
+      "line": 103,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -512,7 +512,7 @@
     },
     {
       "path": "src/configstream/backup.py",
-      "line": 161,
+      "line": 159,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -520,7 +520,7 @@
     },
     {
       "path": "src/configstream/backup.py",
-      "line": 172,
+      "line": 170,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -528,7 +528,7 @@
     },
     {
       "path": "src/configstream/backup.py",
-      "line": 262,
+      "line": 258,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -536,7 +536,7 @@
     },
     {
       "path": "src/configstream/backup.py",
-      "line": 313,
+      "line": 309,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
