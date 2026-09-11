@@ -48,7 +48,9 @@ def test_native_validator_installer_uses_repository_owned_release_digests() -> N
 def test_native_validator_installer_uses_deterministic_release_assets() -> None:
     content = INSTALLER.read_text(encoding="utf-8")
 
-    assert 'sing_box_archive="sing-box-${SING_BOX_VERSION}-linux-amd64.tar.gz"' in content
+    assert (
+        'sing_box_archive="sing-box-${SING_BOX_VERSION}-linux-amd64.tar.gz"' in content
+    )
     assert 'xray_archive="Xray-linux-64.zip"' in content
     assert 'mihomo_asset="mihomo-linux-amd64-v3-${MIHOMO_VERSION}.gz"' in content
 
