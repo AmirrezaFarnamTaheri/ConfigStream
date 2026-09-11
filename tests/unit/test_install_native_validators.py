@@ -15,6 +15,11 @@ import pytest
 INSTALLER = (
     Path(__file__).resolve().parents[2] / "scripts" / "install_native_validators.sh"
 )
+PINNED_ARCHIVE_SHA256 = {
+    "sing-box": "d34d987ed6ae39ca3760269264fb502b867e5477db45518c829b07776245c495",
+    "xray": "8195d909f1109b8f3d99eefe401a3c451d7bf4af71f24d3815420f77e5dd2a40",
+    "mihomo": "343b2046967b236bc868b82537040cd0cecdedd20f3c6796ac96170f96b2debe",
+}
 
 
 def _sha256(path: Path) -> str:
@@ -27,14 +32,25 @@ def _write_executable(path: Path, name: str) -> None:
     path.chmod(0o755)
 
 
-def test_native_validator_installer_authenticates_every_release_asset() -> None:
+def test_native_validator_installer_uses_repository_owned_release_digests() -> None:
     content = INSTALLER.read_text(encoding="utf-8")
 
-    assert ".assets[]" in content
-    assert ".digest" in content
-    assert "^sha256:" in content
+    for expected in PINNED_ARCHIVE_SHA256.values():
+        assert expected in content
+    assert "gh api" not in content
+    assert ".assets[]" not in content
+    assert ".digest" not in content
     assert "sha256sum" in content
+    assert 'local expected="$4"' in content
     assert content.count("download_verified_asset") >= 4
+
+
+def test_native_validator_installer_uses_deterministic_release_assets() -> None:
+    content = INSTALLER.read_text(encoding="utf-8")
+
+    assert 'sing_box_archive="sing-box-${SING_BOX_VERSION}-linux-amd64.tar.gz"' in content
+    assert 'xray_archive="Xray-linux-64.zip"' in content
+    assert 'mihomo_asset="mihomo-linux-amd64-v3-${MIHOMO_VERSION}.gz"' in content
 
 
 def test_native_validator_installer_stages_before_atomic_replacement() -> None:
@@ -47,19 +63,26 @@ def test_native_validator_installer_stages_before_atomic_replacement() -> None:
     assert 'atomic_install "$staging_dir/$geodata" "$geodata" 0644' in content
 
 
-def test_native_validator_installer_does_not_pipe_gh_api_into_head() -> None:
+def _fixture_installer(tmp_path: Path, digests: dict[str, str]) -> Path:
     content = INSTALLER.read_text(encoding="utf-8")
-
-    assert "| head -n 1" not in content
-    assert "first(.assets[]" in content
-    assert "first(.assets[].name" in content
+    replacements = {
+        PINNED_ARCHIVE_SHA256["sing-box"]: digests["sing-box"],
+        PINNED_ARCHIVE_SHA256["xray"]: digests["xray"],
+        PINNED_ARCHIVE_SHA256["mihomo"]: digests["mihomo"],
+    }
+    for pinned, fixture in replacements.items():
+        assert pinned in content
+        content = content.replace(pinned, fixture, 1)
+    installer = tmp_path / "install_native_validators.sh"
+    installer.write_text(content, encoding="utf-8")
+    return installer
 
 
 @pytest.mark.skipif(
     os.name == "nt" or shutil.which("bash") is None,
     reason="POSIX Bash environment unavailable on this platform",
 )
-def test_native_validator_installer_executes_with_authenticated_release_assets(
+def test_native_validator_installer_executes_with_pinned_release_assets(
     tmp_path: Path,
 ) -> None:
     fixture_dir = tmp_path / "fixtures"
@@ -95,24 +118,20 @@ def test_native_validator_installer_executes_with_authenticated_release_assets(
     with gzip.open(fixture_dir / mihomo_asset, "wb") as archive:
         archive.write(mihomo_binary.read_bytes())
 
+    fixture_digests = {
+        "sing-box": _sha256(fixture_dir / sing_asset),
+        "xray": _sha256(fixture_dir / xray_asset),
+        "mihomo": _sha256(fixture_dir / mihomo_asset),
+    }
+    installer = _fixture_installer(tmp_path, fixture_digests)
+
     fake_gh = fake_bin / "gh"
     fake_gh.write_text(
         """#!/usr/bin/env bash
 set -euo pipefail
 if [[ "${1:-}" == "api" ]]; then
-  args="$*"
-  if [[ "$args" == *".assets[].name"* ]]; then
-    printf '%s\\n' "$MIHOMO_ASSET"
-  elif [[ "$args" == *"SagerNet/sing-box"* ]]; then
-    printf 'sha256:%s\\n' "$DIGEST_SING"
-  elif [[ "$args" == *"XTLS/Xray-core"* ]]; then
-    printf 'sha256:%s\\n' "$DIGEST_XRAY"
-  elif [[ "$args" == *"MetaCubeX/mihomo"* ]]; then
-    printf 'sha256:%s\\n' "$DIGEST_MIHOMO"
-  else
-    exit 2
-  fi
-  exit 0
+  echo "installer must not trust live release metadata" >&2
+  exit 99
 fi
 if [[ "${1:-}" == "release" && "${2:-}" == "download" ]]; then
   shift 2
@@ -148,16 +167,12 @@ exit 2
             "SING_BOX_VERSION": sing_version,
             "XRAY_VERSION": xray_version,
             "MIHOMO_VERSION": mihomo_version,
-            "MIHOMO_ASSET": mihomo_asset,
-            "DIGEST_SING": _sha256(fixture_dir / sing_asset),
-            "DIGEST_XRAY": _sha256(fixture_dir / xray_asset),
-            "DIGEST_MIHOMO": _sha256(fixture_dir / mihomo_asset),
         }
     )
     (tmp_path / "home").mkdir()
 
     result = subprocess.run(
-        ["bash", str(INSTALLER)],
+        ["bash", str(installer)],
         cwd=tmp_path,
         env=env,
         capture_output=True,
