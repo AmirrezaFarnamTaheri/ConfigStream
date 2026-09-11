@@ -185,11 +185,12 @@ class VwarpTunnel:
         config_override: Optional[Dict[str, Any]] = None,
     ) -> List[str]:
         """Build the best available tunnel command."""
+        # Preserve this direct reference's generated-catalog source anchor.
+        env_args = os.environ.get("VWARP_TUNNEL_ARGS", "").strip()
         if not self.binary_path:
             return []
 
         bind_value = f"{bind_addr}:{port}"
-        env_args = os.environ.get("VWARP_TUNNEL_ARGS", "").strip()
         if env_args:
             return [self.binary_path] + shlex.split(
                 env_args.replace("{bind}", bind_value)
