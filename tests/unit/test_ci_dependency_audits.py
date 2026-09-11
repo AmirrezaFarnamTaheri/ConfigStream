@@ -4,11 +4,14 @@ from __future__ import annotations
 from pathlib import Path
 
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
 def test_ci_audits_python_node_go_and_rust_dependencies() -> None:
-    ci_workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
-    security_workflow = Path(".github/workflows/dependency-security.yml").read_text(
-        encoding="utf-8"
-    )
+    ci_workflow = (REPO_ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    security_workflow = (
+        REPO_ROOT / ".github/workflows/dependency-security.yml"
+    ).read_text(encoding="utf-8")
 
     assert "pip-audit -r requirements-prod.txt" in ci_workflow
     assert "npm audit --audit-level=high" in security_workflow
