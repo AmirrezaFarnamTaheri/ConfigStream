@@ -2,6 +2,10 @@
 from __future__ import annotations
 
 import builtins
+from collections.abc import Iterator
+from typing import Any
+
+import pytest
 
 from scripts import resilient_stage
 
@@ -12,11 +16,21 @@ def _reset_cache() -> None:
     resilient_stage._PROJECT_SANITIZER_WARNING_EMITTED = False
 
 
-def test_project_sanitizer_fallback_warns_once_and_masks(monkeypatch) -> None:
+@pytest.fixture(autouse=True)
+def _isolate_sanitizer_cache() -> Iterator[None]:
     _reset_cache()
+    try:
+        yield
+    finally:
+        _reset_cache()
+
+
+def test_project_sanitizer_fallback_warns_once_and_masks(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     original_import = builtins.__import__
 
-    def blocked_import(name, *args, **kwargs):
+    def blocked_import(name: str, *args: Any, **kwargs: Any) -> Any:
         if name == "configstream.security_validator":
             raise ImportError("unavailable")
         return original_import(name, *args, **kwargs)
@@ -38,7 +52,6 @@ def test_project_sanitizer_fallback_warns_once_and_masks(monkeypatch) -> None:
 
 
 def test_project_sanitizer_is_resolved_once() -> None:
-    _reset_cache()
     calls: list[str] = []
 
     def sanitizer(value: str) -> str:
