@@ -1,9 +1,12 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from pathlib import Path
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+WORKFLOW_PATH = REPO_ROOT / ".github/workflows/deploy-pages.yml"
+
 
 def test_pages_workflow_snapshots_and_restores_last_known_good() -> None:
-    workflow = Path(".github/workflows/deploy-pages.yml").read_text(encoding="utf-8")
+    workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
     assert "Snapshot current verified Pages release" in workflow
     assert "scripts/snapshot_pages_release.py" in workflow
     assert "-c requirements-prod.txt" in workflow
@@ -22,7 +25,7 @@ def test_pages_workflow_snapshots_and_restores_last_known_good() -> None:
 
 
 def test_pages_workflow_requires_verified_rollback_baseline_before_deploy() -> None:
-    workflow = Path(".github/workflows/deploy-pages.yml").read_text(encoding="utf-8")
+    workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
     assert "allow_bootstrap_without_lkg" in workflow
     assert "Require rollback baseline before production mutation" in workflow
     assert "ROLLBACK_READY=false" in workflow
