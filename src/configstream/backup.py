@@ -47,21 +47,15 @@ def backup_databases(
             continue
 
         safe_stem = db_file.stem.replace("..", "_").replace("/", "_").replace("\\", "_")
-        fd, temp_name = tempfile.mkstemp(
-            prefix=f".{safe_stem}_{timestamp}.",
-            suffix=".db",
-            dir=backup_dir,
-        )
-        os.close(fd)
-        backup_path_temp = Path(temp_name)
+        backup_path_temp = backup_dir / f".{safe_stem}_{timestamp}.{os.urandom(8).hex()}.db"
         backup_path_final = backup_dir / f"{safe_stem}_{timestamp}.db.gz"
         compressed_temp = backup_dir / f".{backup_path_final.name}.{os.getpid()}.tmp"
 
         try:
+            backup_path_temp.resolve().relative_to(backup_dir.resolve())
             backup_path_final.resolve().relative_to(backup_dir.resolve())
             compressed_temp.resolve().relative_to(backup_dir.resolve())
         except ValueError:
-            backup_path_temp.unlink(missing_ok=True)
             logger.error("Skipping backup: path traversal detected for %s", db_file)
             continue
 
