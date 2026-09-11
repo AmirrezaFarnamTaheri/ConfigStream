@@ -822,13 +822,13 @@ class DNSScannerTUI(App):
                 f"[yellow]Expected path: {self.slipstream_manager.get_executable_path()}[/yellow]"
             )
             log_widget.write(
-                "[yellow]Partial download saved. Run again to resume.[/yellow]"
+                "[yellow]No partial file was kept. Retry the full download.[/yellow]"
             )
             log_widget.write(
                 "[yellow]Or download manually and place in the path above.[/yellow]"
             )
             self.notify(
-                "Failed to download Slipstream. Run again to resume.", severity="error"
+                "Slipstream download failed. Retry the full download.", severity="error"
             )
 
     async def _scan_async(self) -> None:
@@ -1270,7 +1270,7 @@ class DNSScannerTUI(App):
                 except aiodns.error.DNSError as dns_err:
                     elapsed = time.time() - start
                     # DNS errors like NXDOMAIN, NODATA, etc. mean the DNS server IS working
-                    # Only connection/timeout errors mean it's not a valid DNS server
+                    # Only connection/timeout errors mean it's not a valid/working DNS server
                     error_code = dns_err.args[0] if dns_err.args else 0
 
                     # Error codes that indicate a working DNS server:
