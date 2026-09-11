@@ -6,11 +6,12 @@ from typing import Any
 
 import yaml
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+WORKFLOW_PATH = REPO_ROOT / ".github/workflows/deploy-pages.yml"
+
 
 def _workflow() -> dict[Any, Any]:
-    loaded = yaml.safe_load(
-        Path(".github/workflows/deploy-pages.yml").read_text(encoding="utf-8")
-    )
+    loaded = yaml.safe_load(WORKFLOW_PATH.read_text(encoding="utf-8"))
     assert isinstance(loaded, dict)
     return loaded
 
@@ -43,9 +44,7 @@ def test_pages_deployment_requires_rollback_baseline() -> None:
     assert "env.DEPLOY_READY == 'true'" in str(deploy.get("if") or "")
     assert "env.ROLLBACK_READY == 'true'" in str(deploy.get("if") or "")
 
-    workflow_text = Path(".github/workflows/deploy-pages.yml").read_text(
-        encoding="utf-8"
-    )
+    workflow_text = WORKFLOW_PATH.read_text(encoding="utf-8")
     assert "--required-stage rollback-baseline" in workflow_text
 
 
