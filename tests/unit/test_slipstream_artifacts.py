@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+from collections.abc import AsyncIterator
 from pathlib import Path
 
 import pytest
@@ -14,29 +15,29 @@ class _Stream:
         self.payload = payload
         self.headers = {"Content-Length": str(len(payload))}
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> _Stream:
         return self
 
-    async def __aexit__(self, *_args):
+    async def __aexit__(self, *_args: object) -> bool:
         return False
 
     def raise_for_status(self) -> None:
         return None
 
-    async def aiter_bytes(self):
+    async def aiter_bytes(self) -> AsyncIterator[bytes]:
         yield self.payload
 
 
 class _Client:
     payload = b""
 
-    def __init__(self, **_kwargs) -> None:
+    def __init__(self, **_kwargs: object) -> None:
         pass
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> _Client:
         return self
 
-    async def __aexit__(self, *_args):
+    async def __aexit__(self, *_args: object) -> bool:
         return False
 
     def stream(self, method: str, url: str) -> _Stream:
