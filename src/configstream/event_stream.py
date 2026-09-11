@@ -5,6 +5,7 @@ import asyncio
 import json
 import logging
 import queue
+import re
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
@@ -15,6 +16,7 @@ from configstream.security_validator import SecurityValidator
 from configstream.utils import _FileLock
 
 EVENT_LOG_FILENAME = "pipeline_events.jsonl"
+_PUBLIC_URI_RE = re.compile(r"\b[a-zA-Z][a-zA-Z0-9+.-]*://\S+")
 logger = logging.getLogger(__name__)
 
 
@@ -118,6 +120,12 @@ class EventStream:
         return safe
 
     @staticmethod
+    def _public_message(event_type: str, message: str) -> str:
+        if event_type == "fetch_blocked":
+            return "Source blocked by anomaly policy."
+        return _PUBLIC_URI_RE.sub("[source]", message)
+
+    @staticmethod
     def _event_record(event_type: str, message: str) -> Dict[str, str]:
         return {
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -137,8 +145,9 @@ class EventStream:
 
     def emit(self, event_type: str, message: Any) -> bool:
         safe_message = self._sanitize_message(message)
+        public_message = self._public_message(event_type, safe_message)
         persisted = self._append_event_record(
-            self._event_record(event_type, safe_message)
+            self._event_record(event_type, public_message)
         )
         rendered = f"[{event_type}] {safe_message}"
         if event_type in {"error", "critical"}:

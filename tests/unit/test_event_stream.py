@@ -307,9 +307,9 @@ class TestEventStream:
         record = json.loads(records[0])
         assert record["event_type"] == "info"
         assert "secret" not in record["message"]
+        assert "example.com" not in record["message"]
         assert "203.0.113.8" not in record["message"]
-        assert "token=[MASKED]" in record["message"]
-        assert "[IP]" in record["message"]
+        assert record["message"] == "Fetching [source] from [IP]"
         assert record["timestamp"].endswith("+00:00")
 
     def test_emit_can_disable_jsonl_persistence(self, tmp_path):
