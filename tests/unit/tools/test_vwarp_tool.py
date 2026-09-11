@@ -1,7 +1,7 @@
 import hashlib
 import asyncio
 from pathlib import Path
-from typing import Awaitable
+from typing import Awaitable, cast
 
 import pytest
 
@@ -279,7 +279,7 @@ async def test_tunnel_stop_kills_reaps_and_awaits_stream_tasks(
     monkeypatch.setattr(tunnel_module, "safe_wait_for", _wait)
     process = _Process()
     tunnel = VwarpTunnel("/tmp/vwarp")
-    tunnel._proc = process
+    tunnel._proc = cast(asyncio.subprocess.Process, process)
 
     finalized = asyncio.Event()
 
