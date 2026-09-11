@@ -63,10 +63,15 @@ def test_frontend_stages_require_installed_locked_tools() -> None:
 
 def test_full_plan_declares_environment_preconditions() -> None:
     stages = {stage.name: stage for stage in verify_repository.build_plan("full")}
+    runtime_versions = json.loads(
+        Path("config/runtime-versions.json").read_text(encoding="utf-8")
+    )
     assert "aiohttp_socks" in stages["python-unit"].required_python_modules
     assert stages["go-tester-unit"].minimum_tool_version == (1, 24, 0)
     assert stages["go-utls-unit"].minimum_tool_version == (1, 24, 3)
-    assert stages["go-tester-unit"].environment == (("GOTOOLCHAIN", "go1.24.3"),)
+    assert stages["go-tester-unit"].environment == (
+        ("GOTOOLCHAIN", f"go{runtime_versions['go']['toolchain']}"),
+    )
 
 
 def test_extended_plan_is_the_full_only_tail() -> None:

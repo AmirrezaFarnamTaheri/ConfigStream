@@ -50,11 +50,18 @@ INTERNAL_KEYS = {
     "failure_category",
 }
 MAX_SELECTOR_MEMBERS = int(os.environ.get("MAX_SELECTOR_MEMBERS", "96"))
+MAX_RELEASE_INPUT_BYTES = 64 * 1024 * 1024
+
+
+def _checked_text(path: Path) -> str:
+    if path.stat().st_size > MAX_RELEASE_INPUT_BYTES:
+        raise ValueError(f"release input exceeds size limit: {path}")
+    return path.read_text(encoding="utf-8")
 
 
 def _load(path: Path, default: Any = None) -> Any:
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        return json.loads(_checked_text(path))
     except (OSError, json.JSONDecodeError):
         return default
 
@@ -336,7 +343,7 @@ def _repair_clash(root: Path, records: list[dict[str, Any]]) -> dict[str, Any]:
                 f"refusing to rewrite unsafe client config "
                 f"{path.relative_to(root)}: {path_error}"
             )
-        loaded = yaml.safe_load(resolved.read_text(encoding="utf-8")) or {}
+        loaded = yaml.safe_load(_checked_text(resolved)) or {}
         payload: dict[str, Any] = loaded if isinstance(loaded, dict) else {}
         raw_proxies = payload.get("proxies")
         proxies: list[Any] = raw_proxies if isinstance(raw_proxies, list) else []
@@ -417,7 +424,7 @@ def _cleanup(root: Path) -> list[str]:
         }:
             continue
         try:
-            text = path.read_text(encoding="utf-8")
+            text = _checked_text(path)
         except (OSError, UnicodeDecodeError):
             continue
         clean = CONTROL_RE.sub("", text)

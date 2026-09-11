@@ -51,7 +51,23 @@ class StageResult:
 
 def build_plan(profile: str) -> list[Stage]:
     python = sys.executable
-    go_environment = (("GOTOOLCHAIN", "go1.24.3"),)
+    runtime_versions = json.loads(
+        (
+            Path(__file__).resolve().parents[1] / "config" / "runtime-versions.json"
+        ).read_text(encoding="utf-8")
+    )
+    go_config = runtime_versions.get("go")
+    if not isinstance(go_config, dict):
+        raise ValueError("runtime-versions.json must define a Go runtime configuration")
+    go_toolchain = go_config.get("toolchain")
+    if (
+        not isinstance(go_toolchain, str)
+        or re.fullmatch(r"\d+\.\d+\.\d+", go_toolchain) is None
+    ):
+        raise ValueError(
+            "runtime-versions.json must define a semantic Go toolchain version"
+        )
+    go_environment = (("GOTOOLCHAIN", f"go{go_toolchain}"),)
     static = [
         Stage("versions", (python, "scripts/validate_versions.py")),
         Stage("changelog", (python, "scripts/validate_changelog.py")),

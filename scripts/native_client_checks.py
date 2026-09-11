@@ -242,6 +242,20 @@ def main() -> int:
         "checks": checks,
         "summary": summary,
     }
+    runtime_conformance: dict[str, Any] | None = None
+    if singbox_binary is not None and singbox_digest is not None:
+        runtime_conformance, conformance_items = _native_connectivity_evidence(
+            root, singbox_binary, singbox_digest
+        )
+        checks.extend(conformance_items)
+        summary = {
+            "passed": sum(item["status"] == "passed" for item in checks),
+            "failed": sum(item["status"] == "failed" for item in checks),
+            "skipped": sum(item["status"] == "skipped" for item in checks),
+        }
+    report["runtime_conformance"] = runtime_conformance
+    report["checks"] = checks
+    report["summary"] = summary
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(
         json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
@@ -256,6 +270,38 @@ def _required_native_target(core: str) -> str:
         "mihomo": "clash.yaml",
         "xray": "xray.json",
     }[core]
+
+
+def _native_connectivity_evidence(
+    root: Path,
+    singbox_binary: Path,
+    singbox_digest: str,
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Run bounded release-runtime probes and convert them to enforced checks."""
+    import asyncio
+
+    from configstream.testers.native_conformance import (
+        conformance_checks,
+        run_release_runtime_conformance,
+    )
+
+    proxies_path = root / "proxies.json"
+    proxies_digest = digest(proxies_path) if proxies_path.is_file() else ""
+    conformance = asyncio.run(
+        run_release_runtime_conformance(
+            root,
+            singbox_binary=singbox_binary,
+            repo_root=Path(__file__).resolve().parents[1],
+        )
+    )
+    return (
+        conformance,
+        conformance_checks(
+            conformance,
+            proxies_digest=proxies_digest,
+            binary_digest=singbox_digest,
+        ),
+    )
 
 
 if __name__ == "__main__":

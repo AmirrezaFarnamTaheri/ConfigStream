@@ -156,6 +156,73 @@ async def _report_source_backpressure(
         pass
 
 
+async def _report_unusable_content(
+    loop: asyncio.AbstractEventLoop,
+    quality_tracker: SourceQualityTracker,
+    settings: AppSettings,
+    source: str,
+    safe_source: str,
+    content: str,
+    drop_stats: dict[str, int],
+    response_time: float,
+) -> None:
+    log_method = logger.debug if len(content) < 100 else logger.warning
+    log_method(
+        "Source %s returned content (size=%d) but no valid config lines found. "
+        "Drop Stats: %s",
+        safe_source,
+        len(content),
+        drop_stats,
+    )
+    await _report_source_failure(
+        loop,
+        quality_tracker,
+        settings,
+        source,
+        "no_valid_lines",
+        duration_ms=response_time * 1000,
+        failure_modes=drop_stats,
+    )
+
+
+def _is_direct_proxy(candidate: str) -> bool:
+    lower = candidate.lower()
+    if lower.startswith(
+        (
+            "ss://",
+            "vmess://",
+            "vless://",
+            "trojan://",
+            "hysteria://",
+            "hy2://",
+            "hysteria2://",
+            "hy3://",
+            "hysteria3://",
+            "tuic://",
+            "ssh://",
+            "wg://",
+            "wireguard://",
+            "naive://",
+            "naive+https://",
+            "naive+http://",
+            "socks://",
+            "socks4://",
+            "socks5://",
+        )
+    ):
+        return True
+    if lower.startswith(("http://", "https://")):
+        parsed = urlparse(candidate)
+        return (
+            parsed.hostname is not None
+            and parsed.port is not None
+            and parsed.path in ("", "/")
+            and not parsed.query
+            and not parsed.fragment
+        )
+    return False
+
+
 async def source_producer(
     sources: List[str],
     work_queue: asyncio.Queue,
@@ -272,43 +339,6 @@ async def source_producer(
                 break
 
         return queued_chunks
-
-    def _is_direct_proxy(candidate: str) -> bool:
-        lower = candidate.lower()
-        if lower.startswith(
-            (
-                "ss://",
-                "vmess://",
-                "vless://",
-                "trojan://",
-                "hysteria://",
-                "hy2://",
-                "hysteria2://",
-                "hy3://",
-                "hysteria3://",
-                "tuic://",
-                "ssh://",
-                "wg://",
-                "wireguard://",
-                "naive://",
-                "naive+https://",
-                "naive+http://",
-                "socks://",
-                "socks4://",
-                "socks5://",
-            )
-        ):
-            return True
-        if lower.startswith(("http://", "https://")):
-            parsed = urlparse(candidate)
-            return (
-                parsed.hostname is not None
-                and parsed.port is not None
-                and parsed.path in ("", "/")
-                and not parsed.query
-                and not parsed.fragment
-            )
-        return False
 
     # Set when this coroutine is cancelled, so the sentinel-delivery loop in the
     # finally block can tell a forced teardown from a normal completion.
@@ -445,6 +475,7 @@ async def source_producer(
                     quality_tracker=quality_tracker,
                     breaker_manager=breaker_manager,
                 )
+                usable_sources = 0
 
                 for source, res in results.items():
                     if stop_event.is_set():
@@ -463,25 +494,15 @@ async def source_producer(
                         safe_source = SecurityValidator.sanitize_log_message(source)
 
                         if count == 0:
-                            # Log that we got content but no proxies (useful for debugging invalid formats)
-                            # Reduced noise for expected empty sources
-                            log_method = (
-                                logger.debug
-                                if len(res.content) < 100
-                                else logger.warning
-                            )
-                            log_method(
-                                f"Source {safe_source} returned content (size={len(res.content) if res.content else 0}) but no valid config lines found. "
-                                f"Drop Stats: {drop_stats}"
-                            )
-                            await _report_source_failure(
+                            await _report_unusable_content(
                                 loop,
                                 quality_tracker,
                                 settings,
                                 source,
-                                "no_valid_lines",
-                                duration_ms=(res.response_time or 0.0) * 1000,
-                                failure_modes=drop_stats,
+                                safe_source,
+                                res.content or "",
+                                drop_stats,
+                                res.response_time or 0.0,
                             )
                             continue
 
@@ -547,6 +568,7 @@ async def source_producer(
                                         duration_ms=(res.response_time or 0.0) * 1000,
                                     )
                                     continue
+                                usable_sources += 1
 
                                 # Single consolidated log via event stream (includes fetch metrics)
                                 if event_stream:
@@ -595,6 +617,11 @@ async def source_producer(
                             duration_ms=(res.response_time or 0.0) * 1000,
                             failure_modes={"fetch_error": safe_error},
                         )
+                logger.info(
+                    "Usable Source Summary: %d/%d sources produced accepted records.",
+                    usable_sources,
+                    len(batch),
+                )
     except asyncio.CancelledError:
         # Cancellation is the one signal that consumers are being torn down
         # directly (core.py's `_cancel_all` cancels producer and consumers

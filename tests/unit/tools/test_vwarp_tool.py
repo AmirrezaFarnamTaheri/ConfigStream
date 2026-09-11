@@ -1,6 +1,7 @@
 import hashlib
 import asyncio
 from pathlib import Path
+from typing import Awaitable, cast
 
 import pytest
 
@@ -219,8 +220,8 @@ async def test_vwarp_verification_kills_timed_out_process(monkeypatch):
 
 
 def test_install_directory_falls_back_when_user_bin_creation_fails(
-    monkeypatch, tmp_path
-):
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     home = tmp_path / "home"
     preferred = home / ".local" / "bin"
     original_mkdir = Path.mkdir
@@ -238,3 +239,66 @@ def test_install_directory_falls_back_when_user_bin_creation_fails(
     assert fallback.is_dir()
     assert fallback != preferred
     assert fallback.name.startswith("configstream-bin-")
+
+
+@pytest.mark.asyncio
+async def test_tunnel_stop_kills_reaps_and_awaits_stream_tasks(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from configstream.tools.vwarp import tunnel as tunnel_module
+
+    class _Process:
+        returncode = None
+        terminated = False
+        killed = False
+        waited = 0
+
+        def terminate(self) -> None:
+            self.terminated = True
+
+        def kill(self) -> None:
+            self.killed = True
+
+        async def wait(self) -> int:
+            self.waited += 1
+            self.returncode = -9 if self.killed else 0
+            return self.returncode
+
+    calls = 0
+
+    async def _wait(awaitable: Awaitable[int], timeout: float) -> int:
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            close = getattr(awaitable, "close", None)
+            if close is not None:
+                close()
+            raise asyncio.TimeoutError
+        return await awaitable
+
+    monkeypatch.setattr(tunnel_module, "safe_wait_for", _wait)
+    process = _Process()
+    tunnel = VwarpTunnel("/tmp/vwarp")
+    tunnel._proc = cast(asyncio.subprocess.Process, process)
+
+    finalized = asyncio.Event()
+
+    async def _reader() -> None:
+        try:
+            await asyncio.Event().wait()
+        finally:
+            finalized.set()
+
+    task = asyncio.create_task(_reader())
+    await asyncio.sleep(0)
+    tunnel._stream_tasks.add(task)
+
+    await tunnel.stop()
+
+    assert process.terminated is True
+    assert process.killed is True
+    assert process.waited == 1
+    assert tunnel._proc is None
+    assert task.done()
+    assert finalized.is_set()
+    assert tunnel._stream_tasks == set()

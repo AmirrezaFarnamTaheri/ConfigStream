@@ -35,6 +35,18 @@ from configstream.adaptive_workers import calculate_optimal_workers
 logger = logging.getLogger(__name__)
 
 
+def _restore_vwarp_environment(had_value: bool, previous: Optional[str]) -> None:
+    """Restore USE_VWARP_TUNNEL without relying on assert-only invariants."""
+    if had_value and previous is not None:
+        os.environ["USE_VWARP_TUNNEL"] = previous
+        return
+    if had_value:
+        logger.warning(
+            "USE_VWARP_TUNNEL restore state was incomplete; removing the variable."
+        )
+    os.environ.pop("USE_VWARP_TUNNEL", None)
+
+
 class _NoOpGeoIPResolver:
     """Dry-run resolver that avoids loading optional GeoIP database bindings."""
 
@@ -134,6 +146,9 @@ class StandardPipeline(IPipeline):
         from configstream.tools.vwarp.manager import VwarpTool
 
         vwarp_tool = VwarpTool()
+        vwarp_env_had_value = "USE_VWARP_TUNNEL" in os.environ
+        vwarp_env_previous = os.environ.get("USE_VWARP_TUNNEL")
+        vwarp_started = False
 
         if settings.USE_VWARP_TUNNEL:
             if await vwarp_tool.is_available():
@@ -151,6 +166,7 @@ class StandardPipeline(IPipeline):
                     port=VWARP_SOCKS5_PORT,
                     config_override=vwarp_config_override,
                 ):
+                    vwarp_started = True
                     logger.info("✅ Vwarp Tunnel established.")
                     os.environ["USE_VWARP_TUNNEL"] = "true"
                 else:
@@ -166,99 +182,118 @@ class StandardPipeline(IPipeline):
         else:
             logger.info("Vwarp tunnel disabled by configuration.")
 
-        test_cache = TestResultCache()
-        # Propagate force_retest to cache/scheduler so consumer can bypass them
-        setattr(test_cache, "force_retest", bool(force_retest))
-        scheduler = SmartRetestScheduler(cache=test_cache)
-        setattr(scheduler, "force_retest", bool(force_retest))
-        concurrency = ConcurrencyManager(
-            asyncio.get_running_loop(),
-            initial_limit=max_workers,
-            min_limit=1,
-            max_limit=max_workers,
-        )
-
-        logger.info("Initializing security blocklists...")
-        await DEFAULT_BLOCKLIST.update()
-
-        import configstream.pipeline as pipeline_api
-
-        geoip = _NoOpGeoIPResolver() if dry_run else pipeline_api.GeoIPResolver()
-        washer = ProxyWasher(settings.WARP_KEY_POOL)
-        if not dry_run:
-            await washer.fetch_clean_ips()
-
-        event_stream = EventStream(output_path)
-        trace_id = set_trace_id()
-        stats = PipelineStats()
-        stats.trace_id = trace_id
-        stats.total_configured_sources = len(sources) if sources else 0
-
-        tester = SingBoxTester(
-            timeout=float(timeout),
-            cache=test_cache,
-            strict_security=strict_security,
-            dry_run=dry_run,
-            max_workers=max_workers,
-        )
-
-        seen_bloom = None
-        if settings.SEEN_BLOOM_ENABLED:
-            seen_bloom = BloomFilter(
-                expected_items=int(settings.SEEN_BLOOM_EXPECTED_ITEMS),
-                false_positive_rate=float(settings.SEEN_BLOOM_FALSE_POSITIVE_RATE),
+        initialization_complete = False
+        try:
+            test_cache = TestResultCache()
+            # Propagate force_retest to cache/scheduler so consumer can bypass them
+            setattr(test_cache, "force_retest", bool(force_retest))
+            scheduler = SmartRetestScheduler(cache=test_cache)
+            setattr(scheduler, "force_retest", bool(force_retest))
+            concurrency = ConcurrencyManager(
+                asyncio.get_running_loop(),
+                initial_limit=max_workers,
+                min_limit=1,
+                max_limit=max_workers,
             )
 
-        context = PipelineContext(
-            work_queue=asyncio.Queue(maxsize=5000),
-            stop_event=asyncio.Event(),
-            stats=stats,
-            final_proxies=[],
-            seen_keys={},
-            seen_lock=asyncio.Lock(),
-            settings=settings,
-            tester=tester,
-            scheduler=scheduler,
-            test_cache=test_cache,
-            concurrency=concurrency,
-            geoip=geoip,
-            tracker=PerformanceTracker(),
-            event_stream=event_stream,
-            quality_tracker=SourceQualityTracker(),
-            history=ProxyHistoryTracker(),
-            anomaly_detector=AnomalyDetector(),
-            washer=washer,
-            seen_bloom=seen_bloom,
-            hard_stop_watcher=HardStopWatcher(
-                grace_seconds=float(getattr(settings, "SHUTDOWN_GRACE_SECONDS", 5.0)),
-                flush_timeout_seconds=float(
-                    getattr(settings, "EVENT_STREAM_FLUSH_TIMEOUT_SECONDS", 2.0)
+            logger.info("Initializing security blocklists...")
+            await DEFAULT_BLOCKLIST.update()
+
+            import configstream.pipeline as pipeline_api
+
+            geoip = _NoOpGeoIPResolver() if dry_run else pipeline_api.GeoIPResolver()
+            washer = ProxyWasher(settings.WARP_KEY_POOL)
+            if not dry_run:
+                await washer.fetch_clean_ips()
+
+            event_stream = EventStream(output_path)
+            trace_id = set_trace_id()
+            stats = PipelineStats()
+            stats.trace_id = trace_id
+            stats.total_configured_sources = len(sources) if sources else 0
+
+            tester = SingBoxTester(
+                timeout=float(timeout),
+                cache=test_cache,
+                strict_security=strict_security,
+                dry_run=dry_run,
+                max_workers=max_workers,
+            )
+
+            seen_bloom = None
+            if settings.SEEN_BLOOM_ENABLED:
+                seen_bloom = BloomFilter(
+                    expected_items=int(settings.SEEN_BLOOM_EXPECTED_ITEMS),
+                    false_positive_rate=float(settings.SEEN_BLOOM_FALSE_POSITIVE_RATE),
+                )
+
+            context = PipelineContext(
+                work_queue=asyncio.Queue(maxsize=5000),
+                stop_event=asyncio.Event(),
+                stats=stats,
+                final_proxies=[],
+                seen_keys={},
+                seen_lock=asyncio.Lock(),
+                settings=settings,
+                tester=tester,
+                scheduler=scheduler,
+                test_cache=test_cache,
+                concurrency=concurrency,
+                geoip=geoip,
+                tracker=PerformanceTracker(),
+                event_stream=event_stream,
+                quality_tracker=SourceQualityTracker(),
+                history=ProxyHistoryTracker(),
+                anomaly_detector=AnomalyDetector(),
+                washer=washer,
+                seen_bloom=seen_bloom,
+                hard_stop_watcher=HardStopWatcher(
+                    grace_seconds=float(
+                        getattr(settings, "SHUTDOWN_GRACE_SECONDS", 5.0)
+                    ),
+                    flush_timeout_seconds=float(
+                        getattr(settings, "EVENT_STREAM_FLUSH_TIMEOUT_SECONDS", 2.0)
+                    ),
                 ),
-            ),
-            vwarp_tool=vwarp_tool,
-            progress=progress,
-            max_latency=max_latency,
-            country_filter=country_filter,
-            leniency=leniency,
-            strict_security=strict_security,
-            dry_run=dry_run,
-            supplied_proxies=supplied_proxies,
-            force_retest=force_retest,
-        )
+                vwarp_tool=vwarp_tool,
+                progress=progress,
+                max_latency=max_latency,
+                country_filter=country_filter,
+                leniency=leniency,
+                strict_security=strict_security,
+                dry_run=dry_run,
+                supplied_proxies=supplied_proxies,
+                force_retest=force_retest,
+            )
+            setattr(context, "_vwarp_env_had_value", vwarp_env_had_value)
+            setattr(context, "_vwarp_env_previous", vwarp_env_previous)
 
-        cpu_count = multiprocessing.cpu_count()
-        optimal_consumers = max(4, min(int(cpu_count * 1.5), 32))
-        if max_workers > 200:
-            optimal_consumers = max(optimal_consumers, 16)
+            cpu_count = multiprocessing.cpu_count()
+            optimal_consumers = max(4, min(int(cpu_count * 1.5), 32))
+            if max_workers > 200:
+                optimal_consumers = max(optimal_consumers, 16)
 
-        return cls(
-            sources=sources,
-            producer_factory=producer_factory,
-            consumer_factory=consumer_factory,
-            context=context,
-            num_consumers=optimal_consumers,
-            time_limit_seconds=time_limit_seconds,
-        )
+            pipeline = cls(
+                sources=sources,
+                producer_factory=producer_factory,
+                consumer_factory=consumer_factory,
+                context=context,
+                num_consumers=optimal_consumers,
+                time_limit_seconds=time_limit_seconds,
+            )
+            initialization_complete = True
+            return pipeline
+        finally:
+            if not initialization_complete:
+                if vwarp_started:
+                    try:
+                        await vwarp_tool.stop_tunnel()
+                    except (OSError, RuntimeError, asyncio.TimeoutError) as exc:
+                        logger.warning(
+                            "Vwarp initialization cleanup failed: %s",
+                            SecurityValidator.sanitize_log_message(str(exc)),
+                        )
+                _restore_vwarp_environment(vwarp_env_had_value, vwarp_env_previous)
 
     async def run(self) -> PipelineResult:
         start_time = datetime.now(timezone.utc)
@@ -497,9 +532,21 @@ class StandardPipeline(IPipeline):
                 await self.context.hard_stop_watcher.stop_tester(self.context.tester)
 
             # Stop the exact VwarpTool instance that started the tunnel; a fresh
-            # instance has no handle to the spawned child and would leak it.
-            if self.context.vwarp_tool is not None:
-                await self.context.vwarp_tool.stop_tunnel()
+            # instance has no handle to the spawned child and would leak it. Cleanup
+            # failures are diagnostic only so the remaining owned resources still close.
+            try:
+                if self.context.vwarp_tool is not None:
+                    await self.context.vwarp_tool.stop_tunnel()
+            except (OSError, RuntimeError, asyncio.TimeoutError) as exc:
+                logger.warning(
+                    "Vwarp cleanup failed: %s",
+                    SecurityValidator.sanitize_log_message(str(exc)),
+                )
+            finally:
+                _restore_vwarp_environment(
+                    bool(getattr(self.context, "_vwarp_env_had_value", False)),
+                    getattr(self.context, "_vwarp_env_previous", None),
+                )
 
             if self.context.anomaly_detector:
                 self.context.anomaly_detector.close()

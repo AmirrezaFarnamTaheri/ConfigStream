@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import hashlib
 import json
 import sys
 import asyncio
@@ -26,6 +27,55 @@ from .source_admission import (
     partition_fetchable_sources,
     resolve_source_admission_manifest,
 )
+
+PINNED_GEOLITE_RELEASE = "1788904440"
+PINNED_GEOLITE_ASSETS = {
+    "GeoLite2-City.mmdb": {
+        "url": (
+            "https://github.com/FyraLabs/geolite2/releases/download/"
+            f"{PINNED_GEOLITE_RELEASE}/GeoLite2-City.mmdb"
+        ),
+        "sha256": "e3e524f0e22815b0f7d0b49921cffe40f88923c9e4fe2a78518f13d297355c7d",
+        "database_type": "City",
+    },
+    "GeoLite2-ASN.mmdb": {
+        "url": (
+            "https://github.com/FyraLabs/geolite2/releases/download/"
+            f"{PINNED_GEOLITE_RELEASE}/GeoLite2-ASN.mmdb"
+        ),
+        "sha256": "a238d9b0f886be738130191b88214ecd203cac0c4270b65e635544b0ba53b76c",
+        "database_type": "ASN",
+    },
+}
+MAX_DATABASE_DOWNLOAD_BYTES = 256 * 1024 * 1024
+
+
+def _validate_mmdb(path: Path, expected_type: str) -> bool:
+    """Return whether *path* is a readable MMDB of the expected semantic type."""
+
+    try:
+        import geoip2.database
+        from maxminddb.errors import InvalidDatabaseError
+    except ImportError as exc:
+        logging.getLogger(__name__).warning(
+            "GeoIP database validation unavailable for %s: %s",
+            path,
+            type(exc).__name__,
+        )
+        return False
+
+    try:
+        if not path.is_file() or path.stat().st_size <= 0:
+            return False
+        with geoip2.database.Reader(path) as reader:
+            database_type = reader.metadata().database_type
+        return expected_type in database_type
+    except (OSError, ValueError, TypeError, InvalidDatabaseError) as exc:
+        logging.getLogger(__name__).warning(
+            "GeoIP database validation failed for %s: %s", path, type(exc).__name__
+        )
+        return False
+
 
 # Initialize Rich Console
 console = Console()
@@ -405,8 +455,13 @@ def retest(input, output, timeout, max_workers, leniency, verbose):  # noqa: A00
 
 
 @main.command()
-def update_databases():
-    """Download latest GeoIP databases."""
+@click.option(
+    "--geoip-only",
+    is_flag=True,
+    help="Update only the GeoLite City/ASN databases used by the release pipeline.",
+)
+def update_databases(geoip_only: bool) -> None:
+    """Download and validate database assets before atomically publishing them."""
     data_dir = Path("data")
     data_dir.mkdir(parents=True, exist_ok=True)
 
@@ -416,28 +471,26 @@ def update_databases():
     from .security_validator import SecurityValidator
 
     license_key = AppSettings().MAXMIND_LICENSE_KEY
-
-    # Prefer official MaxMind downloads when a license key is provided, fall back to public mirror otherwise.
-    mirror_base_urls = [
-        "https://github.com/FyraLabs/geolite2/releases/latest/download",
-        "https://github.com/P3TERX/GeoLite.mmdb/raw/download",
-    ]
-
     maxmind_editions = {
         "GeoLite2-City.mmdb": "GeoLite2-City",
         "GeoLite2-ASN.mmdb": "GeoLite2-ASN",
     }
 
-    max_download_bytes = 256 * 1024 * 1024
-
-    def stream_download(url: str, target: Path) -> bool:
-        """Download to a sibling temporary file and publish only on completion."""
+    def stream_download(
+        url: str,
+        target: Path,
+        *,
+        expected_sha256: str | None = None,
+        expected_mmdb_type: str | None = None,
+    ) -> bool:
+        """Verify a bounded download in a sibling temp file before publication."""
         safe_url = SecurityValidator.sanitize_log_message(url)
         target.parent.mkdir(parents=True, exist_ok=True)
         fd, temp_name = tempfile.mkstemp(prefix=f".{target.name}.", dir=target.parent)
         os.close(fd)
         temp_path = Path(temp_name)
         try:
+            digest = hashlib.sha256()
             with httpx.stream("GET", url, timeout=120.0, follow_redirects=True) as resp:
                 if resp.status_code != 200:
                     console.print(
@@ -447,21 +500,29 @@ def update_databases():
                 content_length = getattr(resp, "headers", {}).get("content-length")
                 if content_length:
                     try:
-                        if int(content_length) > max_download_bytes:
-                            raise ValueError("download exceeds the database size limit")
+                        declared = int(content_length)
                     except ValueError as exc:
-                        raise ValueError("invalid or excessive Content-Length") from exc
+                        raise ValueError("invalid Content-Length") from exc
+                    if declared <= 0 or declared > MAX_DATABASE_DOWNLOAD_BYTES:
+                        raise ValueError("invalid or excessive Content-Length")
                 total = 0
                 with temp_path.open("wb") as handle:
                     for chunk in resp.iter_bytes(chunk_size=8192):
                         if not chunk:
                             continue
                         total += len(chunk)
-                        if total > max_download_bytes:
+                        if total > MAX_DATABASE_DOWNLOAD_BYTES:
                             raise ValueError("download exceeds the database size limit")
+                        digest.update(chunk)
                         handle.write(chunk)
                 if total == 0:
                     raise ValueError("download produced an empty file")
+            if expected_sha256 and digest.hexdigest() != expected_sha256.lower():
+                raise ValueError("download SHA-256 does not match the pinned digest")
+            if expected_mmdb_type and not _validate_mmdb(temp_path, expected_mmdb_type):
+                raise ValueError(
+                    f"download is not a valid {expected_mmdb_type} MMDB database"
+                )
             os.replace(temp_path, target)
             return True
         except (httpx.HTTPError, OSError, ValueError) as exc:
@@ -471,7 +532,7 @@ def update_databases():
         finally:
             temp_path.unlink(missing_ok=True)
 
-    def download_from_maxmind(edition: str, target: Path) -> bool:
+    def download_from_maxmind(edition: str, target: Path, expected_type: str) -> bool:
         if not license_key:
             return False
 
@@ -502,7 +563,7 @@ def update_databases():
                 if extracted is None or member.size <= 0:
                     console.print(f"[red]Archive entry for {edition} is empty[/red]")
                     return False
-                if member.size > max_download_bytes:
+                if member.size > MAX_DATABASE_DOWNLOAD_BYTES:
                     console.print(
                         f"[red]Archive entry for {edition} is too large[/red]"
                     )
@@ -523,89 +584,99 @@ def update_databases():
                                 )
                             dest.write(chunk)
                             remaining -= len(chunk)
+                    if not _validate_mmdb(temp_target, expected_type):
+                        raise ValueError(
+                            f"MaxMind archive did not contain a valid {expected_type} MMDB"
+                        )
                     os.replace(temp_target, target)
                 finally:
                     temp_target.unlink(missing_ok=True)
-            return target.exists() and target.stat().st_size > 0
+            return _validate_mmdb(target, expected_type)
         except (OSError, tarfile.TarError, ValueError) as exc:
             console.print(f"[red]Failed to extract {edition}: {exc}[/red]")
             return False
         finally:
-            if tar_path.exists():
-                tar_path.unlink(missing_ok=True)
+            tar_path.unlink(missing_ok=True)
 
     success = True
     for name, edition in maxmind_editions.items():
         target = data_dir / name
+        pinned = PINNED_GEOLITE_ASSETS[name]
+        expected_type = str(pinned["database_type"])
 
-        if target.exists() and target.stat().st_size > 0:
+        if _validate_mmdb(target, expected_type):
             size_mb = target.stat().st_size / (1024 * 1024)
             console.print(f"[green]OK {name} already exists ({size_mb:.1f} MB)[/green]")
             continue
+        if target.exists():
+            console.print(
+                f"[yellow]Ignoring invalid existing {name}; a verified replacement is required[/yellow]"
+            )
 
-        downloaded = download_from_maxmind(edition, target)
-
+        downloaded = download_from_maxmind(edition, target, expected_type)
         if not downloaded:
-            for base_url in mirror_base_urls:
-                mirror_url = f"{base_url}/{name}"
-                console.print(f"[cyan]Trying mirror {base_url} for {name}...[/cyan]")
-                if stream_download(mirror_url, target):
-                    downloaded = True
-                    break
+            console.print(
+                f"[cyan]Fetching pinned GeoLite mirror release {PINNED_GEOLITE_RELEASE} for {name}...[/cyan]"
+            )
+            downloaded = stream_download(
+                str(pinned["url"]),
+                target,
+                expected_sha256=str(pinned["sha256"]),
+                expected_mmdb_type=expected_type,
+            )
 
-        if downloaded and target.stat().st_size > 0:
+        if downloaded and _validate_mmdb(target, expected_type):
             size_mb = target.stat().st_size / (1024 * 1024)
             console.print(f"[green]OK {name} ({size_mb:.1f} MB)[/green]")
         else:
-            console.print(f"[red]Failed to download {name}[/red]")
+            console.print(f"[red]Failed to download a verified {name}[/red]")
             success = False
 
-    # Download Sing-box databases (geosite.db and geoip.db) for routing rules
+    if geoip_only:
+        if success:
+            console.print(
+                "[bold green]GeoIP databases updated successfully[/bold green]"
+            )
+            return
+        raise click.ClickException(
+            "Failed to download one or more verified GeoIP databases"
+        )
+
+    # These legacy routing databases are not release-pipeline prerequisites. Keep
+    # their update path separate so a mutable auxiliary feed cannot break GeoIP.
     console.print(
         "[yellow]Downloading Sing-box databases (geosite.db, geoip.db)...[/yellow]"
     )
     singbox_data_dir = data_dir / "singbox"
     singbox_data_dir.mkdir(parents=True, exist_ok=True)
-
     singbox_databases = {
         "geosite.db": "https://github.com/SagerNet/sing-geosite/releases/latest/download/geosite.db",
         "geoip.db": "https://github.com/SagerNet/sing-geoip/releases/latest/download/geoip.db",
     }
-
     singbox_success = True
     for db_name, db_url in singbox_databases.items():
         target = singbox_data_dir / db_name
-
         if target.exists() and target.stat().st_size > 0:
             size_mb = target.stat().st_size / (1024 * 1024)
             console.print(
                 f"[green]OK {db_name} already exists ({size_mb:.1f} MB)[/green]"
             )
             continue
-
         console.print(f"[cyan]Downloading {db_name}...[/cyan]")
-        if stream_download(db_url, target):
-            if target.stat().st_size > 0:
-                size_mb = target.stat().st_size / (1024 * 1024)
-                console.print(f"[green]OK {db_name} ({size_mb:.1f} MB)[/green]")
-            else:
-                console.print(f"[red]Failed to download {db_name} (empty file)[/red]")
-                singbox_success = False
-        else:
+        if not stream_download(db_url, target):
             console.print(f"[red]Failed to download {db_name}[/red]")
             singbox_success = False
 
-    if success and singbox_success:
-        console.print("[bold green]All databases updated successfully[/bold green]")
-        sys.exit(0)
-    elif success:
-        console.print(
-            "[yellow]GeoIP databases updated, but Sing-box databases failed[/yellow]"
+    if not success:
+        raise click.ClickException(
+            "Failed to download one or more verified GeoIP databases"
         )
-        sys.exit(0)  # Non-fatal for Sing-box DBs
-    else:
-        console.print("[bold red]Failed to download one or more databases[/bold red]")
-        sys.exit(1)
+    if not singbox_success:
+        console.print(
+            "[yellow]GeoIP databases updated, but optional Sing-box databases failed[/yellow]"
+        )
+        return
+    console.print("[bold green]All databases updated successfully[/bold green]")
 
 
 @main.command()

@@ -66,47 +66,6 @@ def _run_steps(data: dict[Any, Any]) -> Iterable[str]:
             yield command
 
 
-def _default_run_shell(node: dict[Any, Any]) -> str:
-    defaults = node.get("defaults")
-    if not isinstance(defaults, dict):
-        return ""
-    run_defaults = defaults.get("run")
-    if not isinstance(run_defaults, dict):
-        return ""
-    return str(run_defaults.get("shell") or "").strip()
-
-
-def _container_run_shell_errors(data: dict[Any, Any]) -> list[str]:
-    """Reject container ``run`` steps that would fall back to POSIX ``sh``.
-
-    GitHub Actions uses ``sh -e`` for run steps inside job containers unless a
-    shell is explicitly selected. The production workflows use Bash semantics
-    such as ``pipefail`` and ``PIPESTATUS``, so container jobs must resolve run
-    steps to Bash rather than relying on the host-job default.
-    """
-
-    errors: list[str] = []
-    workflow_shell = _default_run_shell(data)
-    for job_name, raw_job in _jobs(data).items():
-        if not isinstance(raw_job, dict) or "container" not in raw_job:
-            continue
-        job_shell = _default_run_shell(raw_job) or workflow_shell
-        raw_steps = raw_job.get("steps", [])
-        if not isinstance(raw_steps, list):
-            continue
-        for index, raw_step in enumerate(raw_steps, start=1):
-            if not isinstance(raw_step, dict) or not _run(raw_step):
-                continue
-            shell = str(raw_step.get("shell") or job_shell).strip()
-            if shell and shell.split(maxsplit=1)[0] == "bash":
-                continue
-            step_name = str(raw_step.get("name") or f"step-{index}")
-            errors.append(
-                f"container job {job_name!r} run step {step_name!r} must resolve to bash"
-            )
-    return errors
-
-
 def _has_command(data: dict[Any, Any], text: str) -> bool:
     return any(text in command for command in _run_steps(data))
 
@@ -192,6 +151,85 @@ def _find_unresolvable_action_refs(data: dict[Any, Any]) -> list[str]:
         if isinstance(step.get("uses"), str)
     }
     return sorted(ref for ref in UNRESOLVABLE_ACTION_REFS if ref in refs)
+
+
+_BASH_ONLY_RUN_MARKERS = (
+    "pipefail",
+    "${PIPESTATUS",
+    "shopt ",
+    "mapfile ",
+    "[[ ",
+    "declare -a ",
+    "declare -A ",
+    "readarray ",
+    "source ",
+    "<(",
+    "<<<",
+)
+_BASH_ARRAY_ASSIGNMENT_RE = re.compile(
+    r"(?m)^\s*(?:(?:local|readonly|declare)\s+)?[A-Za-z_][A-Za-z0-9_]*\s*=\s*\("
+)
+_BASH_ARITHMETIC_COMMAND_RE = re.compile(r"(?m)(?:^|[;&|]\s*)\(\(")
+_BASH_DOUBLE_BRACKET_RE = re.compile(r"\[\[")
+
+
+def _uses_bash_only_syntax(command: str) -> bool:
+    """Return whether a run block contains syntax that requires Bash."""
+    if any(marker in command for marker in _BASH_ONLY_RUN_MARKERS):
+        return True
+    return any(
+        pattern.search(command) is not None
+        for pattern in (
+            _BASH_ARRAY_ASSIGNMENT_RE,
+            _BASH_ARITHMETIC_COMMAND_RE,
+            _BASH_DOUBLE_BRACKET_RE,
+        )
+    )
+
+
+def _is_bash_shell(value: object) -> bool:
+    if not isinstance(value, str):
+        return False
+    shell = value.strip().lower()
+    return shell == "bash" or shell.startswith("bash ")
+
+
+def _default_run_shell(node: dict[Any, Any]) -> object:
+    defaults = node.get("defaults")
+    if not isinstance(defaults, dict):
+        return None
+    run_defaults = defaults.get("run")
+    if not isinstance(run_defaults, dict):
+        return None
+    return run_defaults.get("shell")
+
+
+def _container_bash_shell_errors(data: dict[Any, Any]) -> list[str]:
+    """Reject Bash-only container commands unless their effective shell is Bash."""
+    errors: list[str] = []
+    workflow_shell = _default_run_shell(data)
+    for job_name, job in _jobs(data).items():
+        if not isinstance(job, dict) or "container" not in job:
+            continue
+        default_shell = _default_run_shell(job) or workflow_shell
+        steps = job.get("steps", [])
+        if not isinstance(steps, list):
+            continue
+        for index, step in enumerate(steps, start=1):
+            if not isinstance(step, dict):
+                continue
+            command = _run(step)
+            if not command or not _uses_bash_only_syntax(command):
+                continue
+            effective_shell = step.get("shell") or default_shell
+            if _is_bash_shell(effective_shell):
+                continue
+            name = str(step.get("name") or f"step {index}")
+            errors.append(
+                f"container job {job_name!s} step {name!r} uses Bash-only syntax "
+                "without shell: bash or defaults.run.shell: bash"
+            )
+    return errors
 
 
 def _has_contract_validators(data: dict[Any, Any]) -> bool:
@@ -525,8 +563,9 @@ def main() -> int:
             )
         for ref in _find_unresolvable_action_refs(data):
             errors.append(f"{path}: stale action ref {ref}")
-        for error in _container_run_shell_errors(data):
-            errors.append(f"{path}: {error}")
+        errors.extend(
+            f"{path}: {error}" for error in _container_bash_shell_errors(data)
+        )
         if path.name == "ci.yml":
             errors.extend(f"{path}: {error}" for error in _ci_safe(data))
         if path.name == "release.yml" and not _has_contract_validators(data):

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "119bf4e47cc1fd8022cc08a9cbee3ed3078ccad7d49fa6b58b6e51e8e0f84ec2",
+  "source_digest": "ad3e796cca3ab3078bf701cd6f36117a78c3554b31fbf290c9b0f5038d4876d9",
   "variable_count": 161,
   "variables": [
     {
@@ -716,7 +716,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/resilient_stage.py:471"
+        "scripts/resilient_stage.py:493"
       ],
       "type": null
     },
@@ -728,7 +728,7 @@
       "sensitive": false,
       "sources": [
         "scripts/generate_evidence_bundle.py:24",
-        "scripts/resilient_stage.py:466"
+        "scripts/resilient_stage.py:488"
       ],
       "type": null
     },
@@ -739,13 +739,13 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:603",
-        "scripts/finalize_release_outputs.py:646",
+        "scripts/finalize_release_outputs.py:610",
+        "scripts/finalize_release_outputs.py:653",
         "scripts/generate_evidence_bundle.py:20",
         "scripts/native_client_checks.py:232",
         "scripts/release_gate.py:181",
         "scripts/release_gate.py:390",
-        "scripts/resilient_stage.py:469",
+        "scripts/resilient_stage.py:491",
         "scripts/validate_pages_artifact.py:1203",
         "scripts/validate_pages_artifact.py:1236",
         "src/configstream/output/metadata.py:559",
@@ -760,13 +760,13 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:602",
-        "scripts/finalize_release_outputs.py:645",
+        "scripts/finalize_release_outputs.py:609",
+        "scripts/finalize_release_outputs.py:652",
         "scripts/generate_evidence_bundle.py:19",
         "scripts/native_client_checks.py:231",
         "scripts/release_gate.py:180",
         "scripts/release_gate.py:387",
-        "scripts/resilient_stage.py:468",
+        "scripts/resilient_stage.py:490",
         "scripts/validate_pages_artifact.py:1202",
         "scripts/validate_pages_artifact.py:1235",
         "src/configstream/output/metadata.py:558",
@@ -781,13 +781,13 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:601",
-        "scripts/finalize_release_outputs.py:644",
+        "scripts/finalize_release_outputs.py:608",
+        "scripts/finalize_release_outputs.py:651",
         "scripts/generate_evidence_bundle.py:21",
         "scripts/native_client_checks.py:230",
         "scripts/release_gate.py:179",
         "scripts/release_gate.py:384",
-        "scripts/resilient_stage.py:470",
+        "scripts/resilient_stage.py:492",
         "scripts/validate_pages_artifact.py:1201",
         "scripts/validate_pages_artifact.py:1234",
         "src/configstream/output/metadata.py:557",
@@ -802,7 +802,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/resilient_stage.py:467"
+        "scripts/resilient_stage.py:489"
       ],
       "type": null
     },
@@ -1143,7 +1143,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:661"
+        "scripts/finalize_release_outputs.py:668"
       ],
       "type": null
     },
@@ -1187,7 +1187,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release.py:292"
+        "scripts/finalize_release.py:297"
       ],
       "type": null
     },
@@ -1670,9 +1670,12 @@
       "sources": [
         "src/configstream/config.py:144",
         "src/configstream/intelligence/washer/core.py:515",
-        "src/configstream/pipeline/core.py:155",
-        "src/configstream/pipeline/core.py:160",
-        "src/configstream/pipeline/core.py:165",
+        "src/configstream/pipeline/core.py:150",
+        "src/configstream/pipeline/core.py:171",
+        "src/configstream/pipeline/core.py:176",
+        "src/configstream/pipeline/core.py:181",
+        "src/configstream/pipeline/core.py:41",
+        "src/configstream/pipeline/core.py:47",
         "src/configstream/testers/go_tester/manager.py:331",
         "src/configstream/testers/go_tester/secure_manager.py:72"
       ],
@@ -1773,7 +1776,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/tools/vwarp/tunnel.py:172"
+        "src/configstream/tools/vwarp/tunnel.py:189"
       ],
       "type": null
     },
@@ -1796,7 +1799,7 @@
       "sensitive": false,
       "sources": [
         "src/configstream/tools/vwarp/binary.py:64",
-        "src/configstream/tools/vwarp/config.py:143"
+        "src/configstream/tools/vwarp/config.py:139"
       ],
       "type": null
     },

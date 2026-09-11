@@ -177,6 +177,46 @@ def _project_key(url: str) -> str:
         return url
 
 
+def _unique_raw_source_candidate(
+    url: str,
+    allowed_urls: Optional[set[str]],
+    normalized_map: Optional[Dict[str, List[str]]],
+) -> Optional[str]:
+    """Resolve raw log identity only when it maps to one configured source.
+
+    Raw log URLs may be sanitized before they reach the resharder.  Query
+    credentials and encoded tails can therefore collapse multiple configured
+    sources to the same visible identity.  Ambiguous observations must remain
+    unobserved so the pessimistic default weight applies instead of fabricating
+    timing evidence for several sources from one measurement.
+    """
+
+    if allowed_urls is None:
+        return url
+    if url in allowed_urls:
+        return url
+
+    normalized = _normalize_source_key(url)
+    if normalized_map and normalized:
+        candidates = [
+            candidate
+            for candidate in normalized_map.get(normalized, [])
+            if candidate in allowed_urls
+        ]
+        if len(candidates) == 1:
+            return candidates[0]
+        if len(candidates) > 1:
+            return None
+
+    prefix = url.split("[BASE64]", 1)[0].strip()
+    if not prefix:
+        return None
+    candidates = [
+        candidate for candidate in allowed_urls if candidate.startswith(prefix)
+    ]
+    return candidates[0] if len(candidates) == 1 else None
+
+
 def parse_logs(
     log_files: List[str],
     test_time_per_proxy: float,
@@ -196,15 +236,14 @@ def parse_logs(
                         url_end = block.find("]")
                     if url_end == -1:
                         continue
-                    url = block[:url_end].strip()
-                    if allowed_urls is not None and url not in allowed_urls:
-                        norm = _normalize_source_key(url)
-                        if normalized_map and norm in normalized_map:
-                            pass
-                        else:
-                            prefix = url.split("[BASE64]", 1)[0].strip()
-                            if not prefix or not allowed_urls:
-                                continue
+                    raw_url = block[:url_end].strip()
+                    source_url = _unique_raw_source_candidate(
+                        raw_url,
+                        allowed_urls,
+                        normalized_map,
+                    )
+                    if source_url is None:
+                        continue
 
                     lines_match = RAW_LINES_REGEX.search(block)
                     count = int(lines_match.group(1)) if lines_match else 0
@@ -221,69 +260,9 @@ def parse_logs(
                         total_duration = fetch_duration + test_duration
 
                     if total_duration > 0:
-                        if allowed_urls is None or url in allowed_urls:
-                            existing = source_metrics.get(url, (0, 0.0))
-                            if total_duration > existing[1]:
-                                source_metrics[url] = (count, total_duration)
-                        elif normalized_map:
-                            norm = _normalize_source_key(url)
-                            candidates = normalized_map.get(norm, [])
-                            if candidates:
-                                for candidate in candidates:
-                                    existing = source_metrics.get(candidate, (0, 0.0))
-                                    if total_duration > existing[1]:
-                                        source_metrics[candidate] = (
-                                            count,
-                                            total_duration,
-                                        )
-                            else:
-                                if allowed_urls:
-                                    prefix = url.split("[BASE64]", 1)[0].strip()
-                                    if prefix:
-                                        candidates = [
-                                            u
-                                            for u in allowed_urls
-                                            if u.startswith(prefix)
-                                        ]
-                                        if candidates:
-                                            duration = total_duration / max(
-                                                len(candidates), 1
-                                            )
-                                            count_each = (
-                                                int(count / max(len(candidates), 1))
-                                                if count
-                                                else 0
-                                            )
-                                            for candidate in candidates:
-                                                existing = source_metrics.get(
-                                                    candidate, (0, 0.0)
-                                                )
-                                                if duration > existing[1]:
-                                                    source_metrics[candidate] = (
-                                                        count_each,
-                                                        duration,
-                                                    )
-                            prefix = url.split("[BASE64]", 1)[0].strip()
-                            if prefix:
-                                candidates = [
-                                    u for u in allowed_urls if u.startswith(prefix)
-                                ]
-                                if candidates:
-                                    duration = total_duration / max(len(candidates), 1)
-                                    count_each = (
-                                        int(count / max(len(candidates), 1))
-                                        if count
-                                        else 0
-                                    )
-                                    for candidate in candidates:
-                                        existing = source_metrics.get(
-                                            candidate, (0, 0.0)
-                                        )
-                                        if duration > existing[1]:
-                                            source_metrics[candidate] = (
-                                                count_each,
-                                                duration,
-                                            )
+                        existing = source_metrics.get(source_url, (0, 0.0))
+                        if total_duration > existing[1]:
+                            source_metrics[source_url] = (count, total_duration)
                 except Exception:  # nosec B112
                     logging.getLogger(__name__).debug(
                         "Suppressed broad exception", exc_info=True

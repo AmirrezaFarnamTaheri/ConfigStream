@@ -17,7 +17,7 @@ from configstream.http_client import get_client
 from configstream.source_quality import SourceQualityTracker
 from configstream.security.transport import rewrite_request_to_pinned_ip
 from configstream.security_validator import SecurityValidator
-from configstream.fetcher_worker import FetchResult
+from configstream.fetcher_worker import FetchResult, parse_retry_after
 
 from .interfaces import IFetcher
 
@@ -148,6 +148,31 @@ async def _reject_source_dns(
     # Deterministic selection avoids set-order instability. SecurityTransport
     # owns production candidate rotation and connection-time validation.
     return None, sorted(resolved_ips)[0]
+
+
+async def _empty_content_result(
+    source: str,
+    safe_source: str,
+    status_code: int,
+    response_time: float,
+    timeout_tracker: Any,
+    breaker: Any,
+) -> FetchResult:
+    logger.info(
+        "Source %s returned HTTP %d but no usable content.", safe_source, status_code
+    )
+    if timeout_tracker:
+        await timeout_tracker.record_attempt(source, response_time, success=False)
+    if breaker:
+        await breaker.record_failure()
+    return FetchResult(
+        success=False,
+        source=source,
+        content="",
+        status_code=status_code,
+        error="Empty content",
+        response_time=response_time,
+    )
 
 
 async def fetch_from_source(
@@ -364,13 +389,14 @@ async def fetch_from_source(
                         )
                     if breaker:
                         await breaker.record_failure()
-                    retry_after = response.headers.get("Retry-After")
-                    wait = 2.0
-                    if retry_after:
-                        try:
-                            wait = min(max(float(retry_after), 0.0), 30.0)
-                        except (TypeError, ValueError):
-                            wait = 2.0
+                    parsed_retry_after = parse_retry_after(
+                        response.headers.get("Retry-After")
+                    )
+                    wait = (
+                        2.0
+                        if parsed_retry_after is None
+                        else min(max(parsed_retry_after, 0.0), 30.0)
+                    )
                     await asyncio.sleep(wait)
                     attempt += 1
                     last_error = "Rate limited"
@@ -472,26 +498,14 @@ async def fetch_from_source(
                 content = b"".join(content_parts)
                 text_content = content.decode("utf-8", errors="ignore")
 
-                if response.status_code == 200 and (
-                    not text_content or not text_content.strip()
-                ):
-                    logger.info(
-                        f"Source {safe_source} returned 200 OK but empty content."
-                    )
-                    response_time = loop.time() - start_ts
-                    if timeout_tracker:
-                        await timeout_tracker.record_attempt(
-                            source, response_time, success=True
-                        )
-                    if breaker:
-                        await breaker.record_success()
-                    return FetchResult(
-                        success=True,
-                        source=source,
-                        content="",
-                        status_code=200,
-                        error="Empty content",
-                        response_time=response_time,
+                if 200 <= response.status_code < 300 and not text_content.strip():
+                    return await _empty_content_result(
+                        source,
+                        safe_source,
+                        response.status_code,
+                        loop.time() - start_ts,
+                        timeout_tracker,
+                        breaker,
                     )
 
                 response_time = loop.time() - start_ts

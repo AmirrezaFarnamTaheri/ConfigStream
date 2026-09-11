@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import hashlib
 import io
 import re
 import tarfile
@@ -120,15 +121,24 @@ def test_update_databases_prefers_maxmind(runner):
             return httpx.Response(200, content=b"db-bytes")
         raise AssertionError(f"Unexpected download URL: {url}")
 
-    with respx.mock(assert_all_called=False) as router:
+    def valid_mmdb(path: Path, expected_type: str) -> bool:
+        return path.is_file() and path.stat().st_size > 0
+
+    with (
+        respx.mock(assert_all_called=False) as router,
+        patch("configstream.cli._validate_mmdb", side_effect=valid_mmdb),
+    ):
         router.get(re.compile(r"https://.*")).mock(side_effect=respond)
         with runner.isolated_filesystem():
             result = runner.invoke(
-                main, ["update-databases"], env={"MAXMIND_LICENSE_KEY": "abc123"}
+                main,
+                ["update-databases", "--geoip-only"],
+                env={"MAXMIND_LICENSE_KEY": "abc123"},
             )
             assert result.exit_code == 0
             assert Path("data/GeoLite2-City.mmdb").is_file()
             assert Path("data/GeoLite2-ASN.mmdb").is_file()
+            assert not Path("data/singbox").exists()
 
 
 def test_update_databases_mirror_fallback(runner):
@@ -142,13 +152,63 @@ def test_update_databases_mirror_fallback(runner):
             return httpx.Response(200, content=b"db-bytes")
         raise AssertionError(f"Unexpected download URL: {url}")
 
-    with respx.mock(assert_all_called=False) as router:
+    def valid_mmdb(path: Path, expected_type: str) -> bool:
+        return path.is_file() and path.stat().st_size > 0
+
+    pinned = {
+        "GeoLite2-City.mmdb": {
+            "url": "https://mirror.invalid/GeoLite2-City.mmdb",
+            "sha256": hashlib.sha256(b"city-bytes").hexdigest(),
+            "database_type": "City",
+        },
+        "GeoLite2-ASN.mmdb": {
+            "url": "https://mirror.invalid/GeoLite2-ASN.mmdb",
+            "sha256": hashlib.sha256(b"asn-bytes").hexdigest(),
+            "database_type": "ASN",
+        },
+    }
+    with (
+        respx.mock(assert_all_called=False) as router,
+        patch("configstream.cli._validate_mmdb", side_effect=valid_mmdb),
+        patch("configstream.cli.PINNED_GEOLITE_ASSETS", pinned),
+    ):
         router.get(re.compile(r"https://.*")).mock(side_effect=respond)
         with runner.isolated_filesystem():
-            result = runner.invoke(main, ["update-databases"])
+            result = runner.invoke(main, ["update-databases", "--geoip-only"])
             assert result.exit_code == 0
             assert Path("data/GeoLite2-City.mmdb").read_bytes() == b"city-bytes"
             assert Path("data/GeoLite2-ASN.mmdb").read_bytes() == b"asn-bytes"
+
+
+def test_update_databases_rejects_pinned_mirror_digest_mismatch(
+    runner: CliRunner,
+) -> None:
+    pinned = {
+        "GeoLite2-City.mmdb": {
+            "url": "https://mirror.invalid/GeoLite2-City.mmdb",
+            "sha256": "0" * 64,
+            "database_type": "City",
+        },
+        "GeoLite2-ASN.mmdb": {
+            "url": "https://mirror.invalid/GeoLite2-ASN.mmdb",
+            "sha256": "0" * 64,
+            "database_type": "ASN",
+        },
+    }
+
+    with (
+        respx.mock(assert_all_called=False) as router,
+        patch("configstream.cli.PINNED_GEOLITE_ASSETS", pinned),
+    ):
+        router.get(re.compile(r"https://.*")).mock(
+            return_value=httpx.Response(200, content=b"attacker-controlled")
+        )
+        with runner.isolated_filesystem():
+            result = runner.invoke(main, ["update-databases", "--geoip-only"])
+
+            assert result.exit_code == 1
+            assert not Path("data/GeoLite2-City.mmdb").exists()
+            assert not Path("data/GeoLite2-ASN.mmdb").exists()
 
 
 def test_generate_warp(runner):
@@ -186,7 +246,7 @@ def test_update_databases_does_not_publish_partial_downloads(runner):
     with respx.mock(assert_all_called=False) as router:
         router.get(re.compile(r"https://.*")).mock(side_effect=respond)
         with runner.isolated_filesystem():
-            result = runner.invoke(main, ["update-databases"])
+            result = runner.invoke(main, ["update-databases", "--geoip-only"])
 
             assert result.exit_code == 1
             assert not Path("data/GeoLite2-City.mmdb").exists()

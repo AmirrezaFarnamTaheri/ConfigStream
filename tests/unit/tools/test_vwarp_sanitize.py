@@ -1,7 +1,11 @@
 import json
 import os
+from pathlib import Path
+
+import pytest
 
 from configstream.tools.vwarp import VwarpTool
+from configstream.tools.vwarp import config as vwarp_config
 
 
 def test_vwarp_write_sanitized_config():
@@ -118,3 +122,34 @@ def test_vwarp_v222_preserves_full_config():
         path.unlink()
     finally:
         os.environ.pop("VWARP_VERSION", None)
+
+
+def test_vwarp_unserializable_config_leaves_no_temp_file(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(vwarp_config.tempfile, "gettempdir", lambda: str(tmp_path))
+
+    path, flags = VwarpTool._write_temp_config(
+        {"key": "sensitive-key", "unsupported": object()}
+    )
+
+    assert path is None
+    assert flags == []
+    assert list(tmp_path.glob("vwarp-config-*.json")) == []
+
+
+def test_vwarp_partial_write_failure_removes_temp_file(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(vwarp_config.tempfile, "gettempdir", lambda: str(tmp_path))
+
+    def fail_fsync(_fd: int) -> None:
+        raise OSError("simulated fsync failure")
+
+    monkeypatch.setattr(vwarp_config.os, "fsync", fail_fsync)
+
+    path, flags = VwarpTool._write_temp_config({"key": "sensitive-key"})
+
+    assert path is None
+    assert flags == []
+    assert list(tmp_path.glob("vwarp-config-*.json")) == []

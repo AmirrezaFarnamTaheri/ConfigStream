@@ -187,6 +187,64 @@ class TestLabConfigBounds:
             await _validate_and_build_lab_config(config)
         assert exc.value.status_code == 400
 
+    @pytest.mark.asyncio
+    async def test_filesystem_capability_fields_are_rejected(self) -> None:
+        from fastapi import HTTPException
+        from configstream.lab_validation import _validate_and_build_lab_config
+
+        config = {
+            "outbounds": [
+                {
+                    "type": "vless",
+                    "server": "1.1.1.1",
+                    "server_port": 443,
+                    "tls": {
+                        "enabled": True,
+                        "certificate_path": "/etc/ssl/private/server.pem",
+                    },
+                }
+            ]
+        }
+        with pytest.raises(HTTPException) as exc:
+            await _validate_and_build_lab_config(config)
+        assert exc.value.status_code == 400
+        assert "certificate_path" in str(exc.value.detail)
+
+    @pytest.mark.asyncio
+    async def test_host_network_capability_fields_are_rejected(self) -> None:
+        from fastapi import HTTPException
+        from configstream.lab_validation import _validate_and_build_lab_config
+
+        config = {
+            "outbounds": [
+                {
+                    "type": "direct",
+                    "bind_interface": "eth0",
+                    "routing_mark": 123,
+                }
+            ]
+        }
+        with pytest.raises(HTTPException) as exc:
+            await _validate_and_build_lab_config(config)
+        assert exc.value.status_code == 400
+
+    @pytest.mark.asyncio
+    async def test_safe_transport_path_remains_allowed(self) -> None:
+        from configstream.lab_validation import _validate_and_build_lab_config
+
+        config = {
+            "outbounds": [
+                {
+                    "type": "vless",
+                    "server": "1.1.1.1",
+                    "server_port": 443,
+                    "transport": {"type": "ws", "path": "/socket"},
+                }
+            ]
+        }
+        clean = await _validate_and_build_lab_config(config)
+        assert clean["outbounds"][0]["transport"]["path"] == "/socket"
+
 
 class TestOversizedLineResync:
     """An oversized Go-tester line must not cost us the *next* valid record.

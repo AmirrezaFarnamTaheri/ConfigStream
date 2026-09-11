@@ -8,8 +8,8 @@ from configstream.hard_stop import HardStopWatcher
 
 
 class _FakeProc:
-    def __init__(self):
-        self.returncode = None
+    def __init__(self) -> None:
+        self.returncode: int | None = None
         self.killed = False
         self.wait_called = False
 
@@ -23,12 +23,12 @@ class _FakeProc:
 
 
 @pytest.mark.asyncio
-async def test_hard_stop_kills_hung_tester_process():
+async def test_hard_stop_kills_hung_tester_process() -> None:
     proc = _FakeProc()
     go_tester = SimpleNamespace(_proc=proc)
 
     class _HungTester:
-        def __init__(self):
+        def __init__(self) -> None:
             self.go_tester = go_tester
 
         async def close(self) -> None:
@@ -45,14 +45,24 @@ async def test_hard_stop_kills_hung_tester_process():
 
 
 @pytest.mark.asyncio
-async def test_hard_stop_flushes_event_stream():
-    state = {"closed": False}
+async def test_hard_stop_kills_process_when_close_raises() -> None:
+    proc = _FakeProc()
+    go_tester = SimpleNamespace(_proc=proc)
 
-    class _EventStream:
-        async def aclose(self) -> None:
-            state["closed"] = True
+    class _BrokenTester:
+        def __init__(self) -> None:
+            self.go_tester = go_tester
 
+        async def close(self) -> None:
+            # Simulate a close implementation that loses its public process handle
+            # before surfacing the failure. HardStopWatcher must retain ownership.
+            self.go_tester._proc = None
+            raise RuntimeError("close failed")
+
+    tester = _BrokenTester()
     watcher = HardStopWatcher(grace_seconds=0.1, flush_timeout_seconds=0.1)
-    await watcher.flush_event_stream(_EventStream())
 
-    assert state["closed"] is True
+    await watcher.stop_tester(tester)
+
+    assert proc.killed is True
+    assert proc.wait_called is True

@@ -3,7 +3,9 @@
 import json
 from pathlib import Path
 
-from scripts.merge_batches import _merge_metadata, _proxy_from_dict
+import pytest
+
+from scripts.merge_batches import _load_json, _merge_metadata, _proxy_from_dict
 
 
 def test_proxy_from_dict_skips_chain_artifacts() -> None:
@@ -87,3 +89,12 @@ def test_merge_metadata_aggregates_evasion_and_intelligence(tmp_path: Path) -> N
     assert result["smart_chain_count"] == 6
     assert result["evasion_utls_enabled"] == 20
     assert result["evasion_dns_safe_count"] == 30
+
+
+def test_load_json_rejects_oversized_artifact(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "oversized.json"
+    path.write_text('{"ok": true}', encoding="utf-8")
+    monkeypatch.setattr("scripts.merge_batches.MAX_ARTIFACT_JSON_BYTES", 1)
+    assert _load_json(path) is None

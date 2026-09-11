@@ -25,6 +25,15 @@ from .security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 
+MAX_CACHE_FILE_BYTES = 64 * 1024 * 1024
+
+
+def _load_cache_payload(path: Path) -> Any:
+    if path.stat().st_size > MAX_CACHE_FILE_BYTES:
+        raise ValueError("cache file exceeds the safety limit")
+    with path.open("r", encoding="utf-8") as handle:
+        return json.load(handle)
+
 
 def _find_project_root() -> Optional[Path]:
     """Return the checkout root when running from a source tree."""
@@ -138,8 +147,7 @@ class TestResultCache:
             )
             return
         try:
-            with self.db_path.open("r", encoding="utf-8") as handle:
-                payload = json.load(handle)
+            payload = _load_cache_payload(self.db_path)
             self._cache = self._compact(self._normalize_cache(payload))
             logger.info(
                 "Loaded %d entries from cache file: %s",
@@ -173,8 +181,7 @@ class TestResultCache:
         disk_cache: Dict[str, Dict[str, Any]] = {}
         if self.db_path.exists():
             try:
-                with self.db_path.open("r", encoding="utf-8") as handle:
-                    disk_cache = self._normalize_cache(json.load(handle))
+                disk_cache = self._normalize_cache(_load_cache_payload(self.db_path))
             except (json.JSONDecodeError, OSError, TypeError, ValueError):
                 disk_cache = {}
 

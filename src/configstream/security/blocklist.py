@@ -21,6 +21,9 @@ CACHE_FILE = Path("data/firehol_level1.netset")
 METADATA_FILE = Path("data/firehol_level1.metadata.json")
 HONEYPOT_PORTS = {23, 2323}
 HONEYPOT_ASNS: Set[str] = set()
+MIN_BLOCKLIST_NETWORKS = 100
+MAX_INVALID_LINE_RATIO = 0.05
+MIN_LKG_RETAINED_RATIO = 0.50
 
 
 class BlocklistManager:
@@ -42,6 +45,8 @@ class BlocklistManager:
         )
         self._v4_index: dict[int, Set[ipaddress.IPv4Network]] = {}
         self._v6_index: dict[int, Set[ipaddress.IPv6Network]] = {}
+        self._v4_broad: Set[ipaddress.IPv4Network] = set()
+        self._v6_broad: Set[ipaddress.IPv6Network] = set()
         self._data_lock: Optional[asyncio.Lock] = None
         self._initialized = True
 
@@ -76,6 +81,66 @@ class BlocklistManager:
         }
         AtomicFileWriter.write_text(METADATA_FILE, json.dumps(metadata, sort_keys=True))
 
+    @staticmethod
+    def _parse_candidate(
+        content: bytes, *, enforce_sanity: bool
+    ) -> Set[ipaddress.IPv4Network | ipaddress.IPv6Network]:
+        """Parse a candidate without mutating the last-known-good cache."""
+
+        if not content or len(content) > 50 * 1024 * 1024:
+            raise ValueError("Blocklist response has an invalid size")
+        try:
+            text = content.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise ValueError("Blocklist response is not valid UTF-8") from exc
+
+        networks: Set[ipaddress.IPv4Network | ipaddress.IPv6Network] = set()
+        invalid = 0
+        candidate_lines = 0
+        for raw_line in text.splitlines():
+            line = raw_line.strip()
+            if not line or line.startswith("#"):
+                continue
+            candidate_lines += 1
+            try:
+                networks.add(ipaddress.ip_network(line, strict=False))
+            except ValueError:
+                invalid += 1
+
+        if enforce_sanity:
+            if len(networks) < MIN_BLOCKLIST_NETWORKS:
+                raise ValueError(
+                    f"Blocklist candidate contains only {len(networks)} valid networks"
+                )
+            if candidate_lines and invalid / candidate_lines > MAX_INVALID_LINE_RATIO:
+                raise ValueError(
+                    "Blocklist candidate contains too many invalid entries"
+                )
+        return networks
+
+    @classmethod
+    def _validate_candidate_against_cache(
+        cls, content: bytes
+    ) -> Set[ipaddress.IPv4Network | ipaddress.IPv6Network]:
+        networks = cls._parse_candidate(content, enforce_sanity=True)
+        if CACHE_FILE.is_file():
+            try:
+                cached = cls._parse_candidate(
+                    CACHE_FILE.read_bytes(), enforce_sanity=False
+                )
+            except (OSError, ValueError):
+                cached = set()
+            if len(cached) >= MIN_BLOCKLIST_NETWORKS:
+                minimum = max(
+                    MIN_BLOCKLIST_NETWORKS,
+                    int(len(cached) * MIN_LKG_RETAINED_RATIO),
+                )
+                if len(networks) < minimum:
+                    raise ValueError(
+                        "Blocklist candidate shrank below the last-known-good safety floor"
+                    )
+        return networks
+
     async def update(self) -> None:
         """Refresh the blocklist, reusing the cache on HTTP 304 or errors."""
         CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
@@ -99,15 +164,17 @@ class BlocklistManager:
 
             response.raise_for_status()
             content = response.content
-            if not content or len(content) > 50 * 1024 * 1024:
-                raise ValueError("Blocklist response has an invalid size")
+            await asyncio.to_thread(self._validate_candidate_against_cache, content)
 
             temp_file = CACHE_FILE.with_suffix(CACHE_FILE.suffix + ".tmp")
-            async with aiofiles.open(temp_file, "wb") as handle:
-                await handle.write(content)
-            await asyncio.to_thread(temp_file.replace, CACHE_FILE)
+            try:
+                async with aiofiles.open(temp_file, "wb") as handle:
+                    await handle.write(content)
+                await asyncio.to_thread(temp_file.replace, CACHE_FILE)
+            finally:
+                temp_file.unlink(missing_ok=True)
             await asyncio.to_thread(self._write_metadata, response)
-            logger.info("Updated FireHol blocklist successfully")
+            logger.info("Updated verified FireHol blocklist successfully")
         except (httpx.HTTPError, OSError, ValueError) as exc:
             logger.warning(
                 "Blocklist update failed (%s); using cached version if available",
@@ -119,38 +186,42 @@ class BlocklistManager:
         if not CACHE_FILE.exists():
             return
 
-        new_networks: Set[ipaddress.IPv4Network | ipaddress.IPv6Network] = set()
         try:
-            async with aiofiles.open(CACHE_FILE, "r", encoding="utf-8") as handle:
-                async for raw_line in handle:
-                    line = raw_line.strip()
-                    if not line or line.startswith("#"):
-                        continue
-                    try:
-                        new_networks.add(ipaddress.ip_network(line, strict=False))
-                    except ValueError:
-                        continue
-        except OSError as exc:
+            content = await asyncio.to_thread(CACHE_FILE.read_bytes)
+            new_networks = await asyncio.to_thread(
+                self._parse_candidate, content, enforce_sanity=False
+            )
+        except (OSError, ValueError) as exc:
             logger.error("Unable to load blocklist cache: %s", type(exc).__name__)
             return
 
         v4_index: dict[int, Set[ipaddress.IPv4Network]] = {}
         v6_index: dict[int, Set[ipaddress.IPv6Network]] = {}
+        v4_broad: Set[ipaddress.IPv4Network] = set()
+        v6_broad: Set[ipaddress.IPv6Network] = set()
         for network in new_networks:
             if isinstance(network, ipaddress.IPv4Network):
-                v4_index.setdefault(int(network.network_address.packed[0]), set()).add(
-                    network
-                )
+                if network.prefixlen < 8:
+                    v4_broad.add(network)
+                else:
+                    v4_index.setdefault(
+                        int(network.network_address.packed[0]), set()
+                    ).add(network)
             else:
-                first_segment = (int(network.network_address.packed[0]) << 8) | int(
-                    network.network_address.packed[1]
-                )
-                v6_index.setdefault(first_segment, set()).add(network)
+                if network.prefixlen < 16:
+                    v6_broad.add(network)
+                else:
+                    first_segment = (int(network.network_address.packed[0]) << 8) | int(
+                        network.network_address.packed[1]
+                    )
+                    v6_index.setdefault(first_segment, set()).add(network)
 
         async with self._get_lock():
             self.blocked_networks = new_networks
             self._v4_index = v4_index
             self._v6_index = v6_index
+            self._v4_broad = v4_broad
+            self._v6_broad = v6_broad
         logger.info(
             "Loaded %d blocked networks from FireHol Level 1", len(new_networks)
         )
@@ -163,11 +234,15 @@ class BlocklistManager:
 
         if isinstance(ip, ipaddress.IPv4Address):
             bucket = self._v4_index.get(int(ip.packed[0]), ())
-            return any(ip in network for network in bucket)
+            return any(ip in network for network in self._v4_broad) or any(
+                ip in network for network in bucket
+            )
 
         first_segment = (int(ip.packed[0]) << 8) | int(ip.packed[1])
         bucket_v6 = self._v6_index.get(first_segment, ())
-        return any(ip in network for network in bucket_v6)
+        return any(ip in network for network in self._v6_broad) or any(
+            ip in network for network in bucket_v6
+        )
 
     def is_suspicious_port(self, port: int) -> bool:
         return int(port) in HONEYPOT_PORTS

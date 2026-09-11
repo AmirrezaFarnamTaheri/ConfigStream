@@ -48,6 +48,9 @@ INLINE_SECRET_RE = re.compile(
 BEARER_RE = re.compile(r"(?i)\bbearer\s+[A-Za-z0-9._~+/=-]+")
 URL_USERINFO_RE = re.compile(r"(?P<prefix>://[^/?#\s:@]+):([^/?#\s:@]+)@")
 logger = logging.getLogger(__name__)
+_PROJECT_SANITIZER: Any = None
+_PROJECT_SANITIZER_RESOLVED = False
+_PROJECT_SANITIZER_WARNING_EMITTED = False
 
 
 @dataclass(frozen=True)
@@ -115,18 +118,37 @@ def secrets_from_env(env: Mapping[str, str]) -> Tuple[str, ...]:
 def _project_sanitize(value: str) -> str:
     """Use the project sanitizer when importable, otherwise use a safe fallback."""
 
-    try:
-        from configstream.security_validator import SecurityValidator
+    global _PROJECT_SANITIZER
+    global _PROJECT_SANITIZER_RESOLVED
+    global _PROJECT_SANITIZER_WARNING_EMITTED
 
-        return SecurityValidator.sanitize_log_message(value)
-    except Exception as exc:
+    failure: Optional[Exception] = None
+    if not _PROJECT_SANITIZER_RESOLVED:
+        try:
+            from configstream.security_validator import SecurityValidator
+
+            _PROJECT_SANITIZER = SecurityValidator.sanitize_log_message
+        except (ImportError, AttributeError) as exc:
+            failure = exc
+            _PROJECT_SANITIZER = None
+        finally:
+            _PROJECT_SANITIZER_RESOLVED = True
+
+    if _PROJECT_SANITIZER is not None:
+        try:
+            return str(_PROJECT_SANITIZER(value))
+        except Exception as exc:
+            failure = exc
+
+    if not _PROJECT_SANITIZER_WARNING_EMITTED:
         logger.warning(
             "Project log sanitizer unavailable; using local fallback (%s)",
-            type(exc).__name__,
+            type(failure).__name__ if failure is not None else "ImportError",
         )
-        sanitized = URL_USERINFO_RE.sub(r"\g<prefix>:[MASKED]@", value)
-        sanitized = BEARER_RE.sub("Bearer [MASKED]", sanitized)
-        return INLINE_SECRET_RE.sub(r"\1=[MASKED]", sanitized)
+        _PROJECT_SANITIZER_WARNING_EMITTED = True
+    sanitized = URL_USERINFO_RE.sub(r"\g<prefix>:[MASKED]@", value)
+    sanitized = BEARER_RE.sub("Bearer [MASKED]", sanitized)
+    return INLINE_SECRET_RE.sub(r"\1=[MASKED]", sanitized)
 
 
 def redact(value: str, secrets: Sequence[str]) -> str:

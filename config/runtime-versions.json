@@ -19,7 +19,7 @@
     "container_variant": "bookworm-slim"
   },
   "go": {
-    "language": "1.24.0",
+    "language": "1.26.0",
     "toolchain": "1.26.8",
     "ci": "1.26.8",
     "container": "1.26.8",
@@ -32,7 +32,8 @@
   "sing_box": {
     "release_validator": "1.13.18",
     "embedded_tester": "1.9.7",
-    "embedded_contract": "legacy-runtime-input-modernized-before-release-validation",
+    "embedded_contract": "pre-release-connectivity-screen-only; release artifacts require native release-validator conformance",
+    "release_authority": "native-validator-only",
     "embedded_linker_compat": {
       "flag": "-checklinkname=0",
       "scope": "legacy-tester-only",

@@ -3,7 +3,7 @@
     "scripts/check_license_headers.py": 1,
     "scripts/dynamic_reshard.py": 13,
     "scripts/generate_evidence_bundle.py": 5,
-    "scripts/merge_batches.py": 5,
+    "scripts/merge_batches.py": 4,
     "scripts/prepare_public_candidate.py": 1,
     "scripts/prune_sources.py": 4,
     "scripts/publish_ipfs.py": 3,
@@ -20,7 +20,7 @@
     "src/configstream/adaptive_workers.py": 1,
     "src/configstream/anomaly.py": 9,
     "src/configstream/auto_detect.py": 2,
-    "src/configstream/backup.py": 6,
+    "src/configstream/backup.py": 5,
     "src/configstream/bot_cli.py": 1,
     "src/configstream/cli.py": 1,
     "src/configstream/concurrency_manager.py": 2,
@@ -63,7 +63,7 @@
     "src/configstream/testers/manager.py": 2,
     "src/configstream/testers/python.py": 5,
     "src/configstream/testers/utils.py": 1,
-    "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py": 30,
+    "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py": 25,
     "src/configstream/tools/vwarp/scanner.py": 1,
     "src/configstream/tools/vwarp/tunnel.py": 1,
     "src/configstream/tools/warp.py": 1,
@@ -80,5 +80,5 @@
     "target_total": 0
   },
   "schema_version": 1,
-  "total_ceiling": 239
+  "total_ceiling": 232
 }

@@ -32,6 +32,12 @@ FETCH_SUMMARY_RE = re.compile(
     r"sources\s+successful",
     re.IGNORECASE,
 )
+USABLE_SOURCE_SUMMARY_RE = re.compile(
+    r"Usable\s+Source\s+Summary:\s*"
+    r"(?P<usable>\d+)\s*/\s*(?P<attempted>\d+)\s+"
+    r"sources\s+produced\s+accepted\s+records",
+    re.IGNORECASE,
+)
 LEGACY_FETCH_FAILURE_RE = re.compile(
     r"(?:Failed(?:\s+to\s+fetch)?|Failure)\s*:\s*"
     r"(?P<url>https?://\S+?)\s+-\s+(?P<error>.*?)"
@@ -99,40 +105,75 @@ def bounded_source_counts(source_count: int, fetched_sources: int) -> tuple[int,
     return processable, observations
 
 
+def source_summary_counts(
+    log_path: Path,
+    *,
+    source_count: int,
+    fallback_fetched_sources: int,
+) -> tuple[int, int, int]:
+    """Return usable, transport-successful, and attempted unique source counts.
+
+    Release coverage is based on sources that produced accepted records after
+    parsing and intake policy, not merely on HTTP transport success. This keeps
+    empty, HTML, malformed, anomaly-blocked, and fully shed sources from
+    inflating the release coverage numerator.
+    """
+
+    fallback_usable, fallback_attempts = bounded_source_counts(
+        source_count, fallback_fetched_sources
+    )
+    try:
+        text = log_path.read_text(encoding="utf-8", errors="ignore")
+    except OSError:
+        return fallback_usable, fallback_usable, fallback_attempts
+
+    fetch_matches = list(FETCH_SUMMARY_RE.finditer(text))
+    usable_matches = list(USABLE_SOURCE_SUMMARY_RE.finditer(text))
+    if not fetch_matches and not usable_matches:
+        return fallback_usable, fallback_usable, fallback_attempts
+
+    if fetch_matches:
+        transport_success = sum(
+            int(match.group("successful")) for match in fetch_matches
+        )
+        attempted = sum(int(match.group("attempted")) for match in fetch_matches)
+    else:
+        attempted = sum(int(match.group("attempted")) for match in usable_matches)
+        transport_success = max(
+            fallback_usable,
+            sum(int(match.group("usable")) for match in usable_matches),
+        )
+
+    usable = (
+        sum(int(match.group("usable")) for match in usable_matches)
+        if usable_matches
+        else min(fallback_usable, transport_success)
+    )
+
+    assigned = max(0, int(source_count or 0))
+    if assigned:
+        usable = min(usable, assigned)
+        transport_success = min(transport_success, assigned)
+        attempted = min(attempted, assigned)
+    transport_success = min(transport_success, attempted)
+    usable = min(usable, transport_success)
+    return usable, transport_success, attempted
+
+
 def fetch_summary_counts(
     log_path: Path,
     *,
     source_count: int,
     fallback_fetched_sources: int,
 ) -> tuple[int, int]:
-    """Return unique successful source fetches and source attempts.
+    """Backward-compatible usable-source and attempt counts."""
 
-    Shard ``metadata.fetched_sources`` is updated by consumers for every queued
-    chunk, so it is not a unique source count. The producer's Fetch Summary is
-    emitted once per fetch batch and carries the actual source success / attempt
-    counts. Fall back to the old bounded estimate only when a shard log is absent.
-    """
-
-    fallback_covered, fallback_attempts = bounded_source_counts(
-        source_count, fallback_fetched_sources
+    usable, _transport_success, attempted = source_summary_counts(
+        log_path,
+        source_count=source_count,
+        fallback_fetched_sources=fallback_fetched_sources,
     )
-    try:
-        text = log_path.read_text(encoding="utf-8", errors="ignore")
-    except OSError:
-        return fallback_covered, fallback_attempts
-
-    matches = list(FETCH_SUMMARY_RE.finditer(text))
-    if not matches:
-        return fallback_covered, fallback_attempts
-
-    successful = sum(int(match.group("successful")) for match in matches)
-    attempted = sum(int(match.group("attempted")) for match in matches)
-    assigned = max(0, int(source_count or 0))
-    if assigned:
-        successful = min(successful, assigned)
-        attempted = min(attempted, assigned)
-    successful = min(successful, attempted)
-    return successful, attempted
+    return usable, attempted
 
 
 def classify_fetch_failure(error: str, status: int = 0) -> str:
@@ -325,10 +366,12 @@ def main() -> int:
         part = int(lineage.get("part") or 0)
         source_count = int(lineage.get("source_count") or 0)
         fetch_log = log_root / f"pipeline_batch_{batch}_part_{part}.log"
-        covered_sources, source_attempts = fetch_summary_counts(
-            fetch_log,
-            source_count=source_count,
-            fallback_fetched_sources=int(metadata.get("fetched_sources") or 0),
+        covered_sources, transport_success_sources, source_attempts = (
+            source_summary_counts(
+                fetch_log,
+                source_count=source_count,
+                fallback_fetched_sources=int(metadata.get("fetched_sources") or 0),
+            )
         )
         shard_failures = fetch_failure_counts(fetch_log)
         failure_categories.update(shard_failures["by_category"])
@@ -341,6 +384,8 @@ def main() -> int:
                 "source_count": source_count,
                 "source_sha256": lineage.get("source_sha256"),
                 "fetched_sources": covered_sources,
+                "usable_sources": covered_sources,
+                "transport_success_sources": transport_success_sources,
                 "source_attempts": source_attempts,
                 "source_failures": shard_failures,
                 "tested": int(
@@ -360,7 +405,10 @@ def main() -> int:
         merged[key] = value
     wall_seconds = (max(ends) - min(starts)).total_seconds() if starts and ends else 0.0
     configured_sources = sum(int(row["source_count"]) for row in rows)
-    covered_sources = sum(int(row["fetched_sources"]) for row in rows)
+    covered_sources = sum(int(row["usable_sources"]) for row in rows)
+    transport_success_sources = sum(
+        int(row["transport_success_sources"]) for row in rows
+    )
     source_attempts = sum(int(row["source_attempts"]) for row in rows)
     source_failure_summary: FailureSummary = {
         "total": sum(failure_categories.values()),
@@ -380,6 +428,8 @@ def main() -> int:
             "duration_seconds": max(0.0, wall_seconds)
             or merged.get("duration_seconds", 0.0),
             "fetched_sources": covered_sources,
+            "usable_sources": covered_sources,
+            "transport_success_sources": transport_success_sources,
             "total_configured_sources": configured_sources,
             "source_failure_summary": source_failure_summary,
             "shard_summary": {
@@ -390,6 +440,8 @@ def main() -> int:
                 "working": sum(int(row["working"]) > 0 for row in rows),
                 "source_attempts": source_attempts,
                 "covered_sources": covered_sources,
+                "usable_sources": covered_sources,
+                "transport_success_sources": transport_success_sources,
                 "configured_sources": configured_sources,
                 "source_failures": source_failure_summary,
                 "shards": rows,

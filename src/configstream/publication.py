@@ -18,7 +18,6 @@ PUBLIC_PRIVATE_BASENAMES = frozenset(
         "source_quality.db",
         "anomaly.db",
         "history.db",
-        "pipeline_events.jsonl",
         "consolidated_pipeline.log",
     }
 )
@@ -71,6 +70,21 @@ def _is_private_path(relative: PurePosixPath) -> bool:
         return True
     lowered_parts = {part.lower() for part in relative.parts}
     return bool(lowered_parts & {"private", "private-state", "fingerprints"})
+
+
+def is_private_publication_path(path: str | PurePosixPath) -> bool:
+    """Return whether a runtime path is forbidden from public serving.
+
+    ``pipeline_events.jsonl`` is intentionally public only after EventStream has
+    sanitized each record; caches, databases, logs, locks, temporary files and
+    private-state directories remain fail-closed.
+    """
+    relative = (
+        path
+        if isinstance(path, PurePosixPath)
+        else PurePosixPath(path.replace("\\", "/"))
+    )
+    return _is_private_path(relative)
 
 
 def validate_public_artifact(

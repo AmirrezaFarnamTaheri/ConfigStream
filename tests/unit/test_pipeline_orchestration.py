@@ -1,6 +1,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-import pytest
+import os
+from pathlib import Path
 from unittest.mock import MagicMock, AsyncMock, patch
+
+import pytest
+
 from configstream.pipeline_stats import PipelineResult
 
 
@@ -205,3 +209,38 @@ async def test_vwarp_tunnel_stopped_on_the_instance_that_started_it(
     assert (
         starter.stop_tunnel.await_count == 1
     ), "stop_tunnel was not called on the VwarpTool that started the tunnel"
+
+
+@pytest.mark.asyncio
+async def test_vwarp_tunnel_cleaned_when_initialization_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from configstream.pipeline.core import StandardPipeline
+
+    monkeypatch.setenv("USE_VWARP_TUNNEL", "1")
+    tool = MagicMock()
+    tool.is_available = AsyncMock(return_value=True)
+    tool.start_tunnel = AsyncMock(return_value=True)
+    tool.stop_tunnel = AsyncMock(return_value=None)
+
+    with (
+        patch("configstream.tools.vwarp.manager.VwarpTool", return_value=tool),
+        patch(
+            "configstream.pipeline.core.DEFAULT_BLOCKLIST.update",
+            new_callable=AsyncMock,
+            side_effect=RuntimeError("blocklist init failed"),
+        ),
+    ):
+        with pytest.raises(RuntimeError, match="blocklist init failed"):
+            await StandardPipeline.create_and_init(
+                sources=["http://test"],
+                output_dir=str(tmp_path / "output"),
+                producer_factory=MagicMock(),
+                consumer_factory=MagicMock(),
+                max_workers=2,
+                dry_run=True,
+            )
+
+    assert tool.start_tunnel.await_count == 1
+    assert tool.stop_tunnel.await_count == 1
+    assert os.environ["USE_VWARP_TUNNEL"] == "1"
