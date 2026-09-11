@@ -7,11 +7,14 @@ from typing import Any
 
 import yaml
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+RUNTIME_VERSIONS = REPO_ROOT / "config/runtime-versions.json"
+NATIVE_CHECKS = REPO_ROOT / "scripts/native_client_checks.py"
+MAIN_WORKFLOW = REPO_ROOT / ".github/workflows/main.yml"
+
 
 def test_legacy_tester_is_not_release_authority() -> None:
-    runtime = json.loads(
-        Path("config/runtime-versions.json").read_text(encoding="utf-8")
-    )
+    runtime = json.loads(RUNTIME_VERSIONS.read_text(encoding="utf-8"))
     sing_box = runtime["sing_box"]
 
     assert sing_box["embedded_tester"] != sing_box["release_validator"]
@@ -21,13 +24,9 @@ def test_legacy_tester_is_not_release_authority() -> None:
 
 
 def test_release_artifacts_are_checked_by_governed_native_sing_box() -> None:
-    native_checks = Path("scripts/native_client_checks.py").read_text(encoding="utf-8")
-    workflow = yaml.safe_load(
-        Path(".github/workflows/main.yml").read_text(encoding="utf-8")
-    )
-    runtime = json.loads(
-        Path("config/runtime-versions.json").read_text(encoding="utf-8")
-    )
+    native_checks = NATIVE_CHECKS.read_text(encoding="utf-8")
+    workflow = yaml.safe_load(MAIN_WORKFLOW.read_text(encoding="utf-8"))
+    runtime = json.loads(RUNTIME_VERSIONS.read_text(encoding="utf-8"))
 
     assert '[str(singbox_binary), "check", "-c", str(path)]' in native_checks
     assert isinstance(workflow, dict)
