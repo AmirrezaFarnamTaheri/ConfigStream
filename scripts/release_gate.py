@@ -169,6 +169,20 @@ def validate_manifest(root: Path, manifest: Any) -> list[str]:
     return errors
 
 
+def _is_sha256(value: Any) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == 64
+        and all(char in "0123456789abcdef" for char in value.lower())
+    )
+
+
+def _native_tool_name(core: str) -> str:
+    if core == "sing-box-connectivity" or core.startswith("sing-box-connectivity:"):
+        return "sing-box"
+    return core
+
+
 def validate_native_report(root: Path, report: Any) -> list[str]:
     if not isinstance(report, dict):
         return ["native client report must be an object"]
@@ -182,6 +196,23 @@ def validate_native_report(root: Path, report: Any) -> list[str]:
     ):
         if expected and str(report.get(provenance_key) or "") != expected:
             errors.append(f"native client report provenance mismatch: {provenance_key}")
+
+    tools = report.get("tools")
+    tool_digests: dict[str, str] = {}
+    if not isinstance(tools, dict):
+        errors.append("native client report has no tools")
+    else:
+        for tool_name in REQUIRED_NATIVE_TARGETS:
+            tool = tools.get(tool_name)
+            if not isinstance(tool, dict):
+                errors.append(f"native client report tool metadata missing: {tool_name}")
+                continue
+            tool_digest = tool.get("binary_sha256")
+            if not isinstance(tool_digest, str) or not _is_sha256(tool_digest):
+                errors.append(f"native client report tool lacks binary digest: {tool_name}")
+                continue
+            tool_digests[tool_name] = tool_digest
+
     checks = report.get("checks")
     if not isinstance(checks, list) or not checks:
         return errors + ["native client report has no checks"]
@@ -211,6 +242,22 @@ def validate_native_report(root: Path, report: Any) -> list[str]:
             )
         if status != "passed":
             errors.append(f"native validation did not pass: {core}:{relative}={status}")
+
+        check_binary_digest = check.get("binary_sha256")
+        if not isinstance(check_binary_digest, str) or not _is_sha256(
+            check_binary_digest
+        ):
+            errors.append(f"native validation lacks binary digest: {core}:{relative}")
+        else:
+            tool_name = _native_tool_name(core)
+            tool_digest = tool_digests.get(tool_name)
+            if tool_digest is None:
+                errors.append(f"native validation references unbound validator: {core}")
+            elif check_binary_digest != tool_digest:
+                errors.append(
+                    f"native validation binary digest mismatch: {core}:{relative}"
+                )
+
         try:
             artifact = safe_path(root, relative)
         except ValueError as exc:
