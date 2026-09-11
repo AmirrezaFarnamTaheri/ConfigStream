@@ -70,22 +70,32 @@ jobs:
               text = text.replace(old, new, 1)
           path.write_text(text, encoding="utf-8")
 
-          test_path = Path("tests/unit/test_public_event_redaction.py")
-          test_path.write_text(
+          event_test = Path("tests/unit/test_event_stream.py")
+          test_text = event_test.read_text(encoding="utf-8")
+          old_assertions = '''        assert "secret" not in record["message"]\n        assert "203.0.113.8" not in record["message"]\n        assert "token=[MASKED]" in record["message"]\n        assert "[IP]" in record["message"]\n'''
+          new_assertions = '''        assert "secret" not in record["message"]\n        assert "example.com" not in record["message"]\n        assert "203.0.113.8" not in record["message"]\n        assert record["message"] == "Fetching [source] from [IP]"\n'''
+          if old_assertions not in test_text:
+              raise SystemExit("expected event-stream persistence assertion block missing")
+          event_test.write_text(
+              test_text.replace(old_assertions, new_assertions, 1), encoding="utf-8"
+          )
+
+          public_test = Path("tests/unit/test_public_event_redaction.py")
+          public_test.write_text(
               '''# SPDX-License-Identifier: AGPL-3.0-or-later\nfrom __future__ import annotations\n\nimport json\nfrom pathlib import Path\n\nimport pytest\n\nfrom configstream.event_stream import EventStream\n\n\n@pytest.mark.asyncio\nasync def test_public_event_persistence_redacts_source_and_block_reason(\n    tmp_path: Path,\n) -> None:\n    stream = EventStream(tmp_path)\n    source = "https://provider.example/subscription?token=private-value"\n    stream.emit("fetch_success", f"Fetched 4 proxies from {source} (Fetch: 1.2s)")\n    stream.emit("fetch_blocked", f"Blocked source {source}: detector raw detail")\n    await stream.aclose()\n\n    payload = (tmp_path / "pipeline_events.jsonl").read_text(encoding="utf-8")\n    assert "provider.example" not in payload\n    assert "private-value" not in payload\n    assert "detector raw detail" not in payload\n\n    records = [json.loads(line) for line in payload.splitlines()]\n    assert records[0]["message"] == "Fetched 4 proxies from [source] (Fetch: 1.2s)"\n    assert records[1]["message"] == "Source blocked by anomaly policy."\n''',
               encoding="utf-8",
           )
           PY
       - name: Format changed Python files
-        run: python -m black --fast --target-version py310 src/configstream/event_stream.py tests/unit/test_public_event_redaction.py
+        run: python -m black --fast --target-version py310 src/configstream/event_stream.py tests/unit/test_event_stream.py tests/unit/test_public_event_redaction.py
       - name: Verify focused regression
         run: python -m pytest -q tests/unit/test_public_event_redaction.py tests/unit/test_event_stream.py tests/unit/test_publication_policy.py
       - name: Verify formatter
-        run: python -m black --check --fast --target-version py310 src/configstream/event_stream.py tests/unit/test_public_event_redaction.py
+        run: python -m black --check --fast --target-version py310 src/configstream/event_stream.py tests/unit/test_event_stream.py tests/unit/test_public_event_redaction.py
       - name: Commit public-event hardening
         shell: bash
         run: |
-          git add src/configstream/event_stream.py tests/unit/test_public_event_redaction.py
+          git add src/configstream/event_stream.py tests/unit/test_event_stream.py tests/unit/test_public_event_redaction.py
           if git diff --cached --quiet; then
             exit 0
           fi
