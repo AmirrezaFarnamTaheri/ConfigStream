@@ -1,7 +1,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import os
-import pytest
+from pathlib import Path
 from unittest.mock import MagicMock, AsyncMock, patch
+
+import pytest
+
 from configstream.pipeline_stats import PipelineResult
 
 
@@ -209,7 +212,9 @@ async def test_vwarp_tunnel_stopped_on_the_instance_that_started_it(
 
 
 @pytest.mark.asyncio
-async def test_vwarp_tunnel_cleaned_when_initialization_fails(tmp_path, monkeypatch):
+async def test_vwarp_tunnel_cleaned_when_initialization_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     from configstream.pipeline.core import StandardPipeline
 
     monkeypatch.setenv("USE_VWARP_TUNNEL", "1")
