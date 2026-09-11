@@ -10,6 +10,9 @@ from configstream.tools.dns_scanner.python.dnsscanner_lifecycle import (
     kill_and_reap_processes as _kill_and_reap_processes,
 )
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+TUI_SOURCE = REPO_ROOT / "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py"
+
 
 @pytest.mark.asyncio
 async def test_cancel_and_await_tasks_runs_task_finalizers() -> None:
@@ -80,9 +83,7 @@ async def test_kill_and_reap_processes_reaps_already_exited_child() -> None:
 
 
 def _tui_source_tree() -> ast.Module:
-    source = Path(
-        "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py"
-    ).read_text(encoding="utf-8")
+    source = TUI_SOURCE.read_text(encoding="utf-8")
     return ast.parse(source)
 
 
