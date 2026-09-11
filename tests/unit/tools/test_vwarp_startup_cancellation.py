@@ -52,7 +52,9 @@ async def test_cancelled_startup_stops_spawned_process(
         return cast(asyncio.subprocess.Process, process)
 
     monkeypatch.setattr(tunnel, "_build_tunnel_command", _build_command)
-    monkeypatch.setattr(tunnel_module.asyncio, "create_subprocess_exec", _create_process)
+    monkeypatch.setattr(
+        tunnel_module.asyncio, "create_subprocess_exec", _create_process
+    )
 
     startup = asyncio.create_task(tunnel._start_attempt("127.0.0.1", 8086))
     await spawned.wait()
