@@ -5,6 +5,8 @@ import asyncio
 import logging
 from typing import Any, Iterable
 
+from configstream.security_validator import SecurityValidator
+
 logger = logging.getLogger(__name__)
 
 
@@ -34,4 +36,7 @@ async def kill_and_reap_processes(
             except asyncio.TimeoutError:
                 logger.error("Timed out reaping Slipstream child process")
         except (OSError, RuntimeError) as exc:
-            logger.warning("Failed to reap Slipstream child: %s", str(exc)[:200])
+            logger.warning(
+                "Failed to reap Slipstream child: %s",
+                SecurityValidator.sanitize_log_message(str(exc)),
+            )
