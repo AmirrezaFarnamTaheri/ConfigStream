@@ -129,8 +129,8 @@ async def run_release_runtime_conformance(
     repo_root: Path,
 ) -> dict[str, Any]:
     """Retest bounded protocol representatives with the release sing-box binary."""
-    expected = expected_singbox_version(repo_root)
-    observed = observed_singbox_version(singbox_binary)
+    expected = await asyncio.to_thread(expected_singbox_version, repo_root)
+    observed = await asyncio.to_thread(observed_singbox_version, singbox_binary)
     base: dict[str, Any] = {
         "expected_version": expected,
         "observed_version": observed,
@@ -144,7 +144,8 @@ async def run_release_runtime_conformance(
 
     proxies_path = release_root / "proxies.json"
     try:
-        records = json.loads(proxies_path.read_text(encoding="utf-8"))
+        proxies_text = await asyncio.to_thread(proxies_path.read_text, encoding="utf-8")
+        records = json.loads(proxies_text)
     except (OSError, json.JSONDecodeError):
         base["error"] = "proxies.json is unavailable or invalid"
         return base
