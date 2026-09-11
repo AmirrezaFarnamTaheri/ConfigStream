@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+from pathlib import Path
 import pytest
 import sqlite3
 from unittest.mock import patch
@@ -162,7 +163,11 @@ def test_fail_open_on_error(detector):
         assert "Fail Open" in reason
 
 
-def test_merge_rejects_row_limit(detector, tmp_path, monkeypatch):
+def test_merge_rejects_row_limit(
+    detector: AnomalyDetector,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     other_db = tmp_path / "oversized-anomaly.db"
     other = AnomalyDetector(other_db)
     with patch("time.time", side_effect=[1000, 1001, 1002]):
