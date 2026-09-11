@@ -4,8 +4,12 @@ from __future__ import annotations
 from pathlib import Path
 
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+MAIN_WORKFLOW = REPO_ROOT / ".github" / "workflows" / "main.yml"
+
+
 def _artifact_record_step() -> str:
-    workflow = Path(".github/workflows/main.yml").read_text(encoding="utf-8")
+    workflow = MAIN_WORKFLOW.read_text(encoding="utf-8")
     return workflow.split("      - name: Record artifact downloads", 1)[1].split(
         "      - name: Restore available artifacts", 1
     )[0]
@@ -51,7 +55,7 @@ def test_main_records_matrix_failure_even_when_matrix_file_is_missing() -> None:
 
 
 def test_geoip_prerequisite_is_geoip_only_and_retained_for_reruns() -> None:
-    workflow = Path(".github/workflows/main.yml").read_text(encoding="utf-8")
+    workflow = MAIN_WORKFLOW.read_text(encoding="utf-8")
 
     assert "python -m configstream.cli update-databases --geoip-only" in workflow
     geoip_section = workflow.split("  setup_geoip:", 1)[1].split("  setup_matrix:", 1)[
