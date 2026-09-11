@@ -163,7 +163,7 @@ async def _report_unusable_content(
     source: str,
     safe_source: str,
     content: str,
-    drop_stats: dict,
+    drop_stats: dict[str, int],
     response_time: float,
 ) -> None:
     log_method = logger.debug if len(content) < 100 else logger.warning
