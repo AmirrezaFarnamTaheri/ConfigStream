@@ -33,9 +33,7 @@ async def async_client(
 
     monkeypatch.setattr(anyio_asyncio, "current_task", _safe_current_task)
 
-    def _fake_file_response(
-        path: str | Path, *args: Any, **kwargs: Any
-    ) -> Response:
+    def _fake_file_response(path: str | Path, *args: Any, **kwargs: Any) -> Response:
         del args
         candidate = Path(path)
         data = candidate.read_bytes() if candidate.exists() else b""
