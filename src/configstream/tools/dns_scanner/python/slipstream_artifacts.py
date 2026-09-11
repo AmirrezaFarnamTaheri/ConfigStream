@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import tempfile
 from pathlib import Path
 from typing import Callable
 
@@ -91,8 +92,13 @@ async def download_verified_artifact(
     """Download one immutable artifact and promote it only after digest verification."""
 
     destination.parent.mkdir(parents=True, exist_ok=True)
-    partial = destination.with_name(f".{destination.name}.partial")
-    partial.unlink(missing_ok=True)
+    fd, temp_name = tempfile.mkstemp(
+        prefix=f".{destination.name}.",
+        suffix=".partial",
+        dir=destination.parent,
+    )
+    os.close(fd)
+    partial = Path(temp_name)
     try:
         async with httpx.AsyncClient(
             timeout=httpx.Timeout(timeout),
