@@ -8,6 +8,8 @@ import logging
 from contextlib import suppress
 from typing import Any
 
+from configstream.security_validator import SecurityValidator
+
 logger = logging.getLogger(__name__)
 
 
@@ -42,7 +44,10 @@ class HardStopWatcher:
             )
         except Exception as exc:
             graceful_failed = True
-            logger.warning("Tester shutdown failed; applying hard stop: %s", exc)
+            logger.warning(
+                "Tester shutdown failed; applying hard stop: %s",
+                SecurityValidator.sanitize_log_message(str(exc)),
+            )
 
         # If no process existed before close, inspect the current handle in case
         # the close failure exposed a process only after startup/restart raced.
@@ -56,19 +61,31 @@ class HardStopWatcher:
                 "Tester close returned while child was still alive; hard-stopping it."
             )
 
+        reaped = False
         try:
             proc.kill()
             await asyncio.wait_for(proc.wait(), timeout=1.0)
+            reaped = proc.returncode is not None
         except ProcessLookupError:
             # The child exited between the returncode check and kill(). Reap it
             # if the transport still permits waiting.
-            with suppress(Exception):
+            try:
                 await asyncio.wait_for(proc.wait(), timeout=1.0)
+                reaped = proc.returncode is not None
+            except Exception:
+                reaped = False
         except Exception as exc:
-            logger.warning("Hard stop failed to terminate Go tester process: %s", exc)
-        finally:
-            if go_tester is not None and getattr(go_tester, "_proc", None) is proc:
-                go_tester._proc = None
+            logger.warning(
+                "Hard stop failed to terminate Go tester process: %s",
+                SecurityValidator.sanitize_log_message(str(exc)),
+            )
+
+        if (
+            reaped
+            and go_tester is not None
+            and getattr(go_tester, "_proc", None) is proc
+        ):
+            go_tester._proc = None
 
     async def flush_event_stream(self, event_stream: Any) -> None:
         """Flush and close event stream with bounded timeout."""
@@ -86,7 +103,10 @@ class HardStopWatcher:
                 self.flush_timeout_seconds,
             )
         except Exception as exc:
-            logger.warning("Error closing EventStream: %s", exc)
+            logger.warning(
+                "Error closing EventStream: %s",
+                SecurityValidator.sanitize_log_message(str(exc)),
+            )
 
     async def shutdown(self, tester: Any, event_stream: Any) -> None:
         """Shutdown helper for pipeline finally blocks."""
