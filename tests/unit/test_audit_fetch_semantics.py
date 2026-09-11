@@ -1,7 +1,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 import httpx
@@ -26,7 +28,7 @@ async def test_empty_success_body_is_not_a_successful_source(status: int) -> Non
     response.status_code = status
     response.headers = {}
 
-    async def body():
+    async def body() -> AsyncIterator[bytes]:
         yield b" \n\t"
 
     response.aiter_bytes = lambda: body()
@@ -73,7 +75,9 @@ async def test_retry_after_http_date_is_honored_by_production_fetcher() -> None:
     assert 8.0 <= delay <= 12.5
 
 
-def test_release_coverage_prefers_usable_sources_over_http_success(tmp_path) -> None:
+def test_release_coverage_prefers_usable_sources_over_http_success(
+    tmp_path: Path,
+) -> None:
     log = tmp_path / "pipeline.log"
     log.write_text(
         "\n".join(
@@ -95,7 +99,9 @@ def test_release_coverage_prefers_usable_sources_over_http_success(tmp_path) -> 
     assert (usable, transport_success, attempted) == (4, 11, 12)
 
 
-def test_usable_source_count_is_bounded_by_transport_and_attempts(tmp_path) -> None:
+def test_usable_source_count_is_bounded_by_transport_and_attempts(
+    tmp_path: Path,
+) -> None:
     log = tmp_path / "pipeline.log"
     log.write_text(
         "Fetch Summary: 3/5 sources successful.\n"
