@@ -632,6 +632,7 @@ class DNSScannerTUI(App):
         if event.button.id == "start-scan-btn":
             self._start_scan_from_form()
         elif event.button.id == "browse-btn":
+            # Toggle file browser visibility
             browser = self.query_one("#file-browser-container")
             browser.display = not browser.display
         elif event.button.id == "exit-btn":
@@ -649,8 +650,10 @@ class DNSScannerTUI(App):
         self, event: DirectoryTree.FileSelected
     ) -> None:
         """Handle file selection from directory tree."""
+        # Set the selected file path
         file_input = self.query_one("#input-file", Input)
         file_input.value = str(event.path)
+        # Hide browser
         self.query_one("#file-browser-container").display = False
 
     def _pause_scan(self) -> None:
@@ -663,6 +666,7 @@ class DNSScannerTUI(App):
         self._log("[yellow]⏸  Scan paused[/yellow]")
         self.notify("Scan paused", severity="warning")
 
+        # Update button visibility
         try:
             self.query_one("#pause-btn", Button).display = False
             self.query_one("#resume-btn", Button).display = True
@@ -680,6 +684,7 @@ class DNSScannerTUI(App):
         self._log("[green]▶  Scan resumed[/green]")
         self.notify("Scan resumed", severity="information")
 
+        # Update button visibility
         try:
             self.query_one("#pause-btn", Button).display = True
             self.query_one("#resume-btn", Button).display = False
@@ -689,6 +694,7 @@ class DNSScannerTUI(App):
 
     def _start_scan_from_form(self) -> None:
         """Get values from form and start scanning."""
+        # Get form values
         file_input = self.query_one("#input-file", Input)
         domain_input = self.query_one("#input-domain", Input)
         type_select = self.query_one("#input-type", Select)
@@ -708,6 +714,7 @@ class DNSScannerTUI(App):
         except ValueError:
             self.concurrency = 100
 
+        # Validate
         if not self.subnet_file:
             self.notify("Please enter a CIDR file path!", severity="error")
             return
@@ -720,6 +727,7 @@ class DNSScannerTUI(App):
             self.notify("Please enter a domain!", severity="error")
             return
 
+        # Resolve the optional Slipstream dependency only when requested.
         if self.test_slipstream:
             if not self.slipstream_manager.is_supported():
                 self.notify(
@@ -740,9 +748,11 @@ class DNSScannerTUI(App):
                 self.run_worker(self._download_and_start_scan(), exclusive=True)
                 return
 
+        # Switch to scan screen
         self.query_one("#start-screen").display = False
         self.query_one("#scan-screen").display = True
 
+        # Show pause button, hide resume button
         try:
             self.query_one("#pause-btn", Button).display = True
             self.query_one("#resume-btn", Button).display = False
@@ -750,6 +760,7 @@ class DNSScannerTUI(App):
             logging.getLogger(__name__).debug("Suppressed broad exception")
             pass
 
+        # Setup log display
         log_widget = self.query_one("#log-display", RichLog)
         log_widget.write("[bold cyan]DNS Scanner Log[/bold cyan]")
         log_widget.write(f"[yellow]Subnet file:[/yellow] {self.subnet_file}")
@@ -761,6 +772,7 @@ class DNSScannerTUI(App):
         )
         log_widget.write("[green]Starting scan...[/green]\n")
 
+        # Start scanning
         self.scan_started = True
         self.run_worker(self._scan_async(), exclusive=True)
 
@@ -769,6 +781,7 @@ class DNSScannerTUI(App):
         log_widget = self.query_one("#log-display", RichLog)
         progress_bar = self.query_one("#progress-bar", CustomProgressBar)
 
+        # Switch to scan screen to show progress
         self.query_one("#start-screen").display = False
         self.query_one("#scan-screen").display = True
 
@@ -788,9 +801,10 @@ class DNSScannerTUI(App):
 
         if success:
             log_widget.write("[green]✓ Slipstream downloaded successfully![/green]")
-            progress_bar.update_progress(100, 100)
+            progress_bar.update_progress(100, 100)  # Show 100%
             self.slipstream_path = str(self.slipstream_manager.get_executable_path())
 
+            # Continue with the scan
             log_widget.write(f"[yellow]Subnet file:[/yellow] {self.subnet_file}")
             log_widget.write(f"[yellow]Domain:[/yellow] {self.domain}")
             log_widget.write(f"[yellow]DNS Type:[/yellow] {self.dns_type}")
@@ -808,31 +822,34 @@ class DNSScannerTUI(App):
                 f"[yellow]Expected path: {self.slipstream_manager.get_executable_path()}[/yellow]"
             )
             log_widget.write(
-                "[yellow]No partial download was kept; retry to download the full artifact.[/yellow]"
+                "[yellow]Partial download saved. Run again to resume.[/yellow]"
             )
             log_widget.write(
                 "[yellow]Or download manually and place in the path above.[/yellow]"
             )
             self.notify(
-                "Failed to download Slipstream. Retry to download the full artifact.",
-                severity="error",
+                "Failed to download Slipstream. Run again to resume.", severity="error"
             )
 
     async def _scan_async(self) -> None:
         """Async scanning logic."""
+        # Reset state for re-scanning
         self.found_servers.clear()
         self.server_times.clear()
         self.proxy_results.clear()
         self.current_scanned = 0
         self.table_needs_rebuild = False
 
+        # Reset pause state
         self.is_paused = False
         self.pause_event = asyncio.Event()
-        self.pause_event.set()
+        self.pause_event.set()  # Not paused initially
 
+        # Initialize shutdown event for graceful cleanup
         self._shutdown_event = asyncio.Event()
         self.active_scan_tasks = []
 
+        # Initialize slipstream parallel testing
         self.slipstream_semaphore = asyncio.Semaphore(self.slipstream_max_concurrent)
         self.available_ports = deque(
             range(
@@ -847,10 +864,12 @@ class DNSScannerTUI(App):
         self.last_update_time = self.start_time
         self.last_table_update_time = self.start_time
 
+        # Notify user about CIDR loading
         self.notify("Reading CIDR file...", severity="information", timeout=3)
         self._log("[cyan]Analyzing CIDR file...[/cyan]")
         await asyncio.sleep(0)
 
+        # Fast count of lines to estimate total
         loop = asyncio.get_running_loop()
         line_count = await loop.run_in_executor(
             None, self._count_file_lines, self.subnet_file
@@ -864,6 +883,7 @@ class DNSScannerTUI(App):
         self._log(f"[cyan]Found {line_count} CIDR entries. Starting scan...[/cyan]")
         await asyncio.sleep(0)
 
+        # Estimate total IPs (rough estimate: assume average /24)
         estimated_ips = line_count * 254
 
         try:
@@ -882,59 +902,73 @@ class DNSScannerTUI(App):
 
         self.notify("Scanning in real-time...", severity="information", timeout=3)
 
+        # Create semaphore
         sem = asyncio.Semaphore(self.concurrency)
 
+        # Stream IPs and scan in chunks - START IMMEDIATELY!
         self._log("[green]Starting real-time streaming scan...[/green]")
         await asyncio.sleep(0)
 
-        chunk_size = 500
+        chunk_size = 500  # Process 500 IPs at a time
         active_tasks = []
         chunk_num = 0
 
         async for ip_chunk in self._stream_ips_from_file():
+            # Check for shutdown
             if self._shutdown_event and self._shutdown_event.is_set():
                 break
 
+            # Check for pause
             await self.pause_event.wait()
 
             chunk_num += 1
 
+            # Create tasks for this chunk
             for ip in ip_chunk:
                 task = asyncio.create_task(self._test_dns_with_callback(ip, sem))
                 active_tasks.append(task)
 
+            # Keep reference for cleanup
             self.active_scan_tasks = active_tasks
 
+            # Process completed tasks periodically
             if len(active_tasks) >= chunk_size:
+                # Check for pause before processing
                 await self.pause_event.wait()
 
+                # Check for shutdown
                 if self._shutdown_event and self._shutdown_event.is_set():
                     break
 
+                # self._log(f"[dim]Processing chunk {chunk_num}...[/dim]")
+                # Wait for some tasks to complete
                 done, pending_set = await asyncio.wait(
                     active_tasks, return_when=asyncio.FIRST_COMPLETED
                 )
                 active_tasks = list(pending_set)
 
+                # Process completed results
                 for task in done:
                     try:
                         result = await task
                         await self._process_result(result)
                     except asyncio.CancelledError:
-                        pass
+                        pass  # Task was cancelled during shutdown
                     except Exception as e:
                         logger.error(f"Task error: {e}")
 
                 active_tasks = list(active_tasks)
                 self.active_scan_tasks = active_tasks
-                await asyncio.sleep(0)
+                await asyncio.sleep(0)  # Yield to UI
 
+        # Check if we're shutting down
         if self._shutdown_event and self._shutdown_event.is_set():
             self._log("[yellow]Scan interrupted - cleaning up...[/yellow]")
             await _cancel_and_await_tasks(active_tasks)
             self.active_scan_tasks.clear()
             return
 
+        # Wait for all remaining tasks
         self._log("[cyan]Finishing remaining scans...[/cyan]")
         if active_tasks:
             done, _ = await asyncio.wait(active_tasks)
@@ -943,7 +977,7 @@ class DNSScannerTUI(App):
                     result = await task
                     await self._process_result(result)
                 except asyncio.CancelledError:
-                    pass
+                    pass  # Task was cancelled
                 except Exception as e:
                     logger.error(f"Task error: {e}")
 
@@ -954,6 +988,7 @@ class DNSScannerTUI(App):
             f"Scan complete. Scanned: {self.current_scanned}, Found: {len(self.found_servers)}"
         )
 
+        # Update final statistics
         try:
             stats = self.query_one("#stats", StatsWidget)
             stats.scanned = self.current_scanned
@@ -961,22 +996,27 @@ class DNSScannerTUI(App):
             elapsed = time.time() - self.start_time
             stats.elapsed = elapsed
             stats.speed = self.current_scanned / elapsed if elapsed > 0 else 0
-            stats.total = self.current_scanned
+            stats.total = self.current_scanned  # Set total to actual scanned count
 
             progress_bar = self.query_one("#progress-bar", CustomProgressBar)
-            progress_bar.update_progress(self.current_scanned, self.current_scanned)
+            progress_bar.update_progress(
+                self.current_scanned, self.current_scanned
+            )  # Force 100%
         except Exception:  # nosec B110
             logging.getLogger(__name__).debug("Suppressed broad exception")
             pass
 
+        # Final table rebuild
         self._rebuild_table()
 
+        # Wait for all pending slipstream tests to complete (with timeout)
         if self.test_slipstream and self.slipstream_tasks:
             num_tasks = len(self.slipstream_tasks)
             self._log(
                 f"[cyan]Waiting for {num_tasks} slipstream tests to complete (max 60s)...[/cyan]"
             )
             try:
+                # Wait maximum 60 seconds for all tests
                 await asyncio.wait_for(
                     asyncio.gather(*self.slipstream_tasks, return_exceptions=True),
                     timeout=60.0,
@@ -986,8 +1026,9 @@ class DNSScannerTUI(App):
                     "[yellow]Timeout waiting for slipstream tests - cancelling remaining tests[/yellow]"
                 )
                 await _cancel_and_await_tasks(self.slipstream_tasks)
-            self._rebuild_table()
+            self._rebuild_table()  # Rebuild after all tests complete
 
+        # Auto-save results
         self._auto_save_results()
 
         self.notify("Scan complete! Results auto-saved.", severity="information")
@@ -1011,6 +1052,7 @@ class DNSScannerTUI(App):
         subnets = []
         logger.info(f"Loading subnets from {self.subnet_file}")
         try:
+            # Fast reading using mmap for large files
             with open(self.subnet_file, "r+b") as f:
                 with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mmapped:
                     for line in iter(mmapped.readline, b""):
@@ -1027,6 +1069,7 @@ class DNSScannerTUI(App):
                             pass
         except (ValueError, OSError) as e:
             logger.warning(f"mmap failed: {e}, falling back to regular reading")
+            # Fallback to regular reading if mmap fails (e.g., empty file)
             try:
                 with open(self.subnet_file, "r", encoding="utf-8") as f:
                     for line_txt in f:
@@ -1050,7 +1093,7 @@ class DNSScannerTUI(App):
     async def _stream_ips_from_file(self) -> AsyncGenerator[list[str], None]:
         """Stream IPs from CIDR file in chunks without loading everything into memory."""
         chunk = []
-        chunk_size = 500
+        chunk_size = 500  # Yield 500 IPs at a time
         rng = secrets.SystemRandom()
 
         loop = asyncio.get_running_loop()
@@ -1075,10 +1118,13 @@ class DNSScannerTUI(App):
                 logger.error(f"Failed to read file: {e}")
             return subnets
 
+        # Read subnets
         subnets = await loop.run_in_executor(None, read_and_process)
         rng.shuffle(subnets)
 
+        # Generate IPs from subnets
         for net in subnets:
+            # Split into /24 chunks
             if net.prefixlen >= 24:
                 chunks = [net]
             else:
@@ -1095,11 +1141,13 @@ class DNSScannerTUI(App):
                     for ip in ips:
                         chunk.append(str(ip))
 
+                        # Yield chunk when it reaches size
                         if len(chunk) >= chunk_size:
                             yield chunk
                             chunk = []
-                            await asyncio.sleep(0)
+                            await asyncio.sleep(0)  # Yield to event loop
 
+        # Yield remaining IPs
         if chunk:
             yield chunk
 
@@ -1107,6 +1155,7 @@ class DNSScannerTUI(App):
         self, ip: str, sem: asyncio.Semaphore
     ) -> tuple[str, bool, float]:
         """Test DNS and return result tuple."""
+        # Wait if paused
         await self.pause_event.wait()
         return await self._test_dns(ip, sem)
 
@@ -1115,20 +1164,24 @@ class DNSScannerTUI(App):
         if isinstance(result, tuple):
             ip, is_valid, response_time = result
 
+            # Update scanned count
             self.current_scanned += 1
 
             if is_valid:
+                # Add to found servers and table immediately
                 self._add_result(ip, response_time)
                 self._log(
                     f"[green]✓ Found DNS: {ip} ({response_time * 1000:.0f}ms)[/green]"
                 )
 
+                # Queue slipstream test if enabled (non-blocking)
                 if self.test_slipstream:
                     self.proxy_results[ip] = "Pending"
                     task = asyncio.create_task(self._queue_slipstream_test(ip))
                     self.slipstream_tasks.add(task)
                     task.add_done_callback(self.slipstream_tasks.discard)
 
+            # Update UI periodically
             if self.current_scanned % 10 == 0:
                 current_time = time.time()
                 elapsed = current_time - self.start_time
@@ -1150,24 +1203,30 @@ class DNSScannerTUI(App):
         """Collect all IPs from subnets in random order using CSPRNG."""
         logger.info(f"Collecting IPs from {len(subnets)} subnets")
         all_ips = []
-        rng = secrets.SystemRandom()
+        rng = secrets.SystemRandom()  # Cryptographically secure RNG
 
+        # Shuffle subnets first for randomization
         subnets_copy = list(subnets)
         rng.shuffle(subnets_copy)
 
         for net in subnets_copy:
+            # Split into /24 chunks
             if net.prefixlen >= 24:
                 chunks = [net]
             else:
                 chunks = list(net.subnets(new_prefix=24))
 
+            # Shuffle chunks for random order
             rng.shuffle(chunks)
 
             for chunk in chunks:
+                # For /32 (single IP), just use the network address
                 if chunk.num_addresses == 1:
                     all_ips.append(str(chunk.network_address))
                 else:
+                    # Get usable IPs (skip network and broadcast)
                     ips = list(chunk.hosts())
+                    # Shuffle IPs within each chunk
                     rng.shuffle(ips)
                     all_ips.extend([str(ip) for ip in ips])
 
@@ -1185,36 +1244,49 @@ class DNSScannerTUI(App):
                     prefix = secrets.token_hex(4)
                     domain = f"{prefix}.{domain}"
 
+                # 2 second timeout for DNS servers
                 resolver = aiodns.DNSResolver(nameservers=[ip], timeout=2.0, tries=1)
 
                 start = time.time()
                 try:
+                    # Use query method instead of query_dns for better compatibility
                     result = await resolver.query(domain, self.dns_type)
                     elapsed = time.time() - start
 
+                    # If we got a result and it's under 2000ms, it's a valid DNS server
                     if result and elapsed < 2.0:
                         logger.debug(
                             f"{ip}: DNS responded - {type(result)} in {elapsed * 1000:.0f}ms"
                         )
                         return (ip, True, elapsed)
                     elif result:
+                        # Too slow, reject it
                         logger.debug(f"{ip}: DNS too slow - {elapsed * 1000:.0f}ms")
                         return (ip, False, 0)
 
+                    # No response
                     return (ip, False, 0)
 
                 except aiodns.error.DNSError as dns_err:
                     elapsed = time.time() - start
+                    # DNS errors like NXDOMAIN, NODATA, etc. mean the DNS server IS working
+                    # Only connection/timeout errors mean it's not a valid DNS server
                     error_code = dns_err.args[0] if dns_err.args else 0
 
+                    # Error codes that indicate a working DNS server:
+                    # 1 = NXDOMAIN (domain doesn't exist - but DNS is working!)
+                    # 4 = NODATA (no records found - but DNS is working!)
+                    # 3 = NXRRSET (RR type doesn't exist - but DNS is working!)
                     if error_code in (1, 3, 4) and elapsed < 2.0:
                         logger.info(
                             f"{ip}: DNS working with error code {error_code} in {elapsed * 1000:.0f}ms"
                         )
                         return (ip, True, elapsed)
                     elif error_code in (1, 3, 4):
+                        # Working but too slow
                         return (ip, False, 0)
 
+                    # Other DNS errors = not a valid/working DNS server
                     return (ip, False, 0)
 
             except asyncio.TimeoutError:
@@ -1228,6 +1300,7 @@ class DNSScannerTUI(App):
         self.found_servers.add(ip)
         self.server_times[ip] = response_time
 
+        # Add to table immediately for instant feedback
         try:
             table = self.query_one("#results-table", DataTable)
 
@@ -1239,6 +1312,7 @@ class DNSScannerTUI(App):
             else:
                 server_time_str = f"[red]{server_ms:.0f}ms[/red]"
 
+            # Get proxy status
             proxy_status = self.proxy_results.get(ip, "N/A")
             if proxy_status == "Success":
                 proxy_str = "[green]✓ Passed[/green]"
@@ -1261,8 +1335,10 @@ class DNSScannerTUI(App):
             logging.getLogger(__name__).debug("Suppressed broad exception")
             pass
 
+        # Mark table for periodic resort
         self.table_needs_rebuild = True
 
+        # Resort table every 2 seconds to maintain sorted order
         current_time = time.time()
         if current_time - self.last_table_update_time >= 2.0:
             self._rebuild_table()
@@ -1276,6 +1352,7 @@ class DNSScannerTUI(App):
         try:
             table = self.query_one("#results-table", DataTable)
 
+            # Clear and rebuild table sorted by response time
             table.clear()
             sorted_servers = sorted(self.server_times.items(), key=lambda x: x[1])
 
@@ -1288,6 +1365,7 @@ class DNSScannerTUI(App):
                 else:
                     server_time_str = f"[red]{server_ms:.0f}ms[/red]"
 
+                # Get proxy status
                 proxy_status = self.proxy_results.get(server_ip, "N/A")
                 if proxy_status == "Success":
                     proxy_str = "[green]✓ Passed[/green]"
@@ -1310,19 +1388,20 @@ class DNSScannerTUI(App):
             self.table_needs_rebuild = False
         except Exception:  # nosec B110
             logging.getLogger(__name__).debug("Suppressed broad exception")
-            pass
+            pass  # Ignore errors during rebuild
 
     async def _queue_slipstream_test(self, dns_ip: str) -> None:
         """Queue and run slipstream test with semaphore for max concurrent tests."""
         async with self.slipstream_semaphore:
+            # Get an available port
             while not self.available_ports:
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0.1)  # Wait for a port to become available
 
             port = self.available_ports.popleft()
 
             try:
                 self.proxy_results[dns_ip] = "Testing"
-                self._update_table_row(dns_ip)
+                self._update_table_row(dns_ip)  # Update UI to show testing status
                 self._log(
                     f"[cyan]Testing {dns_ip} with slipstream on port {port}...[/cyan]"
                 )
@@ -1335,9 +1414,10 @@ class DNSScannerTUI(App):
                 else:
                     self._log(f"[red]✗ Proxy test FAILED: {dns_ip}[/red]")
 
-                self._update_table_row(dns_ip)
+                self._update_table_row(dns_ip)  # Update UI with final result
 
             finally:
+                # Return port to pool
                 self.available_ports.append(port)
 
     def _update_table_row(self, ip: str) -> None:
@@ -1357,6 +1437,7 @@ class DNSScannerTUI(App):
         """
         process = None
         try:
+            # Build slipstream command with dynamic port using the manager
             cmd = self.slipstream_manager.get_run_command(
                 dns_ip, port, self.slipstream_domain
             )
@@ -1364,6 +1445,7 @@ class DNSScannerTUI(App):
             logger.info(f"[{dns_ip}] Starting slipstream on port {port}")
             logger.debug(f"[{dns_ip}] Command: {' '.join(cmd)}")
 
+            # Start slipstream process
             process = await asyncio.create_subprocess_exec(
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
@@ -1377,8 +1459,10 @@ class DNSScannerTUI(App):
 
             logger.debug(f"[{dns_ip}] Process started with PID {process.pid}")
 
+            # Track process for cleanup on quit
             self.slipstream_processes.append(process)
 
+            # Wait for "Connection ready" message (15 second timeout)
             connection_ready = False
             try:
 
@@ -1396,6 +1480,7 @@ class DNSScannerTUI(App):
                         line_str = line.decode("utf-8", errors="ignore").strip()
                         line_count += 1
 
+                        # Log every line from slipstream for debugging
                         logger.debug(
                             f"[{dns_ip}] Slipstream output #{line_count}: {line_str}"
                         )
@@ -1422,12 +1507,18 @@ class DNSScannerTUI(App):
                 logger.error(f"[{dns_ip}] Connection not ready after waiting")
                 return "Failed"
 
+            # Give slipstream a moment to fully initialize the proxy listener
+            # This prevents race conditions where "Connection ready" is printed
+            # but the proxy isn't quite ready to accept connections yet
             logger.debug(f"[{dns_ip}] Waiting 1.5s for proxy to fully initialize")
             await asyncio.sleep(1.5)
 
+            # Test the proxy with google.com using dynamic port
+            # Mid-high timeout (15 seconds) as requested
             proxy_url = f"http://127.0.0.1:{port}"
             test_success = False
 
+            # Try HTTP proxy first
             logger.info(f"[{dns_ip}] Testing HTTP proxy at {proxy_url}")
             try:
                 logger.debug(
@@ -1435,7 +1526,7 @@ class DNSScannerTUI(App):
                 )
                 async with httpx.AsyncClient(
                     proxy=proxy_url,
-                    timeout=15.0,
+                    timeout=15.0,  # Mid-high timeout
                     follow_redirects=True,
                 ) as client:
                     logger.debug(
@@ -1445,6 +1536,7 @@ class DNSScannerTUI(App):
                     response = await client.get("http://google.com")
                     elapsed = time.time() - start_time
 
+                    # Log detailed response information
                     logger.debug(f"[{dns_ip}] HTTP response received in {elapsed:.2f}s")
                     logger.debug(
                         f"[{dns_ip}] HTTP response status: {response.status_code}"
@@ -1475,6 +1567,7 @@ class DNSScannerTUI(App):
                 )
                 logger.debug(f"[{dns_ip}] HTTP error details:", exc_info=True)
 
+                # Try SOCKS5 proxy
                 logger.info(f"[{dns_ip}] Testing SOCKS5 proxy at 127.0.0.1:{port}")
                 try:
                     logger.debug(
@@ -1482,7 +1575,7 @@ class DNSScannerTUI(App):
                     )
                     async with httpx.AsyncClient(
                         proxy=f"socks5://127.0.0.1:{port}",
-                        timeout=15.0,
+                        timeout=15.0,  # Mid-high timeout
                         follow_redirects=True,
                     ) as client:
                         logger.debug(
@@ -1492,6 +1585,7 @@ class DNSScannerTUI(App):
                         response = await client.get("http://google.com")
                         elapsed = time.time() - start_time
 
+                        # Log detailed response information
                         logger.debug(
                             f"[{dns_ip}] SOCKS5 response received in {elapsed:.2f}s"
                         )
@@ -1539,10 +1633,12 @@ class DNSScannerTUI(App):
             self._log(f"[red]Slipstream error for {dns_ip}: {str(e)[:50]}[/red]")
             return "Failed"
         finally:
+            # Always kill the slipstream process
             if process:
                 try:
                     process.kill()
                     await process.wait()
+                    # Remove from tracking list
                     if process in self.slipstream_processes:
                         self.slipstream_processes.remove(process)
                 except Exception:  # nosec B110
@@ -1556,7 +1652,7 @@ class DNSScannerTUI(App):
             log_widget.write(message)
         except Exception:  # nosec B110
             logging.getLogger(__name__).debug("Suppressed broad exception")
-            pass
+            pass  # Widget might not be ready yet
 
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
         """Handle double-click on DNS row to copy IP to clipboard."""
@@ -1580,7 +1676,9 @@ class DNSScannerTUI(App):
 
         When slipstream testing is enabled, only save DNS servers that passed the proxy test.
         """
+        # Filter servers based on test mode
         if self.test_slipstream:
+            # Only save servers that passed proxy test
             passed_servers = {
                 ip: time
                 for ip, time in self.server_times.items()
@@ -1603,6 +1701,7 @@ class DNSScannerTUI(App):
             )
             logger.info(f"Saving {len(passed_servers)} servers that passed proxy test")
         else:
+            # Save all found servers
             if not self.found_servers:
                 self._log("[yellow]No DNS servers found to save.[/yellow]")
                 return
@@ -1612,7 +1711,10 @@ class DNSScannerTUI(App):
         output_dir = Path("results")
         output_dir.mkdir(exist_ok=True)
 
+        # Save TXT with datetime filename
         txt_file = output_dir / f"{timestamp}.txt"
+
+        # Sort by response time for output
         sorted_servers = sorted(servers_to_save.items(), key=lambda x: x[1])
 
         with open(txt_file, "w") as f:
@@ -1633,6 +1735,7 @@ class DNSScannerTUI(App):
 
         When slipstream testing is enabled, only save DNS servers that passed the proxy test.
         """
+        # Filter servers based on test mode
         if self.test_slipstream:
             passed_servers = {
                 ip: time
@@ -1653,9 +1756,11 @@ class DNSScannerTUI(App):
         output_dir = Path("results")
         output_dir.mkdir(exist_ok=True)
 
+        # Save JSON
         json_file = output_dir / f"scan_{timestamp}.json"
         elapsed = time.time() - self.start_time
 
+        # Sort by response time
         sorted_servers = sorted(servers_to_save.items(), key=lambda x: x[1])
         servers_list = [ip for ip, _ in sorted_servers]
 
@@ -1686,6 +1791,7 @@ class DNSScannerTUI(App):
         with open(json_file, "wb") as f:
             f.write(orjson.dumps(data, option=orjson.OPT_INDENT_2))
 
+        # Save TXT
         txt_file = output_dir / f"scan_{timestamp}.txt"
         with open(txt_file, "w") as f:
             for server in servers_list:
