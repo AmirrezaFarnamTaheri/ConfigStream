@@ -39,9 +39,11 @@ async def test_is_blocked_logic(mock_blocklist_file):
 @pytest.mark.asyncio
 async def test_update_blocklist(mock_blocklist_file):
     manager = BlocklistManager()
+    metadata_file = mock_blocklist_file.with_name("blocklist_metadata.json")
 
     with (
         patch("configstream.security.blocklist.CACHE_FILE", mock_blocklist_file),
+        patch("configstream.security.blocklist.METADATA_FILE", metadata_file),
         patch("configstream.security.blocklist.MIN_BLOCKLIST_NETWORKS", 1),
         patch("httpx.AsyncClient.get", new_callable=AsyncMock) as mock_get,
     ):
