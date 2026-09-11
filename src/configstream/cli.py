@@ -161,6 +161,7 @@ def merge(
     if timeout is None:
         timeout = settings.TEST_TIMEOUT
 
+    # Load sources
     source_path = Path(sources)
     if not source_path.exists():
         console.print(f"[red]Error: Sources file not found: {sources}[/red]")
@@ -223,6 +224,7 @@ def merge(
             return result
 
     try:
+        # Windows specific loop policy for asyncio + subprocesses
         if sys.platform == "win32":
             asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
@@ -244,6 +246,7 @@ def merge(
 
         if result.success:
             stats_obj = result.stats
+            # Handle both object and dict (depending on pipeline run type)
 
             def _get(key):
                 if hasattr(stats_obj, key):
@@ -270,6 +273,8 @@ def merge(
                     "[yellow]Time limit reached; output contains partial results.[/yellow]"
                 )
 
+            # CRITICAL: Fail pipeline if zero working proxies found
+            # This ensures GitHub Actions workflow fails instead of silently passing with empty results.
             working = _get("working")
             if working == 0:
                 console.print(
@@ -297,6 +302,8 @@ def merge(
             console.print_exception()
         sys.exit(1)
     finally:
+        # GeoIP support is optional for commands such as ``update-databases``.
+        # Import it only after the merge path has used the resolver.
         try:
             from .geoip import DEFAULT_RESOLVER
         except ImportError:
@@ -347,6 +354,7 @@ def retest(input, output, timeout, max_workers, leniency, verbose):  # noqa: A00
         stripped = cfg.strip()
         if not stripped:
             continue
+        # Skip JSON chain blobs (generated Sing-box outbound bundles)
         if stripped.lstrip().startswith("{"):
             continue
         configs.append(stripped)
@@ -634,6 +642,8 @@ def update_databases(geoip_only: bool) -> None:
             "Failed to download one or more verified GeoIP databases"
         )
 
+    # These legacy routing databases are not release-pipeline prerequisites. Keep
+    # their update path separate so a mutable auxiliary feed cannot break GeoIP.
     console.print(
         "[yellow]Downloading Sing-box databases (geosite.db, geoip.db)...[/yellow]"
     )
