@@ -306,21 +306,25 @@ class PythonTester:
         try:
             for startup_attempt in range(_STARTUP_ATTEMPTS):
                 http_port = _lease_loopback_port()
-                config_content = json.dumps(
-                    {
-                        "log": {"level": "info"},
-                        "inbounds": [
-                            {
-                                "type": "http",
-                                "tag": "http-in",
-                                "listen": "127.0.0.1",
-                                "listen_port": http_port,
-                            }
-                        ],
-                        "outbounds": outbounds,
-                        "route": {"final": "proxy-test"},
-                    }
-                )
+                try:
+                    config_content = json.dumps(
+                        {
+                            "log": {"level": "info"},
+                            "inbounds": [
+                                {
+                                    "type": "http",
+                                    "tag": "http-in",
+                                    "listen": "127.0.0.1",
+                                    "listen_port": http_port,
+                                }
+                            ],
+                            "outbounds": outbounds,
+                            "route": {"final": "proxy-test"},
+                        }
+                    )
+                except (TypeError, ValueError):
+                    _release_loopback_port(http_port)
+                    raise
                 try:
 
                     def release_http_port(port: int = http_port) -> None:

@@ -189,6 +189,38 @@ async def test_python_tester_retries_loopback_bind_collision(
 
 
 @pytest.mark.asyncio
+async def test_python_tester_releases_port_when_config_serialization_fails(
+    mock_settings: Any,
+) -> None:
+    from configstream.testers import python as python_tester
+
+    tester = PythonTester(mock_settings)
+    proxy = Proxy(
+        config="vless://example",
+        protocol="vless",
+        address="1.1.1.1",
+        port=443,
+        uuid="00000000-0000-4000-8000-000000000001",
+    )
+
+    with (
+        patch(
+            "configstream.testers.python._get_singbox_factory",
+            return_value=MagicMock(),
+        ),
+        patch("configstream.testers.python._reserve_loopback_port", return_value=43123),
+        patch(
+            "configstream.testers.python.json.dumps",
+            side_effect=TypeError("bad config"),
+        ),
+    ):
+        result = await tester.test_via_singbox(proxy)
+
+    assert not result.is_working
+    assert 43123 not in python_tester._leased_loopback_ports
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize("abandon", ["timeout", "cancel"])
 async def test_startup_cleans_late_process_and_retains_config(abandon: str) -> None:
     from configstream.testers.python import _start_instance

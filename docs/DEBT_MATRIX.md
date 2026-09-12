@@ -470,9 +470,9 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - L114 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 - L154 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 - L260 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L347 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L389 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L434 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L351 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L393 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L438 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/tools/dns_scanner/python/dnsscanner_tui.py`
 - L609 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`

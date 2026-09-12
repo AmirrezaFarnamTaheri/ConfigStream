@@ -219,7 +219,7 @@ The "Hydra Strategy": instead of one shared worker that censors can block, each 
 5. Download your personalized config and import it into Nekobox/Sing-box.
 6. Select a `GOLD-` prefixed proxy — traffic now routes through *your* Worker.
 
-**Files**: `tools/worker.js` (Worker code), `tools/wrangler.toml` (deployment config), `frontend/assets/js/byow.js` (frontend injection).
+**Files**: `tools/worker.js` (Worker code) and `tools/wrangler.toml` (deployment config). Client profiles must be configured manually with a compatible raw-TCP upstream.
 
 ---
 

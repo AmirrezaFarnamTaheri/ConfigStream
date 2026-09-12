@@ -1672,7 +1672,7 @@
     },
     {
       "path": "src/configstream/testers/python.py",
-      "line": 347,
+      "line": 351,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1680,7 +1680,7 @@
     },
     {
       "path": "src/configstream/testers/python.py",
-      "line": 389,
+      "line": 393,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1688,7 +1688,7 @@
     },
     {
       "path": "src/configstream/testers/python.py",
-      "line": 434,
+      "line": 438,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",

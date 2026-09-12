@@ -20,7 +20,6 @@
     <link rel="stylesheet" href="assets/css/loading.css">
     <link rel="stylesheet" href="assets/css/header-animation.css">
     <link rel="stylesheet" href="assets/css/logo-animations.css">
-    <link rel="stylesheet" href="assets/css/health-score.css">
     <link rel="stylesheet" href="assets/css/proxy-history-chart.css">
 </head>
 <body>
@@ -128,22 +127,6 @@
                 <div class="card-header">
                     <h2 data-i18n="proxies.hero.title">Live Proxy List</h2>
                     <p data-i18n="proxies.hero.subtitle">Explore generated proxy candidates. Search, sort, and choose a connection that fits your network.</p>
-                </div>
-
-                <!-- Modern BYOW Panel -->
-                <div class="byow-panel">
-                    <div class="byow-header">
-                        <h3 data-i18n="byow.title"><i data-feather="zap" aria-hidden="true"></i> Turbo Mode (BYOW)</h3>
-                        <p class="hint" data-i18n="byow.hint">Deploy your own worker for private speeds.</p>
-                    </div>
-                    <div class="byow-actions">
-                        <input type="url" id="worker-url" data-i18n="byow.url.placeholder" placeholder="Paste Worker URL..." class="input-modern" aria-label="Cloudflare Worker URL" autocomplete="url">
-                        <input type="text" id="worker-uuid" data-i18n="byow.uuid.placeholder" placeholder="UUID (Optional)" class="input-modern input-short" aria-label="Worker UUID" autocomplete="off">
-                        <button id="apply-byow-btn" class="btn btn-primary" data-i18n="byow.apply">Apply</button>
-                    </div>
-                    <div id="byow-links" style="width: 100%; text-align: right; display:none; margin-top: 10px;">
-                        <a id="btn-singbox-byow" class="btn btn-success" data-i18n="byow.download">Download Turbo Config</a>
-                    </div>
                 </div>
 
                 <div class="filter-controls-redesigned">
@@ -307,7 +290,6 @@
     <script src="assets/js/wasm_loader.js" defer></script>
     <script src="assets/js/plugin_loader.js" defer></script>
 
-    <script src="assets/js/byow.js" defer></script>
     <script src="assets/js/artifact-state.js" defer></script>
     <script src="assets/js/common-ui.js" defer></script>
     <script type="module" src="assets/js/main.js" defer></script>
