@@ -9,6 +9,7 @@ installed. The native Go tester remains the authoritative CI test path.
 from __future__ import annotations
 
 import asyncio
+import errno
 import json
 import logging
 import shutil
@@ -34,6 +35,9 @@ from .utils import SecureConfigContext
 
 logger = logging.getLogger(__name__)
 _singbox_factory = None
+_port_lease_lock = threading.Lock()
+_leased_loopback_ports: set[int] = set()
+_STARTUP_ATTEMPTS = 3
 
 
 def _reserve_loopback_port() -> int:
@@ -44,11 +48,36 @@ def _reserve_loopback_port() -> int:
     become ready: sing-box listens on an OS-selected port while the wrapper
     polls a different one. The socket is closed immediately before sing-box
     starts, so a cross-process bind race remains possible and is handled by
-    the existing bounded startup failure path.
+    bounded startup retries below.
     """
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
         listener.bind(("127.0.0.1", 0))
         return int(listener.getsockname()[1])
+
+
+def _lease_loopback_port() -> int:
+    """Reserve a process-local port identity until wrapper startup completes."""
+    with _port_lease_lock:
+        for _ in range(32):
+            port = _reserve_loopback_port()
+            if port not in _leased_loopback_ports:
+                _leased_loopback_ports.add(port)
+                return port
+    raise RuntimeError("could not lease a unique loopback port")
+
+
+def _release_loopback_port(port: int) -> None:
+    with _port_lease_lock:
+        _leased_loopback_ports.discard(port)
+
+
+def _is_bind_collision(exc: BaseException) -> bool:
+    if isinstance(exc, OSError) and exc.errno in {errno.EADDRINUSE, 10048}:
+        return True
+    message = str(exc).lower()
+    return "address already in use" in message or (
+        "only one usage of each socket address" in message
+    )
 
 
 def _get_singbox_factory():
@@ -90,7 +119,11 @@ def _stop_instance(instance: Any) -> None:
 
 
 async def _start_instance(
-    factory: Callable[..., Any], config: str, http_port: int, timeout: float
+    factory: Callable[..., Any],
+    config: str,
+    http_port: int,
+    timeout: float,
+    release_port: Optional[Callable[[], None]] = None,
 ) -> Any:
     """Keep worker-owned config/process resources alive across cancellation."""
     loop = asyncio.get_running_loop()
@@ -101,8 +134,12 @@ async def _start_instance(
 
     def construct() -> Any:
         nonlocal completed
-        with SecureConfigContext(config) as config_path:
-            instance = factory(config_path, http_port=http_port, socks_port=False)
+        try:
+            with SecureConfigContext(config) as config_path:
+                instance = factory(config_path, http_port=http_port, socks_port=False)
+        finally:
+            if release_port is not None:
+                release_port()
         with ownership:
             if not abandoned:
                 completed = instance
@@ -120,7 +157,12 @@ async def _start_instance(
                 SecurityValidator.sanitize_log_message(str(exc)),
             )
 
-    pending = loop.run_in_executor(None, construct)
+    try:
+        pending = loop.run_in_executor(None, construct)
+    except RuntimeError:
+        if release_port is not None:
+            release_port()
+        raise
     try:
         return await safe_wait_for(asyncio.shield(pending), timeout=timeout)
     except (asyncio.TimeoutError, asyncio.CancelledError):
@@ -259,58 +301,75 @@ class PythonTester:
         outbounds = [outbound]
         if isinstance(extras, list):
             outbounds.extend(item for item in extras if isinstance(item, dict))
-        http_port = _reserve_loopback_port()
-        config_content = json.dumps(
-            {
-                "log": {"level": "info"},
-                "inbounds": [
-                    {
-                        "type": "http",
-                        "tag": "http-in",
-                        "listen": "127.0.0.1",
-                        "listen_port": http_port,
-                    }
-                ],
-                "outbounds": outbounds,
-                "route": {"final": "proxy-test"},
-            }
-        )
         loop = asyncio.get_running_loop()
         instance = None
         try:
-            try:
-                instance = await _start_instance(
-                    factory, config_content, http_port, self.timeout
+            for startup_attempt in range(_STARTUP_ATTEMPTS):
+                http_port = _lease_loopback_port()
+                config_content = json.dumps(
+                    {
+                        "log": {"level": "info"},
+                        "inbounds": [
+                            {
+                                "type": "http",
+                                "tag": "http-in",
+                                "listen": "127.0.0.1",
+                                "listen_port": http_port,
+                            }
+                        ],
+                        "outbounds": outbounds,
+                        "route": {"final": "proxy-test"},
+                    }
                 )
-            except asyncio.TimeoutError:
-                proxy.details["tester_error_category"] = "singbox_start_timeout"
-                proxy.details["failure_category"] = "tester_error"
-                if await self._should_log("singbox_start_timeout"):
-                    logger.warning(
-                        "sing-box fallback start timed out for %s",
-                        SecurityValidator.sanitize_log_message(proxy.address),
+                try:
+                    def release_http_port(port: int = http_port) -> None:
+                        _release_loopback_port(port)
+
+                    instance = await _start_instance(
+                        factory,
+                        config_content,
+                        http_port,
+                        self.timeout,
+                        release_port=release_http_port,
                     )
-                proxy.is_working = False
-                return proxy
-            except Exception as exc:
-                proxy.details["tester_error_category"] = "singbox_start_failed"
-                proxy.details["failure_category"] = "tester_error"
-                proxy.details["error"] = SecurityValidator.sanitize_log_message(
-                    str(exc)
-                )
-                log_key = f"singbox_start_failed:{type(exc).__name__}"
-                if await self._should_log(log_key):
-                    logger.warning(
-                        "sing-box fallback start failed for %s: %s",
-                        SecurityValidator.sanitize_log_message(
-                            f"{proxy.address}:{proxy.port}"
-                        ),
-                        SecurityValidator.sanitize_log_message(
-                            f"{type(exc).__name__}: {exc}"
-                        ),
+                    break
+                except asyncio.TimeoutError:
+                    proxy.details["tester_error_category"] = "singbox_start_timeout"
+                    proxy.details["failure_category"] = "tester_error"
+                    if await self._should_log("singbox_start_timeout"):
+                        logger.warning(
+                            "sing-box fallback start timed out for %s",
+                            SecurityValidator.sanitize_log_message(proxy.address),
+                        )
+                    proxy.is_working = False
+                    return proxy
+                except Exception as exc:
+                    if (
+                        _is_bind_collision(exc)
+                        and startup_attempt + 1 < _STARTUP_ATTEMPTS
+                    ):
+                        logger.debug(
+                            "sing-box fallback port collision; retrying startup"
+                        )
+                        continue
+                    proxy.details["tester_error_category"] = "singbox_start_failed"
+                    proxy.details["failure_category"] = "tester_error"
+                    proxy.details["error"] = SecurityValidator.sanitize_log_message(
+                        str(exc)
                     )
-                proxy.is_working = False
-                return proxy
+                    log_key = f"singbox_start_failed:{type(exc).__name__}"
+                    if await self._should_log(log_key):
+                        logger.warning(
+                            "sing-box fallback start failed for %s: %s",
+                            SecurityValidator.sanitize_log_message(
+                                f"{proxy.address}:{proxy.port}"
+                            ),
+                            SecurityValidator.sanitize_log_message(
+                                f"{type(exc).__name__}: {exc}"
+                            ),
+                        )
+                    proxy.is_working = False
+                    return proxy
             proxy_url = getattr(instance, "http_proxy_url", None)
             if not instance or not proxy_url:
                 proxy.details["tester_error_category"] = "singbox_proxy_url_missing"

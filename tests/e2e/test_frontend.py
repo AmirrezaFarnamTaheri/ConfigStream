@@ -22,8 +22,8 @@ if sys.platform == "win32":
     ],
 )
 def test_byow_manual_setup_survives_localization(
-    page: Page, http_server, route, inputs, button
-):
+    page: Page, http_server: str, route: str, inputs: list[str], button: str
+) -> None:
     page.goto(f"{http_server}/{route}", wait_until="networkidle")
     for field in inputs:
         expect(page.locator(f"#{field}")).to_be_disabled()

@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import os
+from typing import Any
 from pathlib import Path
 from unittest.mock import MagicMock, AsyncMock, patch
 
@@ -247,7 +248,9 @@ async def test_vwarp_tunnel_cleaned_when_initialization_fails(
 
 
 @pytest.mark.asyncio
-async def test_intake_deadline_does_not_fire_during_output(monkeypatch):
+async def test_intake_deadline_does_not_fire_during_output(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     import asyncio
     from configstream.config import AppSettings
     from configstream.pipeline.core import StandardPipeline
@@ -257,20 +260,20 @@ async def test_intake_deadline_does_not_fire_during_output(monkeypatch):
     deadline = asyncio.Event()
     real_sleep = asyncio.sleep
 
-    async def controlled_sleep(delay):
+    async def controlled_sleep(delay: float) -> None:
         if delay == 60:
             await deadline.wait()
         else:
             await real_sleep(delay)
 
-    async def output(*args, **kwargs):
+    async def output(*args: Any, **kwargs: Any) -> list[Any]:
         deadline.set()
         await real_sleep(0)
         await real_sleep(0)
         return []
 
     context = PipelineContext(
-        work_queue=asyncio.Queue(),
+        work_queue=asyncio.Queue(maxsize=1),
         stop_event=asyncio.Event(),
         stats=PipelineStats(),
         final_proxies=[],

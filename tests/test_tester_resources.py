@@ -9,7 +9,7 @@ import pytest
 from configstream.testers import utils
 
 
-def test_config_permission_failure_closes_descriptor(tmp_path):
+def test_config_permission_failure_closes_descriptor(tmp_path: Path) -> None:
     fd, path = tempfile.mkstemp(dir=tmp_path)
     with (
         patch.object(utils.tempfile, "mkstemp", return_value=(fd, path)),
@@ -24,7 +24,7 @@ def test_config_permission_failure_closes_descriptor(tmp_path):
     assert path not in utils._TEMP_FILES
 
 
-def test_config_unlink_failure_is_retried_at_shutdown():
+def test_config_unlink_failure_is_retried_at_shutdown() -> None:
     with utils.SecureConfigContext("secret") as path:
         with patch.object(utils.os, "unlink", side_effect=PermissionError("busy")):
             utils._remove_temp_file(path)

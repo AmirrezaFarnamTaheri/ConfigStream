@@ -1,7 +1,9 @@
 import asyncio
+import errno
 import json
 import threading
 from pathlib import Path
+from typing import Any
 
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -89,7 +91,7 @@ async def test_python_tester_no_config(mock_settings):
 
 
 @pytest.mark.asyncio
-async def test_python_tester_wires_wrapper_readiness_port(mock_settings):
+async def test_python_tester_wires_wrapper_readiness_port(mock_settings: Any) -> None:
     """A supplied sing-box config must expose the same port the wrapper polls."""
     tester = PythonTester(mock_settings)
     proxy = Proxy(
@@ -104,10 +106,10 @@ async def test_python_tester_wires_wrapper_readiness_port(mock_settings):
     class Instance:
         http_proxy_url = "http://127.0.0.1:12345"
 
-        def stop(self):
+        def stop(self) -> None:
             return None
 
-    def factory(config_path, *, http_port, socks_port):
+    def factory(config_path: str, *, http_port: int, socks_port: bool) -> Instance:
         captured["config"] = json.loads(Path(config_path).read_text(encoding="utf-8"))
         captured["http_port"] = http_port
         captured["socks_port"] = socks_port
@@ -139,8 +141,56 @@ async def test_python_tester_wires_wrapper_readiness_port(mock_settings):
 
 
 @pytest.mark.asyncio
+async def test_python_tester_retries_loopback_bind_collision(
+    mock_settings: Any,
+) -> None:
+    tester = PythonTester(mock_settings)
+    proxy = Proxy(
+        config="vless://example",
+        protocol="vless",
+        address="1.1.1.1",
+        port=443,
+        uuid="00000000-0000-4000-8000-000000000001",
+    )
+    observed_ports: list[int] = []
+
+    class Instance:
+        http_proxy_url = "http://127.0.0.1:43124"
+
+        def stop(self) -> None:
+            return None
+
+    def factory(config_path: str, *, http_port: int, socks_port: bool) -> Instance:
+        del socks_port
+        config = json.loads(Path(config_path).read_text(encoding="utf-8"))
+        assert config["inbounds"][0]["listen_port"] == http_port
+        observed_ports.append(http_port)
+        if len(observed_ports) == 1:
+            raise OSError(errno.EADDRINUSE, "address already in use")
+        return Instance()
+
+    with (
+        patch("configstream.testers.python._get_singbox_factory", return_value=factory),
+        patch(
+            "configstream.testers.python._reserve_loopback_port",
+            side_effect=[43123, 43124],
+        ),
+        patch("configstream.testers.python.aiohttp.ClientSession") as mock_session,
+    ):
+        session = mock_session.return_value
+        session.__aenter__.return_value = session
+        response = MagicMock(status=204)
+        response.__aenter__.return_value = response
+        session.get.return_value = response
+        result = await tester.test_via_singbox(proxy)
+
+    assert result.is_working
+    assert observed_ports == [43123, 43124]
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize("abandon", ["timeout", "cancel"])
-async def test_startup_cleans_late_process_and_retains_config(abandon):
+async def test_startup_cleans_late_process_and_retains_config(abandon: str) -> None:
     from configstream.testers.python import _start_instance
 
     entered = threading.Event()
@@ -149,10 +199,10 @@ async def test_startup_cleans_late_process_and_retains_config(abandon):
     observed = {}
 
     class Instance:
-        def stop(self):
+        def stop(self) -> None:
             stopped.set()
 
-    def factory(config_path, **kwargs):
+    def factory(config_path: str, **kwargs: Any) -> Instance:
         observed["path"] = Path(config_path)
         entered.set()
         assert release.wait(5), "test did not release startup worker"
@@ -188,8 +238,8 @@ async def test_startup_cleans_late_process_and_retains_config(abandon):
     "protocol,tls", [("https", False), ("http", True), ("socks5", False)]
 )
 async def test_direct_connector_preserves_auth_and_proxy_tls(
-    mock_settings, protocol, tls
-):
+    mock_settings: Any, protocol: str, tls: bool
+) -> None:
     import ssl
     from aiohttp_socks import ProxyConnector
 
@@ -204,7 +254,7 @@ async def test_direct_connector_preserves_auth_and_proxy_tls(
     connectors = []
     original = ProxyConnector.from_url
 
-    def create(url, **kwargs):
+    def create(url: str, **kwargs: Any) -> Any:
         connector = original(url, **kwargs)
         connectors.append(connector)
         return connector
