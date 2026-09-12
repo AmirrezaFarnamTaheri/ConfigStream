@@ -583,6 +583,9 @@ func isHoneypot(ctx context.Context, dialer OutboundDialer) bool {
 	defer conn.Close()
 
 	packet := scanner.ConstructHandshakePacket()
+	if len(packet) != scanner.HandshakeLen {
+		return false
+	}
 
 	_, err = conn.Write(packet)
 	if err != nil {

@@ -223,7 +223,7 @@ def _is_false_positive(marker: str, text: str) -> bool:
         if re.search(r'\bplaceholder\s*=\s*["\']', text_stripped, re.IGNORECASE):
             return True
         # i18n translation key names that contain "placeholder" in the key
-        # e.g. "byow.url.placeholder": "Paste your Cloudflare Worker URL..."
+        # e.g. "form.url.placeholder": "Paste a URL..."
         if re.search(r'"[^"]*\.placeholder"\s*:', text_stripped):
             return True
         # Guard/validator scripts that reference the placeholder marker strings

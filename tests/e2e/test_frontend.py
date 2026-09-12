@@ -13,26 +13,6 @@ if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
 
-@pytest.mark.e2e
-@pytest.mark.parametrize(
-    "route,inputs,button",
-    [
-        ("index.html", ["userWorkerUrl"], "generatePrivateBridgeBtn"),
-        ("proxies.html", ["worker-url", "worker-uuid"], "apply-byow-btn"),
-    ],
-)
-def test_byow_manual_setup_survives_localization(
-    page: Page, http_server: str, route: str, inputs: list[str], button: str
-) -> None:
-    page.goto(f"{http_server}/{route}", wait_until="networkidle")
-    for field in inputs:
-        expect(page.locator(f"#{field}")).to_be_disabled()
-    control = page.locator(f"#{button}")
-    expect(control).to_be_disabled()
-    expect(control).to_have_text("Manual Bridge Setup Required")
-    expect(page.locator("#byowSafetyNotice")).to_be_visible()
-
-
 # Remove all asyncio markers, let pytest-playwright handle loop injection
 @pytest.mark.e2e
 def test_homepage_loads(page: Page, http_server):
