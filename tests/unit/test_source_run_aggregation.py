@@ -436,14 +436,15 @@ def test_run_row_failure_rolls_back_source_state_and_retry_is_idempotent(
         [("retry.example", 443)],
     )
 
-    assert tracker.get_source_state(source)[4:6] == (2, 1)
+    state = tracker.get_source_state(source)
+    assert state is not None
+    assert state[4:6] == (2, 1)
     with sqlite3.connect(tmp_path / "quality.db") as conn:
-        assert (
-            conn.execute(
-                "SELECT COUNT(*) FROM source_runs WHERE url = ?", (source,)
-            ).fetchone()[0]
-            == 1
-        )
+        row = conn.execute(
+            "SELECT COUNT(*) FROM source_runs WHERE url = ?", (source,)
+        ).fetchone()
+        assert row is not None
+        assert row[0] == 1
     tracker.close()
 
 
