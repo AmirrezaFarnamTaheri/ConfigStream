@@ -11,7 +11,13 @@ def resolver():
         patch.object(GeoIPResolver, "_instance", None),
         patch.object(GeoIPResolver, "_open_database", return_value=(MagicMock(), 0.0)),
     ):
-        yield GeoIPResolver()
+        instance = GeoIPResolver()
+        # These lookup tests replace the loaded readers directly. Keep them inside
+        # the resolver's normal reload-check interval so real database files on CI
+        # cannot replace those fixtures before the lookup. Reload behavior has its
+        # own coverage in test_geoip_reload_contract.py.
+        instance._next_reload_check = float("inf")
+        yield instance
 
 
 @pytest.mark.asyncio
