@@ -48,8 +48,8 @@ def parse_tuic(line: str) -> Optional[Proxy]:
         password_val = urllib.parse.unquote(parsed.password or "")
 
         # Mandatory field: TUIC requires UUID for authentication token derivation.
-        if not uuid_val:
-            logger.debug("TUIC parser: missing UUID (username) field")
+        if not SecurityValidator.is_valid_uuid(uuid_val):
+            logger.debug("TUIC parser: missing or invalid UUID (username) field")
             return None
 
         # Password is mandatory in TUIC v5 – UUID cannot substitute for it.

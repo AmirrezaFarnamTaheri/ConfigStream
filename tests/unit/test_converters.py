@@ -104,7 +104,7 @@ def test_to_singbox_outbound_ws_reality():
 
 
 @pytest.mark.parametrize("scheme", ["http", "https"])
-def test_http_uri_to_clash_preserves_credentials_and_tls(scheme):
+def test_http_uri_to_clash_preserves_credentials_and_tls(scheme: str) -> None:
     from configstream.parsers.generic import parse_generic_url_scheme
     from configstream.converters.clash import to_clash_proxy
 
@@ -127,7 +127,7 @@ def test_http_uri_to_clash_preserves_credentials_and_tls(scheme):
 @pytest.mark.parametrize(
     "scheme", ["http", "https", "socks5", "naive+https", "trojan", "hysteria2"]
 )
-def test_explicit_zero_port_is_not_replaced_by_default(scheme):
+def test_explicit_zero_port_is_not_replaced_by_default(scheme: str) -> None:
     from configstream.parsers.generic import parse_generic_url_scheme, parse_naive
     from configstream.parsers.trojan import parse_trojan
     from configstream.parsers.others import parse_hysteria2
@@ -142,7 +142,7 @@ def test_explicit_zero_port_is_not_replaced_by_default(scheme):
 
 
 @pytest.mark.parametrize("kind", ["naive", "trojan", "tuic", "ssh"])
-def test_uri_password_is_decoded_once(kind):
+def test_uri_password_is_decoded_once(kind: str) -> None:
     from configstream.parsers.generic import parse_naive
     from configstream.parsers.trojan import parse_trojan
     from configstream.parsers.tuic import parse_tuic

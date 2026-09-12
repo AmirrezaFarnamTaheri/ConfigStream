@@ -1,11 +1,12 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
+from collections.abc import Iterator
 from unittest.mock import MagicMock, patch
 from configstream.geoip import GeoIPResolver
 
 
 @pytest.fixture
-def resolver():
+def resolver() -> Iterator[GeoIPResolver]:
     # These tests exercise lookup failures, not filesystem/database opening.
     with (
         patch.object(GeoIPResolver, "_instance", None),

@@ -393,6 +393,11 @@ async function exerciseProtocolRender(browser) {
       undefined,
       { timeout: 10000 },
     );
+    await page.waitForFunction(
+      () => window.wasmReady === true || Boolean(window.wasmError),
+      undefined,
+      { timeout: 10000 },
+    );
     const wasmState = await page.evaluate(() => ({
       ready: window.wasmReady === true,
       error: window.wasmError || null,

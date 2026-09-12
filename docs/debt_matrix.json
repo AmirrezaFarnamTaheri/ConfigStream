@@ -1648,7 +1648,7 @@
     },
     {
       "path": "src/configstream/testers/python.py",
-      "line": 85,
+      "line": 114,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1656,7 +1656,7 @@
     },
     {
       "path": "src/configstream/testers/python.py",
-      "line": 117,
+      "line": 154,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1664,7 +1664,7 @@
     },
     {
       "path": "src/configstream/testers/python.py",
-      "line": 218,
+      "line": 260,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1672,7 +1672,7 @@
     },
     {
       "path": "src/configstream/testers/python.py",
-      "line": 295,
+      "line": 346,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1680,7 +1680,7 @@
     },
     {
       "path": "src/configstream/testers/python.py",
-      "line": 329,
+      "line": 388,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1688,7 +1688,7 @@
     },
     {
       "path": "src/configstream/testers/python.py",
-      "line": 374,
+      "line": 433,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
