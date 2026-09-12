@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Iterable, cast
 
 from configstream.security_validator import SecurityValidator
+from configstream.release_policy import coverage_fraction
 
 try:
     from shard_sources import load_quarantined_sources, partition, runtime_source_lines
@@ -44,7 +45,8 @@ PARALLEL_CONSUMERS_RE = re.compile(
 RUNTIME_SOURCE_RE = re.compile(
     r"^batch_(?P<batch>.+?)_part_(?P<part>\d+)\.txt$", re.IGNORECASE
 )
-DEFAULT_MIN_COVERAGE = 0.80
+DEFAULT_MIN_COVERAGE = 0.50
+MIN_IDENTITY_COVERAGE = 0.80
 
 
 @dataclass(frozen=True)
@@ -433,9 +435,9 @@ def main() -> int:
     )
     parser.add_argument(
         "--min-coverage",
-        type=float,
+        type=coverage_fraction,
         default=DEFAULT_MIN_COVERAGE,
-        help="Minimum fraction of logged timing identities requiring canonical mapping",
+        help="Minimum fraction of runtime sources with usable timing observations",
     )
     parser.add_argument(
         "--normalized-log",
@@ -489,12 +491,19 @@ def main() -> int:
     mapped, observed = timing_resolution_counts(raw_records, sources_by_batch, parts)
     records = resolve_timings(raw_records, sources_by_batch, parts)
     coverage = timing_coverage(records, expected_sources)
-    min_coverage = max(0.0, min(float(args.min_coverage), 1.0))
+    min_coverage = args.min_coverage
     print(
         f"INFO: source timing coverage {coverage:.1%} "
         f"({len(records)} canonical timings, {len(expected_sources)} runtime sources; "
         f"{mapped}/{observed} observed identities mapped)"
     )
+    if observed and mapped / observed < MIN_IDENTITY_COVERAGE:
+        print(
+            f"ERROR: only {mapped}/{observed} observed timing identities map to "
+            f"canonical sources; at least {MIN_IDENTITY_COVERAGE:.0%} is required",
+            file=sys.stderr,
+        )
+        return 1
     if coverage < min_coverage:
         print(
             f"ERROR: source timing coverage {coverage:.1%} is below "

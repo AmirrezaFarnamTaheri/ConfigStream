@@ -143,7 +143,7 @@ Before authoring custom utilities or data structures, execute the Search-First w
     pytest tests/e2e
     ```
 
-**Coverage:** The current release workflow enforces an 80% source-coverage threshold. Raising it above 90% is a target that requires an approved CI change and baseline evidence. Every bug fix should include a regression test when practical.
+**Coverage:** The release workflow requires 70% usable-source coverage. Tester infrastructure errors may consume at most 5% of attempted tests when working results exist; native validation and artifact integrity remain mandatory. Timing-based resharding requires 50% runtime-source coverage and 80% canonical identity mapping. Every bug fix should include a regression test when practical.
 
 ## Frontend Contributions
 

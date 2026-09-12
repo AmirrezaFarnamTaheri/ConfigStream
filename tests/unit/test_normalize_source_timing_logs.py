@@ -286,6 +286,46 @@ def test_main_removes_partial_outputs_when_coverage_fails(
     assert not evidence.exists()
 
 
+@pytest.mark.parametrize("unknown_count,expected", [(0, 0), (1, 1)])
+def test_partial_timing_coverage_still_requires_identity_mapping(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, unknown_count: int, expected: int
+) -> None:
+    sources = tmp_path / "batch_1.txt"
+    sources.write_text(
+        "https://a.example/sub\nhttps://b.example/sub\nhttps://c.example/sub\n",
+        encoding="utf-8",
+    )
+    log = tmp_path / "pipeline_batch_1_part_1.log"
+    urls = ["https://a.example/sub", "https://b.example/sub"]
+    urls.extend(f"https://unknown{i}.example/sub" for i in range(unknown_count))
+    log.write_text(
+        "\n".join(f"Source Summary [{url}]: Raw=1 Dur=1000ms" for url in urls),
+        encoding="utf-8",
+    )
+    normalized = tmp_path / "normalized.log"
+    evidence = tmp_path / "timing.jsonl"
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "normalize_source_timing_logs.py",
+            "--pattern",
+            str(log),
+            "--sources-pattern",
+            str(sources),
+            "--parts",
+            "1",
+            "--normalized-log",
+            str(normalized),
+            "--evidence",
+            str(evidence),
+        ],
+    )
+    assert main() == expected
+    assert normalized.exists() is (expected == 0)
+    assert evidence.exists() is (expected == 0)
+
+
 def test_parse_source_timings_records_parallel_consumer_count() -> None:
     text = """
 INFO Starting pipeline with 6 parallel consumers

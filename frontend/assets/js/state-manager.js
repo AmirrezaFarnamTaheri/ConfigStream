@@ -438,8 +438,6 @@ class UIStateManager {
     
     if (window.inlineIcons) {
       window.inlineIcons.replace();
-    } else if (window.feather) {
-      window.feather.replace();
     }
 
     // Auto-remove after 8 seconds
@@ -498,8 +496,6 @@ class UIStateManager {
 
     if (window.inlineIcons) {
       window.inlineIcons.replace();
-    } else if (window.feather) {
-      window.feather.replace();
     }
   }
 

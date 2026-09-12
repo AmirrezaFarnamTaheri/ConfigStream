@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "ad3e796cca3ab3078bf701cd6f36117a78c3554b31fbf290c9b0f5038d4876d9",
+  "source_digest": "7d2bab25d9d3b9419934e22a496bf9145e0735f1db726cb1e9d88b9edd5de179",
   "variable_count": 161,
   "variables": [
     {
@@ -359,7 +359,7 @@
       "sensitive": true,
       "sources": [
         "scripts/refresh_shard_contract.py:55",
-        "scripts/release_gate.py:336",
+        "scripts/release_gate.py:358",
         "src/configstream/output/metadata.py:518"
       ],
       "type": null
@@ -739,12 +739,12 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:610",
-        "scripts/finalize_release_outputs.py:653",
+        "scripts/finalize_release_outputs.py:621",
+        "scripts/finalize_release_outputs.py:668",
         "scripts/generate_evidence_bundle.py:20",
         "scripts/native_client_checks.py:232",
-        "scripts/release_gate.py:181",
-        "scripts/release_gate.py:390",
+        "scripts/release_gate.py:191",
+        "scripts/release_gate.py:412",
         "scripts/resilient_stage.py:491",
         "scripts/validate_pages_artifact.py:1203",
         "scripts/validate_pages_artifact.py:1236",
@@ -760,12 +760,12 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:609",
-        "scripts/finalize_release_outputs.py:652",
+        "scripts/finalize_release_outputs.py:620",
+        "scripts/finalize_release_outputs.py:667",
         "scripts/generate_evidence_bundle.py:19",
         "scripts/native_client_checks.py:231",
-        "scripts/release_gate.py:180",
-        "scripts/release_gate.py:387",
+        "scripts/release_gate.py:190",
+        "scripts/release_gate.py:409",
         "scripts/resilient_stage.py:490",
         "scripts/validate_pages_artifact.py:1202",
         "scripts/validate_pages_artifact.py:1235",
@@ -781,12 +781,12 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:608",
-        "scripts/finalize_release_outputs.py:651",
+        "scripts/finalize_release_outputs.py:619",
+        "scripts/finalize_release_outputs.py:666",
         "scripts/generate_evidence_bundle.py:21",
         "scripts/native_client_checks.py:230",
-        "scripts/release_gate.py:179",
-        "scripts/release_gate.py:384",
+        "scripts/release_gate.py:189",
+        "scripts/release_gate.py:406",
         "scripts/resilient_stage.py:492",
         "scripts/validate_pages_artifact.py:1201",
         "scripts/validate_pages_artifact.py:1234",
@@ -1110,7 +1110,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:52"
+        "scripts/finalize_release_outputs.py:58"
       ],
       "type": null
     },
@@ -1143,7 +1143,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:668"
+        "scripts/finalize_release_outputs.py:683"
       ],
       "type": null
     },

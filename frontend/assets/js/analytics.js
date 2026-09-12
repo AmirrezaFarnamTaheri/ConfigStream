@@ -614,7 +614,7 @@ function _initGlobeInternal(data, container) {
         errDiv.appendChild(span2);
         container.appendChild(errDiv);
 
-        if (window.feather) window.feather.replace();
+        if (window.inlineIcons) window.inlineIcons.replace();
         return;
     }
 
@@ -719,7 +719,7 @@ function _initGlobeInternal(data, container) {
             controls.autoRotate = !active;
             
             updateTouchGate(active);
-            if (window.feather) window.feather.replace();
+            if (window.inlineIcons) window.inlineIcons.replace();
         };
 
         const resetInactivityTimer = () => {
@@ -744,7 +744,7 @@ function _initGlobeInternal(data, container) {
         }, { passive: true });
 
         container.appendChild(touchGateBtn);
-        if (window.feather) window.feather.replace();
+        if (window.inlineIcons) window.inlineIcons.replace();
     } else {
         container.addEventListener('touchstart', handleInteraction, { passive: true });
     }

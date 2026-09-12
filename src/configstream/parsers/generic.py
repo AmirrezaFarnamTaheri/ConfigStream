@@ -148,11 +148,11 @@ def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
             "socks4": 1080,
             "socks5": 1080,
         }
-        port = parsed.port or default_ports.get(scheme, 80)
+        port = parsed.port if parsed.port is not None else default_ports.get(scheme, 80)
         if not (1 <= port <= 65535):
             return None
 
-        details: Dict[str, Any] = {"password": parsed.password or ""}
+        details: Dict[str, Any] = {"password": unquote(parsed.password or "")}
         if tls:
             details["tls"] = True
 
@@ -197,14 +197,14 @@ def parse_naive(config: str) -> Optional[Proxy]:
             return None
         scheme = parsed.scheme.lower()
         tls = scheme == "https"
-        details: Dict[str, Any] = {"password": parsed.password or ""}
+        details: Dict[str, Any] = {"password": unquote(parsed.password or "")}
         if tls:
             details["tls"] = True
         proxy = Proxy(
             config=config,
             protocol="naive",
             address=parsed.hostname,
-            port=parsed.port or (443 if tls else 80),
+            port=parsed.port if parsed.port is not None else (443 if tls else 80),
             uuid="",
             details=details,
             remarks=unquote(parsed.fragment or ""),

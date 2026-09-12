@@ -12,10 +12,12 @@ import asyncio
 import json
 import logging
 import shutil
+import socket
+import ssl
+import threading
 import time
-import traceback
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Any, Callable, Optional
 from urllib.parse import quote
 
 import aiohttp
@@ -32,6 +34,21 @@ from .utils import SecureConfigContext
 
 logger = logging.getLogger(__name__)
 _singbox_factory = None
+
+
+def _reserve_loopback_port() -> int:
+    """Select an ephemeral loopback port for a sing-box HTTP inbound.
+
+    singbox2proxy polls the explicit ``http_port`` passed to its constructor.
+    Supplying a complete config with a port-zero mixed inbound therefore cannot
+    become ready: sing-box listens on an OS-selected port while the wrapper
+    polls a different one. The socket is closed immediately before sing-box
+    starts, so a cross-process bind race remains possible and is handled by
+    the existing bounded startup failure path.
+    """
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
+        listener.bind(("127.0.0.1", 0))
+        return int(listener.getsockname()[1])
 
 
 def _get_singbox_factory():
@@ -60,6 +77,62 @@ def _get_singbox_factory():
     _singbox_factory = SingBoxProxy
     logger.debug("singbox2proxy enabled with preinstalled binary %s", binary)
     return _singbox_factory
+
+
+def _stop_instance(instance: Any) -> None:
+    try:
+        instance.stop()
+    except Exception as exc:
+        logger.debug(
+            "Failed to stop sing-box fallback: %s",
+            SecurityValidator.sanitize_log_message(str(exc)),
+        )
+
+
+async def _start_instance(
+    factory: Callable[..., Any], config: str, http_port: int, timeout: float
+) -> Any:
+    """Keep worker-owned config/process resources alive across cancellation."""
+    loop = asyncio.get_running_loop()
+
+    ownership = threading.Lock()
+    abandoned = False
+    completed = None
+
+    def construct() -> Any:
+        nonlocal completed
+        with SecureConfigContext(config) as config_path:
+            instance = factory(config_path, http_port=http_port, socks_port=False)
+        with ownership:
+            if not abandoned:
+                completed = instance
+                return instance
+        # Cleanup stays in the worker even if the event loop is shutting down.
+        _stop_instance(instance)
+        return None
+
+    def consume_late_result(future: asyncio.Future[Any]) -> None:
+        try:
+            future.result()
+        except Exception as exc:
+            logger.debug(
+                "Abandoned sing-box startup failed: %s",
+                SecurityValidator.sanitize_log_message(str(exc)),
+            )
+
+    pending = loop.run_in_executor(None, construct)
+    try:
+        return await safe_wait_for(asyncio.shield(pending), timeout=timeout)
+    except (asyncio.TimeoutError, asyncio.CancelledError):
+        # Cancelling an executor future cannot stop its thread. Retain its
+        # result so a process which finishes starting later is still stopped.
+        with ownership:
+            abandoned = True
+            ready = completed
+        if ready is not None:
+            loop.run_in_executor(None, _stop_instance, ready)
+        pending.add_done_callback(consume_late_result)
+        raise
 
 
 class PythonTester:
@@ -110,14 +183,24 @@ class PythonTester:
             password = proxy.details.get("password") or ""
             auth = ""
             if user:
-                auth = quote(str(user))
+                auth = quote(str(user), safe="")
                 if password:
-                    auth += f":{quote(str(password))}"
+                    auth += f":{quote(str(password), safe='')}"
                 auth += "@"
             host = proxy.address
             if ":" in host and not host.startswith("["):
                 host = f"[{host}]"
-            connector = ProxyConnector.from_url(f"{proto}://{auth}{host}:{proxy.port}")
+            connector_options = {}
+            if proto == "https":
+                # python-socks accepts HTTP CONNECT with a separate TLS context;
+                # its URL parser rejects an https:// scheme.
+                connector_options["proxy_ssl"] = await asyncio.to_thread(
+                    ssl.create_default_context
+                )
+                proto = "http"
+            connector = ProxyConnector.from_url(
+                f"{proto}://{auth}{host}:{proxy.port}", **connector_options
+            )
             async with aiohttp.ClientSession(connector=connector) as session:
                 latency = await self._measure_latency_robust(session, proxy)
                 proxy.is_working = latency is not None
@@ -136,7 +219,7 @@ class PythonTester:
             proxy.is_working = False
             proxy.details["tester_error_category"] = "direct_test_failed"
             proxy.details["error"] = SecurityValidator.sanitize_log_message(str(exc))
-            logger.debug("direct fallback failed", exc_info=True)
+            logger.debug("Direct fallback failed: %s", proxy.details["error"])
         proxy.tested_at = self.datetime_now_iso()
         return proxy
 
@@ -148,6 +231,8 @@ class PythonTester:
             proxy.details["failure_category"] = "tester_error"
             proxy.tested_at = self.datetime_now_iso()
             return proxy
+        # The wrapper registers signal handlers at import and requires the
+        # main thread. Process construction itself runs in the worker below.
         factory = _get_singbox_factory()
         if factory is None:
             proxy.is_working = False
@@ -174,15 +259,16 @@ class PythonTester:
         outbounds = [outbound]
         if isinstance(extras, list):
             outbounds.extend(item for item in extras if isinstance(item, dict))
+        http_port = _reserve_loopback_port()
         config_content = json.dumps(
             {
                 "log": {"level": "info"},
                 "inbounds": [
                     {
-                        "type": "mixed",
-                        "tag": "mixed-in",
+                        "type": "http",
+                        "tag": "http-in",
                         "listen": "127.0.0.1",
-                        "listen_port": 0,
+                        "listen_port": http_port,
                     }
                 ],
                 "outbounds": outbounds,
@@ -192,66 +278,63 @@ class PythonTester:
         loop = asyncio.get_running_loop()
         instance = None
         try:
-            with SecureConfigContext(config_content) as config_path:
-                try:
-                    instance = await safe_wait_for(
-                        loop.run_in_executor(None, lambda: factory(config_path)),
-                        timeout=self.timeout,
+            try:
+                instance = await _start_instance(
+                    factory, config_content, http_port, self.timeout
+                )
+            except asyncio.TimeoutError:
+                proxy.details["tester_error_category"] = "singbox_start_timeout"
+                proxy.details["failure_category"] = "tester_error"
+                if await self._should_log("singbox_start_timeout"):
+                    logger.warning(
+                        "sing-box fallback start timed out for %s",
+                        SecurityValidator.sanitize_log_message(proxy.address),
                     )
-                except asyncio.TimeoutError:
-                    proxy.details["tester_error_category"] = "singbox_start_timeout"
-                    proxy.details["failure_category"] = "tester_error"
-                    if await self._should_log("singbox_start_timeout"):
-                        logger.warning(
-                            "sing-box fallback start timed out for %s",
-                            SecurityValidator.sanitize_log_message(proxy.address),
-                        )
-                    proxy.is_working = False
-                    return proxy
-                except Exception as exc:
-                    proxy.details["tester_error_category"] = "singbox_start_failed"
-                    proxy.details["failure_category"] = "tester_error"
-                    proxy.details["error"] = SecurityValidator.sanitize_log_message(
-                        str(exc)
+                proxy.is_working = False
+                return proxy
+            except Exception as exc:
+                proxy.details["tester_error_category"] = "singbox_start_failed"
+                proxy.details["failure_category"] = "tester_error"
+                proxy.details["error"] = SecurityValidator.sanitize_log_message(
+                    str(exc)
+                )
+                log_key = f"singbox_start_failed:{type(exc).__name__}"
+                if await self._should_log(log_key):
+                    logger.warning(
+                        "sing-box fallback start failed for %s: %s",
+                        SecurityValidator.sanitize_log_message(
+                            f"{proxy.address}:{proxy.port}"
+                        ),
+                        SecurityValidator.sanitize_log_message(
+                            f"{type(exc).__name__}: {exc}"
+                        ),
                     )
-                    log_key = f"singbox_start_failed:{type(exc).__name__}"
-                    if await self._should_log(log_key):
-                        logger.warning(
-                            "sing-box fallback start failed for %s: %s",
-                            SecurityValidator.sanitize_log_message(
-                                f"{proxy.address}:{proxy.port}"
-                            ),
-                            SecurityValidator.sanitize_log_message(
-                                f"{type(exc).__name__}: {exc}"
-                            ),
-                        )
-                    proxy.is_working = False
-                    return proxy
-                proxy_url = getattr(instance, "http_proxy_url", None)
-                if not instance or not proxy_url:
-                    proxy.details["tester_error_category"] = "singbox_proxy_url_missing"
-                    proxy.details["failure_category"] = "tester_error"
-                    proxy.is_working = False
-                    return proxy
-                async with aiohttp.ClientSession(
-                    connector=ProxyConnector.from_url(proxy_url)
-                ) as session:
-                    latency = await self._measure_latency_robust(session, proxy)
-                    proxy.is_working = latency is not None
-                    if latency is not None:
-                        proxy.latency = latency
-                        if self.strict_security:
-                            await self._run_security_checks(session, proxy)
+                proxy.is_working = False
+                return proxy
+            proxy_url = getattr(instance, "http_proxy_url", None)
+            if not instance or not proxy_url:
+                proxy.details["tester_error_category"] = "singbox_proxy_url_missing"
+                proxy.details["failure_category"] = "tester_error"
+                proxy.is_working = False
+                return proxy
+            async with aiohttp.ClientSession(
+                connector=ProxyConnector.from_url(proxy_url)
+            ) as session:
+                latency = await self._measure_latency_robust(session, proxy)
+                proxy.is_working = latency is not None
+                if latency is not None:
+                    proxy.latency = latency
+                    if self.strict_security:
+                        await self._run_security_checks(session, proxy)
         except Exception as exc:
             log_key = f"singbox_exception:{type(exc).__name__}"
             if await self._should_log(log_key):
                 logger.warning(
-                    "exception during bounded proxy fallback for %s: %s\n%s",
+                    "exception during bounded proxy fallback for %s: %s",
                     SecurityValidator.sanitize_log_message(
                         f"{proxy.address}:{proxy.port}"
                     ),
                     SecurityValidator.sanitize_log_message(str(exc)),
-                    traceback.format_exc(),
                 )
             proxy.is_working = False
             proxy.details["tester_error_category"] = "singbox_runtime_failed"
@@ -261,10 +344,11 @@ class PythonTester:
             if instance:
                 try:
                     await safe_wait_for(
-                        loop.run_in_executor(None, instance.stop), timeout=5.0
+                        loop.run_in_executor(None, _stop_instance, instance),
+                        timeout=5.0,
                     )
-                except Exception:
-                    logger.debug("failed to stop sing-box fallback", exc_info=True)
+                except asyncio.TimeoutError:
+                    logger.debug("Sing-box fallback stop exceeded its deadline")
             proxy.tested_at = self.datetime_now_iso()
         return proxy
 
@@ -287,8 +371,11 @@ class PythonTester:
                     ) as response:
                         if 200 <= response.status < 300:
                             values.append((time.monotonic() - started) * 1000)
-                except Exception:
-                    logger.debug("latency probe failed", exc_info=True)
+                except Exception as exc:
+                    logger.debug(
+                        "Latency probe failed: %s",
+                        SecurityValidator.sanitize_log_message(str(exc)),
+                    )
             return round(sum(values) / len(values), 2) if values else None
 
         urls: list[str] = []

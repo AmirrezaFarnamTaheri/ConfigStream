@@ -374,6 +374,13 @@ class StandardPipeline(IPipeline):
                 await _cancel_all(producer_task, consumer_tasks)
                 raise
 
+            # The intake deadline ends with producer/consumer work. Output may
+            # take longer and must not retroactively change the run disposition.
+            if time_limit_task and not time_limit_task.done():
+                time_limit_task.cancel()
+                with suppress(asyncio.CancelledError):
+                    await time_limit_task
+
             # 5. Final Cleanup & Output
             stats = self.context.stats
             _zero_working = stats.tested > 0 and stats.working == 0

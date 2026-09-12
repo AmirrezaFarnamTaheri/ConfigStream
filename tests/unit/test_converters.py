@@ -101,3 +101,66 @@ def test_to_singbox_outbound_ws_reality():
     assert sb["tls"]["enabled"] is True
     assert sb["tls"]["utls"]["fingerprint"] == "chrome"
     assert sb["tls"]["reality"]["public_key"] == "pbk"
+
+
+@pytest.mark.parametrize("scheme", ["http", "https"])
+def test_http_uri_to_clash_preserves_credentials_and_tls(scheme):
+    from configstream.parsers.generic import parse_generic_url_scheme
+    from configstream.converters.clash import to_clash_proxy
+
+    proxy = parse_generic_url_scheme(
+        f"{scheme}://user%2Fname:p%2Fa%3Ass%40word@proxy.example:443"
+    )
+    assert proxy is not None
+    proxy.is_working = True
+    outbound = to_clash_proxy(proxy)
+    assert outbound is not None
+    assert outbound["type"] == "http"
+    assert outbound["server"] == "proxy.example"
+    assert outbound["username"] == "user/name"
+    assert outbound["password"] == "p/a:ss@word"
+    assert outbound["tls"] is (scheme == "https")
+    if scheme == "https":
+        assert outbound["skip-cert-verify"] is False
+
+
+@pytest.mark.parametrize(
+    "scheme", ["http", "https", "socks5", "naive+https", "trojan", "hysteria2"]
+)
+def test_explicit_zero_port_is_not_replaced_by_default(scheme):
+    from configstream.parsers.generic import parse_generic_url_scheme, parse_naive
+    from configstream.parsers.trojan import parse_trojan
+    from configstream.parsers.others import parse_hysteria2
+
+    parser = {
+        "naive+https": parse_naive,
+        "trojan": parse_trojan,
+        "hysteria2": parse_hysteria2,
+    }.get(scheme, parse_generic_url_scheme)
+    assert parser(f"{scheme}://user:password@proxy.example:0") is None
+    assert parser(f"{scheme}://user:password@proxy.example") is not None
+
+
+@pytest.mark.parametrize("kind", ["naive", "trojan", "tuic", "ssh"])
+def test_uri_password_is_decoded_once(kind):
+    from configstream.parsers.generic import parse_naive
+    from configstream.parsers.trojan import parse_trojan
+    from configstream.parsers.tuic import parse_tuic
+    from configstream.parsers.others import parse_ssh
+
+    encoded = "p%252Fa%2Fss%40word"
+    urls = {
+        "naive": f"naive+https://user:{encoded}@proxy.example:443",
+        "trojan": f"trojan://{encoded}@proxy.example:443",
+        "tuic": f"tuic://00000000-0000-0000-0000-000000000001:{encoded}@proxy.example:443",
+        "ssh": f"ssh://user:{encoded}@proxy.example:22",
+    }
+    parser = {
+        "naive": parse_naive,
+        "trojan": parse_trojan,
+        "tuic": parse_tuic,
+        "ssh": parse_ssh,
+    }[kind]
+    proxy = parser(urls[kind])
+    assert proxy is not None
+    assert proxy.details["password"] == "p%2Fa/ss@word"

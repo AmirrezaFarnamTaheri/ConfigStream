@@ -26,15 +26,15 @@ def parse_trojan(config: str) -> Optional[Proxy]:
 
         if not parsed.hostname or len(parsed.hostname) > 255:
             return None
-        port = parsed.port or 443
+        port = parsed.port if parsed.port is not None else 443
         if not (1 <= port <= 65535):
             return None
         details = {k: v[0] for k, v in parse_qs(parsed.query).items()}
 
-        uuid = parsed.username or ""
+        uuid = unquote(parsed.username or "")
         # Fallback: check parsed.password, then query params for credentials
         if not uuid and parsed.password:
-            uuid = parsed.password
+            uuid = unquote(parsed.password)
         if not uuid:
             for key in ("password", "pass", "pwd", "token", "uuid", "id"):
                 val = details.get(key, "")

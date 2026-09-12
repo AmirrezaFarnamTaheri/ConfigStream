@@ -7,6 +7,7 @@ import json
 import hashlib
 import base64
 import zipfile
+from unittest.mock import patch
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, cast
@@ -508,6 +509,51 @@ def test_validate_pages_artifact_reports_unknown_metadata_schema_key(
     assert any(
         "metadata.json contains unknown schema key: legacy_extra" in error
         for error in errors
+    )
+
+
+def test_aggregated_source_counts_pass_metadata_contract(tmp_path: Path) -> None:
+    """Exercise the aggregation-to-Pages boundary used by scheduled releases."""
+    from scripts import aggregate_shard_health
+    from scripts.reconcile_release_metadata import reconcile
+    from scripts.validate_pages_artifact import _validate_schema_object
+
+    _write_valid_artifact(tmp_path)
+    metadata_path = tmp_path / "metadata.json"
+    _write_text(metadata_path, json.dumps(_metadata_payload()))
+    shard = tmp_path / "output_batch_1_part_1"
+    _write_text(shard / "metadata.json", json.dumps({"fetched_sources": 3}))
+    _write_text(
+        shard / "shard_lineage.json",
+        json.dumps({"batch": "1", "part": 1, "source_count": 4}),
+    )
+    _write_text(
+        tmp_path / "pipeline_batch_1_part_1.log",
+        "Fetch Summary: 3/4 sources successful.\n"
+        "Usable Source Summary: 2/4 sources produced accepted records.\n",
+    )
+    with (
+        patch(
+            "sys.argv",
+            [
+                "aggregate_shard_health",
+                "--metadata",
+                str(metadata_path),
+                "--expected-shards",
+                "1",
+                "--log-dir",
+                str(tmp_path),
+            ],
+        ),
+        patch.object(aggregate_shard_health.Path, "glob", return_value=iter([shard])),
+    ):
+        assert aggregate_shard_health.main() == 0
+
+    reconcile(tmp_path)
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    assert (metadata["usable_sources"], metadata["transport_success_sources"]) == (2, 3)
+    assert (
+        _validate_schema_object(metadata, "metadata.schema.json", "metadata.json") == []
     )
 
 

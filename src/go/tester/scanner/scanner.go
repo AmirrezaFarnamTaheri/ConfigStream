@@ -19,6 +19,7 @@ var DefaultCidrs = []string{
 	"162.159.192.0/24", "162.159.193.0/24", "162.159.195.0/24",
 	"188.114.96.0/24", "188.114.97.0/24", "188.114.98.0/24", "188.114.99.0/24",
 }
+
 // WireGuard Handshake Initiation Packet Constants
 const (
 	HandshakeType     = 1 // initiation
@@ -29,6 +30,7 @@ const (
 	EncryptedStatic   = 48 // 32 key + 16 auth tag
 	EncryptedTime     = 28 // 12 time + 16 auth tag
 	MacLen            = 16
+	maxScanTargets    = 65536
 )
 
 type ScanResult struct {
@@ -87,6 +89,10 @@ func ConstructHandshakePacket() []byte {
 // This reduces file descriptor usage and system call overhead compared to opening a new socket for every IP.
 func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resultsChan chan<- ScanResult) {
 	// 1. Generate IPs
+	if !scanCIDRsWithinLimit(cidrs) {
+		log.Printf("Scanner target set exceeds the %d-address safety limit", maxScanTargets)
+		return
+	}
 	targetIPs := generateIPList(cidrs)
 	if limit > 0 && len(targetIPs) > limit {
 		targetIPs = targetIPs[:limit]
@@ -106,6 +112,12 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 
 	// 3. Pre-calculate packet
 	basePacket := ConstructHandshakePacket()
+	if len(basePacket) != HandshakeLen {
+		// A random-source failure must not degrade into zero-length UDP probes.
+		// There is no safe scan request to send without a complete packet.
+		log.Printf("Unable to construct scanner handshake packet")
+		return
+	}
 
 	// 4. Map to track pending requests: IP:Port string -> StartTime
 	// Note: In high concurrency, a map with mutex might be a bottleneck.
@@ -242,13 +254,6 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 	}
 	close(ipChan)
 
-	// Rate Limit Throttling
-	// Calculate delay per packet to avoid bursting network stack (e.g. 1000 pps limit)
-	// If workers=50, each worker sends 1 packet then waits a bit.
-	// Simple sleep strategy: 1ms sleep every N packets or just 1ms per packet if paranoid.
-	// Given 'workers' concurrency, raw speed is high.
-	// Let's add a small ticker to the shared consumption if possible, or just sleep in worker.
-
 	for i := 0; i < workers; i++ {
 		wg.Add(1)
 		go func() {
@@ -272,8 +277,9 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 					pending.Delete(endpoint)
 				}
 
-				// Throttle sends slightly to prevent packet loss at OS buffer
-				time.Sleep(1 * time.Millisecond)
+				// Throttle sends slightly to prevent packet loss at the OS buffer.
+				time.Sleep(time.Millisecond)
+
 			}
 		}()
 	}
@@ -286,6 +292,32 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 
 	// Wait for receiver to finish (which implies sending finished + timeout expired)
 	<-done
+}
+
+// scanCIDRsWithinLimit prevents a malformed or overly broad internal caller
+// from making generateIPList allocate an unbounded address slice. RunScan uses
+// UDPv4, so IPv6 networks are rejected at this boundary as well.
+func scanCIDRsWithinLimit(cidrs []string) bool {
+	targets := uint64(0)
+	for _, cidr := range cidrs {
+		ip, network, err := net.ParseCIDR(cidr)
+		if err != nil || ip.To4() == nil {
+			return false
+		}
+		ones, bits := network.Mask.Size()
+		if bits != 32 {
+			return false
+		}
+		addresses := uint64(1) << uint(bits-ones)
+		// generateIPList skips some addresses based on their final octet, but
+		// count the whole network here.  This conservative bound also handles
+		// /31 and /32 correctly, where network/broadcast terminology differs.
+		targets += addresses
+		if targets > maxScanTargets {
+			return false
+		}
+	}
+	return true
 }
 
 func generateIPList(cidrs []string) []string {

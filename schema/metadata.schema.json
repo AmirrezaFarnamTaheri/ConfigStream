@@ -401,6 +401,16 @@
       "type": "integer",
       "minimum": 0
     },
+    "usable_sources": {
+      "description": "Unique sources producing accepted records, as reconciled from shard summaries.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "transport_success_sources": {
+      "description": "Unique sources fetched successfully; transport success alone does not imply usable records.",
+      "type": "integer",
+      "minimum": 0
+    },
     "sources_count": {
       "type": "integer",
       "minimum": 0

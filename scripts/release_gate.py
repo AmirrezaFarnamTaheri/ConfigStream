@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 import shutil
 import uuid
@@ -13,10 +14,15 @@ from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any, Optional, Union
 
-from configstream.constants import is_tester_infrastructure_drop_reason
 from configstream.constants import ARTIFACT_TRANSIENT_SUFFIXES as TRANSIENT_SUFFIXES
 from configstream.output.client_formats import validate_xray_config
 from configstream.output.singbox_contract import validate_singbox_config
+from configstream.release_policy import (
+    MIN_SOURCE_COVERAGE,
+    coverage_fraction,
+    tester_error_count,
+    tester_errors_block_release,
+)
 
 REQUIRED_NATIVE_TARGETS = {
     "sing-box": "singbox.json",
@@ -62,15 +68,19 @@ def load_checked(path: Path, errors: list[str]) -> Any:
 def safe_int(value: Optional[Union[int, float]]) -> int:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return 0
+    if isinstance(value, float) and not math.isfinite(value):
+        return 0
     return int(value)
 
 
 def safe_float(value: Optional[Union[int, float]]) -> float:
-    return (
-        float(value)
-        if isinstance(value, (int, float)) and not isinstance(value, bool)
-        else 0.0
-    )
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return 0.0
+    try:
+        result = float(value)
+    except OverflowError:
+        return 0.0
+    return result if math.isfinite(result) else 0.0
 
 
 def safe_path(root: Path, relative: str) -> Path:
@@ -278,7 +288,7 @@ def validate(root: Path, native_report: Path, min_coverage: float) -> list[str]:
     # It stays recorded in health.json as the non-blocking note
     # "pipeline_time_limited" for transparency.
     if (
-        safe_int(metadata.get("logical_total_working") or metadata.get("total_working"))
+        safe_int(metadata.get("logical_total_working", metadata.get("total_working")))
         <= 0
     ):
         errors.append("no logical working proxies")
@@ -287,9 +297,21 @@ def validate(root: Path, native_report: Path, min_coverage: float) -> list[str]:
     if drop_reasons is not None and not isinstance(drop_reasons, dict):
         errors.append("metadata drop_reasons must be an object")
     elif isinstance(drop_reasons, dict):
-        for key, value in drop_reasons.items():
-            if is_tester_infrastructure_drop_reason(key) and safe_int(value):
-                errors.append(f"tester infrastructure errors remain: {key}={value}")
+        try:
+            tester_errors = tester_error_count(drop_reasons)
+        except ValueError:
+            errors.append("invalid tester infrastructure error counts")
+            tester_errors = 0
+        if tester_errors_block_release(
+            tester_errors,
+            safe_int(metadata.get("total_tested", metadata.get("tested"))),
+            safe_int(
+                metadata.get("logical_total_working", metadata.get("total_working"))
+            ),
+        ):
+            errors.append(
+                f"tester infrastructure error budget exceeded: {tester_errors}"
+            )
     if not isinstance(health, dict):
         errors.append("health.json must be an object")
     else:
@@ -511,7 +533,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("artifact_dir", type=Path)
     parser.add_argument("--native-report", type=Path, required=True)
-    parser.add_argument("--min-source-coverage", type=float, default=0.80)
+    parser.add_argument(
+        "--min-source-coverage", type=coverage_fraction, default=MIN_SOURCE_COVERAGE
+    )
     parser.add_argument("--promote", action="store_true")
     args = parser.parse_args()
     root = args.artifact_dir.resolve()

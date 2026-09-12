@@ -50,8 +50,17 @@ def test_full_verification_plan_uses_module_workdirs_for_native_checks() -> None
     stages = {stage.name: stage for stage in verify_repository.build_plan("full")}
     assert stages["go-tester-race"].workdir == "src/go/tester"
     assert stages["go-utls-fuzz"].workdir == "src/go/utls_client"
+    assert dict(stages["go-tester-fuzz"].environment)["GOMAXPROCS"] == "2"
+    assert dict(stages["go-utls-fuzz"].environment)["GOMAXPROCS"] == "2"
     assert stages["rust-test"].workdir == "src/rust/ss_checker"
     assert "-bench=." in stages["go-tester-benchmark"].command
+    # The legacy embedded tester needs the same linker compatibility as CI;
+    # the modern uTLS module must keep Go's linkname protection enabled.
+    for stage in stages.values():
+        if stage.name.startswith("go-"):
+            assert ("-ldflags=-checklinkname=0" in stage.command) == (
+                stage.workdir == "src/go/tester"
+            )
 
 
 def test_frontend_stages_require_installed_locked_tools() -> None:
@@ -67,7 +76,7 @@ def test_full_plan_declares_environment_preconditions() -> None:
         Path("config/runtime-versions.json").read_text(encoding="utf-8")
     )
     assert "aiohttp_socks" in stages["python-unit"].required_python_modules
-    assert stages["go-tester-unit"].minimum_tool_version == (1, 24, 0)
+    assert stages["go-tester-unit"].minimum_tool_version == (1, 26, 0)
     assert stages["go-utls-unit"].minimum_tool_version == (1, 24, 3)
     assert stages["go-tester-unit"].environment == (
         ("GOTOOLCHAIN", f"go{runtime_versions['go']['toolchain']}"),

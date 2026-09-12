@@ -209,3 +209,62 @@ async def test_go_batch_failure_does_not_count_tester_error_when_fallback_recove
 
     assert stats.drop_reasons.get("tester_error", 0) == 0
     assert any(item.is_working for item in final_proxies)
+
+
+@pytest.mark.asyncio
+async def test_consumer_skips_optional_revival_after_intake_stops(
+    mock_dependencies_fix,
+):
+    """The grace-period drain must not start new long-lived revival work."""
+
+    deps = mock_dependencies_fix
+    queue = deps["queue"]
+    stop_event = asyncio.Event()
+    stop_event.set()
+    proxy = Proxy(
+        protocol="vmess",
+        address="1.2.3.4",
+        port=443,
+        config="vmess://test",
+        uuid="11111111-1111-4111-8111-111111111111",
+    )
+    await queue.put(("test-source", ["vmess://test"]))
+    await queue.put(None)
+
+    async def failed_batch(batch):
+        for candidate in batch:
+            candidate.is_working = False
+
+    deps["tester"].test_batch.side_effect = failed_batch
+    deps["washer"].warp_keys = ["key"]
+
+    with patch("configstream.consumer.parse_config", return_value=proxy):
+        with patch(
+            "configstream.consumer.validate_batch_configs", return_value=[proxy]
+        ):
+            await processing_consumer(
+                work_queue=queue,
+                stats=PipelineStats(),
+                seen_keys=set(),
+                final_proxies=[],
+                tester=deps["tester"],
+                scheduler=deps["scheduler"],
+                test_cache=deps["test_cache"],
+                concurrency=deps["concurrency"],
+                geoip=deps["geoip"],
+                tracker=deps["tracker"],
+                event_stream=None,
+                quality_tracker=deps["quality"],
+                history=deps["history"],
+                progress=None,
+                task_process=None,
+                max_latency=None,
+                country_filter=None,
+                leniency=False,
+                washer=deps["washer"],
+                stop_event=stop_event,
+            )
+
+    deps["washer"].wash_failed.assert_not_called()
+    deps["tester"].test_batch.assert_awaited_once()
+    await asyncio.wait_for(queue.join(), timeout=0.1)

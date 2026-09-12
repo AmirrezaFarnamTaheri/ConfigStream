@@ -25,7 +25,14 @@ def test_frontend_csp_disables_unsafe_eval() -> None:
     ]
     for page in pages:
         html = _read(FRONTEND_DIR / page)
-        assert "unsafe-eval" not in html, f"{page} still allows unsafe-eval"
+        assert "'unsafe-eval'" not in html, f"{page} still allows unsafe-eval"
+
+
+def test_wasm_proxy_page_permits_only_wasm_compilation() -> None:
+    html = _read(FRONTEND_DIR / "proxies.html")
+
+    assert "'wasm-unsafe-eval'" in html
+    assert "'unsafe-eval'" not in html
 
 
 def test_lab_csp_allows_network_diagnosis_endpoints() -> None:

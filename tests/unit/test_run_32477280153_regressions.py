@@ -224,6 +224,44 @@ def test_revived_python_fallback_respects_existing_batch_budget() -> None:
     assert all(proxy.is_working is False for proxy in skipped)
 
 
+def test_revived_circuit_breaker_skips_repeated_python_fallback() -> None:
+    """A tripped Go breaker must not spend the recovery budget per source batch."""
+
+    class FakeGoTester:
+        available = True
+
+        async def test_custom_configs(
+            self,
+            configs: list[dict[str, Any]],
+            check_honeypot: bool = False,
+        ) -> dict[str, bool]:
+            raise AssertionError("the disabled custom-config path must not run")
+
+    class FakePythonTester:
+        async def test_via_singbox(self, proxy: Proxy) -> Proxy:
+            raise AssertionError("the disabled fallback path must not run")
+
+    tester: Any = object.__new__(SingBoxTester)
+    tester.timeout = 1.0
+    tester.cache = None
+    tester.strict_security = False
+    tester.settings = SimpleNamespace(PY_TESTER_BATCH_SIZE=2)
+    tester.dry_run = False
+    tester.max_workers = 2
+    tester.go_tester = FakeGoTester()
+    tester._python_tester = FakePythonTester()
+    tester._revived_go_disabled = True
+
+    proxies = asyncio.run(tester.test_batch([_revived_proxy(0), _revived_proxy(1)]))
+
+    assert all(proxy.is_working is False for proxy in proxies)
+    assert all(
+        proxy.details.get("error") == "REVIVAL_TESTER_DISABLED"
+        and proxy.details.get("failure_category") == "INFRA_BUDGET"
+        for proxy in proxies
+    )
+
+
 def test_revived_custom_requests_are_unique_when_proxy_ids_collide() -> None:
     """Chain test results must not collapse at a shared endpoint identity."""
 

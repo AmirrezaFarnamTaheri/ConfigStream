@@ -2,6 +2,9 @@
 from __future__ import annotations
 
 from pathlib import Path
+import os
+
+import pytest
 
 from scripts import prepare_public_candidate
 
@@ -49,7 +52,12 @@ def test_prepare_rejects_symlinked_merged_input(tmp_path: Path) -> None:
     frontend.mkdir()
     outside.write_text("not-for-publication", encoding="utf-8")
     (merged / "metadata.json").write_text("{}", encoding="utf-8")
-    (merged / "leak.txt").symlink_to(outside)
+    try:
+        (merged / "leak.txt").symlink_to(outside)
+    except OSError as exc:
+        if os.name != "nt" or getattr(exc, "winerror", None) != 1314:
+            raise
+        pytest.skip("Windows environment lacks symbolic-link creation privilege")
     (frontend / "index.html").write_text("ok", encoding="utf-8")
 
     try:

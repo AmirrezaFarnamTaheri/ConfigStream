@@ -45,8 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize inline icons (if present)
     if (window.inlineIcons) {
         window.inlineIcons.replace();
-    } else if (window.feather) {
-        window.feather.replace();
     }
 });
 

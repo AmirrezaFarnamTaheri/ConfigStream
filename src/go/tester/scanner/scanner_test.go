@@ -32,6 +32,25 @@ func TestGenerateIPListSkipsIPv4NetworkAndBroadcast(t *testing.T) {
 	}
 }
 
+func TestScanCIDRsWithinLimitRejectsUnsafeInputs(t *testing.T) {
+	if !scanCIDRsWithinLimit([]string{"192.0.2.0/24"}) {
+		t.Fatal("small IPv4 CIDR must be accepted")
+	}
+	if scanCIDRsWithinLimit([]string{"0.0.0.0/0"}) {
+		t.Fatal("unbounded IPv4 CIDR must be rejected before allocation")
+	}
+	if scanCIDRsWithinLimit([]string{"2001:db8::/32"}) {
+		t.Fatal("IPv6 CIDR is incompatible with the UDPv4 scanner")
+	}
+	tooManyHosts := make([]string, maxScanTargets+1)
+	for i := range tooManyHosts {
+		tooManyHosts[i] = "192.0.2.1/32"
+	}
+	if scanCIDRsWithinLimit(tooManyHosts) {
+		t.Fatal("many /32 CIDRs must be bounded before address expansion")
+	}
+}
+
 func TestInc(t *testing.T) {
 	ip := net.IPv4(192, 0, 2, 254).To4()
 	inc(ip)

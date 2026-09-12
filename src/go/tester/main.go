@@ -106,9 +106,30 @@ func main() {
 	log.SetOutput(os.Stderr)
 
 	if modeFlag == "scan" {
+		if !activeScanningEnabled() {
+			log.Printf("Scan mode is disabled; set ALLOW_ACTIVE_SCANNING=true for an opt-in local diagnostic")
+			return
+		}
 		runScanner()
 	} else {
 		runTester()
+	}
+}
+
+// activeScanningEnabled keeps the standalone Go scanner aligned with the
+// Python scanner boundary: packet scanning is an explicit, local opt-in.
+// FORCE_SCANNER is retained for compatibility with the existing Python
+// diagnostic override.
+func activeScanningEnabled() bool {
+	return environmentBool("ALLOW_ACTIVE_SCANNING") || environmentBool("FORCE_SCANNER")
+}
+
+func environmentBool(name string) bool {
+	switch strings.ToLower(strings.TrimSpace(os.Getenv(name))) {
+	case "1", "t", "true", "y", "yes", "on":
+		return true
+	default:
+		return false
 	}
 }
 
@@ -121,15 +142,9 @@ func runScanner() {
 	}()
 
 	encoder := json.NewEncoder(os.Stdout)
-	count := 0
-
 	for res := range resultsChan {
 		if err := encoder.Encode(res); err != nil {
 			log.Printf("Encode error: %v", err)
-		}
-		count++
-		if limitFlag > 0 && count >= limitFlag {
-			break
 		}
 	}
 }
@@ -206,11 +221,25 @@ func testProxy(req ProxyTestRequest) (result ProxyTestResult) {
 		return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "Config parse error: " + err.Error()}
 	}
 
-	// Append the "direct" outbound that all configs need
-	outbounds = append(outbounds, option.Outbound{
-		Type: "direct",
-		Tag:  "direct",
-	})
+	// The DNS detour below needs a direct outbound. Chain payloads may already
+	// provide one, so only add it when absent; duplicate tags make sing-box
+	// reject an otherwise valid chain at startup.
+	hasDirect := false
+	for _, outbound := range outbounds {
+		if outbound.Tag == "direct" {
+			if outbound.Type != "direct" {
+				return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "Reserved direct outbound has incompatible type"}
+			}
+			hasDirect = true
+			break
+		}
+	}
+	if !hasDirect {
+		outbounds = append(outbounds, option.Outbound{
+			Type: "direct",
+			Tag:  "direct",
+		})
+	}
 
 	options := option.Options{
 		Outbounds: outbounds,

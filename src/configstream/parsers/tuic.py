@@ -18,7 +18,7 @@ def parse_tuic(line: str) -> Optional[Proxy]:
     """Parse a tuic:// URI into a Proxy model.
 
     TUIC v5 requires both UUID (username) and password fields.
-    Falls back to empty password with a debug log rather than using UUID as password.
+    Missing credentials are rejected rather than substituting UUID for password.
     """
     raw = (line or "").strip()
     if not raw.lower().startswith("tuic://"):
@@ -44,8 +44,8 @@ def parse_tuic(line: str) -> Optional[Proxy]:
             )
             return None
 
-        uuid_val = parsed.username or ""
-        password_val = parsed.password or ""
+        uuid_val = urllib.parse.unquote(parsed.username or "")
+        password_val = urllib.parse.unquote(parsed.password or "")
 
         # Mandatory field: TUIC requires UUID for authentication token derivation.
         if not uuid_val:

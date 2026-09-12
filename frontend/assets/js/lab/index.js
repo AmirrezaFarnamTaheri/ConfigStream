@@ -100,7 +100,10 @@ async function fetchPipelineProxies() {
     }
     results.sort(comparePipelineProxy);
     state.pipelineProxies = results;
-    state.pipelineLoaded = true;
+    // Keep an empty result retryable: static hosting and censored networks can
+    // fail a fetch transiently, and the visible "Load" control is the user's
+    // recovery path.
+    state.pipelineLoaded = results.length > 0;
     return results;
 }
 

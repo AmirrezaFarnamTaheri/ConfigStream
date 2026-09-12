@@ -5,7 +5,7 @@ import logging
 from ..models import Proxy
 from ..security_validator import SecurityValidator
 from ..tagging import get_flag_emoji
-from ..utils.bool_parser import parse_bool
+from ..utils.bool_parser import parse_bool, parse_tls_flag
 from .clash_utils import add_transport_opts
 
 logger = logging.getLogger(__name__)
@@ -101,6 +101,27 @@ def _convert_tuic(proxy: Proxy, common: Dict[str, Any]) -> Dict[str, Any]:
     return common
 
 
+def _convert_http(proxy: Proxy, common: Dict[str, Any]) -> Dict[str, Any]:
+    common["type"] = "http"
+    username = proxy.details.get("username") or proxy.uuid
+    if username:
+        common["username"] = username
+    if proxy.details.get("password") is not None:
+        common["password"] = proxy.details["password"]
+    common["tls"] = proxy.protocol.lower() == "https" or parse_tls_flag(
+        proxy.details.get("tls")
+    )
+    if common["tls"]:
+        common["skip-cert-verify"] = parse_bool(
+            proxy.details.get(
+                "skip_cert_verify", proxy.details.get("allowInsecure", False)
+            )
+        )
+        if proxy.details.get("sni"):
+            common["sni"] = proxy.details["sni"]
+    return common
+
+
 def _convert_socks5(proxy: Proxy, common: Dict[str, Any]) -> Dict[str, Any]:
     common["type"] = "socks5"
     if proxy.details.get("username") and proxy.details.get("password"):
@@ -147,6 +168,8 @@ _PROTOCOL_HANDLERS: Dict[str, Callable[[Proxy, Dict[str, Any]], Dict[str, Any]]]
     "vless": _convert_vless,
     "hysteria2": _convert_hysteria2,
     "tuic": _convert_tuic,
+    "http": _convert_http,
+    "https": _convert_http,
     "socks5": _convert_socks5,
     "socks": _convert_socks5,
     "wireguard": _convert_wireguard,

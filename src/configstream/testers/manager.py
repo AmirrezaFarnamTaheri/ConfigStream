@@ -172,12 +172,25 @@ class SingBoxTester:
                     if request_ids[id(p)] not in custom_results
                 ]
                 _record_revived_go_health(self, len(missing))
-                if missing:
+                if missing and not bool(getattr(self, "_revived_go_disabled", False)):
                     custom_results.update(
                         await _bounded_revived_python_fallback(
                             self, missing, request_ids
                         )
                     )
+                elif missing:
+                    # The circuit breaker established that the shared Go
+                    # daemon cannot return complete custom-chain results in
+                    # this tester lifecycle. Retrying Python recovery for
+                    # every later source batch turns an optional path into a
+                    # multi-hour pipeline bottleneck.
+                    # Keep these candidates in the output as unverified, as
+                    # required by the revival contract, and make the reason
+                    # observable to downstream accounting.
+                    for candidate in missing:
+                        candidate.is_working = False
+                        candidate.details["error"] = "REVIVAL_TESTER_DISABLED"
+                        candidate.details["failure_category"] = "INFRA_BUDGET"
 
                 for p in revived_candidates:
                     is_working = custom_results.get(request_ids[id(p)], False)
@@ -218,10 +231,6 @@ async def _run_revived_custom_go_with_deadline_and_circuit_breaker(
     """Run custom Go chain tests under a lifecycle circuit breaker and deadline."""
 
     if bool(getattr(tester, "_revived_go_disabled", False)):
-        logger.warning(
-            "Go custom-config testing is disabled after repeated incomplete results; "
-            "using bounded Python fallback for revived chains."
-        )
         return {}
     try:
         return await asyncio.wait_for(

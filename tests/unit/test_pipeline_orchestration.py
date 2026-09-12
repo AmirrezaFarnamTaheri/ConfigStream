@@ -244,3 +244,57 @@ async def test_vwarp_tunnel_cleaned_when_initialization_fails(
     assert tool.start_tunnel.await_count == 1
     assert tool.stop_tunnel.await_count == 1
     assert os.environ["USE_VWARP_TUNNEL"] == "1"
+
+
+@pytest.mark.asyncio
+async def test_intake_deadline_does_not_fire_during_output(monkeypatch):
+    import asyncio
+    from configstream.config import AppSettings
+    from configstream.pipeline.core import StandardPipeline
+    from configstream.pipeline.models import PipelineContext
+    from configstream.pipeline_stats import PipelineStats
+
+    deadline = asyncio.Event()
+    real_sleep = asyncio.sleep
+
+    async def controlled_sleep(delay):
+        if delay == 60:
+            await deadline.wait()
+        else:
+            await real_sleep(delay)
+
+    async def output(*args, **kwargs):
+        deadline.set()
+        await real_sleep(0)
+        await real_sleep(0)
+        return []
+
+    context = PipelineContext(
+        work_queue=asyncio.Queue(),
+        stop_event=asyncio.Event(),
+        stats=PipelineStats(),
+        final_proxies=[],
+        seen_keys={},
+        seen_lock=asyncio.Lock(),
+        settings=AppSettings(),
+        history=MagicMock(),
+        strict_security=True,
+    )
+    context.stats.tested = 1
+    pipeline = StandardPipeline(
+        [],
+        lambda *args: MagicMock(produce=AsyncMock()),
+        lambda *args: MagicMock(consume=AsyncMock()),
+        context,
+        num_consumers=1,
+        time_limit_seconds=60,
+    )
+    monkeypatch.setattr("configstream.pipeline.core.asyncio.sleep", controlled_sleep)
+    with patch(
+        "configstream.output_handler.generate_pipeline_outputs", side_effect=output
+    ):
+        result = await pipeline.run()
+    assert not result.stats.time_limited
+    assert not context.stop_event.is_set()
+    assert not result.success
+    assert result.error == "0 working proxies detected"

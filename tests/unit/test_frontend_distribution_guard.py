@@ -103,3 +103,21 @@ def test_dynamic_download_icons_are_available_in_the_local_registry() -> None:
         "dynamic-downloads.js uses icons missing from inline-icons.js: "
         f"{sorted(dynamic_icons - registered_icons)}"
     )
+
+
+def test_public_markup_icons_are_available_in_the_local_registry() -> None:
+    inline_icons = (ROOT / "frontend/assets/js/inline-icons.js").read_text(
+        encoding="utf-8"
+    )
+    registered_icons = set(re.findall(r"'([^']+)':\s*'<svg", inline_icons))
+    markup_icons: set[str] = set()
+
+    for page in (ROOT / "frontend").glob("*.html"):
+        markup_icons.update(
+            re.findall(r'data-feather="([^"]+)"', page.read_text(encoding="utf-8"))
+        )
+
+    assert markup_icons <= registered_icons, (
+        "public markup uses icons missing from inline-icons.js: "
+        f"{sorted(markup_icons - registered_icons)}"
+    )
