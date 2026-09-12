@@ -322,6 +322,7 @@ class PythonTester:
                     }
                 )
                 try:
+
                     def release_http_port(port: int = http_port) -> None:
                         _release_loopback_port(port)
 
