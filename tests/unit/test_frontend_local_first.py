@@ -29,7 +29,6 @@ FORBIDDEN_RUNTIME_HOSTS = (
 )
 
 REQUIRED_LOCAL_ASSETS = (
-    "assets/libs/feather.min.js",
     "assets/libs/three.min.js",
     "assets/libs/globe.gl.min.js",
     "assets/libs/chart.min.js",

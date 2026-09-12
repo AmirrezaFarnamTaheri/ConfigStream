@@ -289,7 +289,7 @@
     },
     {
       "id": "claim.outputs.native_client_check_report",
-      "claim": "Optional native Sing-box and Clash client checks produce structured evidence reports that are archived with pipeline evidence without polluting public output artifacts.",
+      "claim": "Native Sing-box, Mihomo, Xray and connectivity checks produce structured private evidence; scheduled publication requires these checks to pass.",
       "source": "STATUS.md",
       "product_area": "outputs",
       "status": "complete",
@@ -306,7 +306,7 @@
         "STATUS.md"
       ],
       "changelog": "CHANGELOG.md",
-      "cleanup_decision": "Keep native checks optional and evidence-only until pinned zero-budget binaries are available; native reports remain pipeline-evidence artifacts outside public output_matrix artifacts."
+      "cleanup_decision": "Keep native reports in pipeline-evidence outside public artifacts. Pinned native validators are mandatory publication gates; local structural validation is not connectivity evidence."
     }
   ]
 }

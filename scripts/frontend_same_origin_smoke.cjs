@@ -84,6 +84,7 @@ const mimeTypes = new Map([
   [".css", "text/css; charset=utf-8"],
   [".js", "application/javascript; charset=utf-8"],
   [".json", "application/json; charset=utf-8"],
+  [".wasm", "application/wasm"],
   [".svg", "image/svg+xml"],
   [".png", "image/png"],
   [".jpg", "image/jpeg"],
@@ -200,7 +201,7 @@ function buildProtocolFixture() {
     host: `${protocol.replace(/[^a-z0-9-]/gi, "-")}.fixture.example`,
     port: 10000 + index,
     country_code: index % 2 === 0 ? "US" : "DE",
-    city: `Fixture ${index + 1}`,
+    city: index === 0 ? "Exact search fixture" : `Fixture ${index + 1}`,
     latency: 50 + index,
     is_working: index % 3 !== 0,
     process: "native",
@@ -387,6 +388,21 @@ async function exerciseProtocolRender(browser) {
       state: "visible",
       timeout: 10000,
     });
+    await page.waitForFunction(
+      () => typeof window.verifyProxyBatch === "function",
+      undefined,
+      { timeout: 10000 },
+    );
+    const wasmState = await page.evaluate(() => ({
+      ready: window.wasmReady === true,
+      error: window.wasmError || null,
+    }));
+    if (wasmState.error) {
+      throw new Error(`Browser reachability check failed to initialize: ${wasmState.error}`);
+    }
+    if (!wasmState.ready) {
+      throw new Error("Browser reachability check did not reach its ready state");
+    }
 
     const renderedProtocols = await page
       .locator("#proxiesTableBody .badge-protocol")
@@ -416,6 +432,36 @@ async function exerciseProtocolRender(browser) {
       throw new Error(
         `Missing protocol filter options: ${missingDropdownProtocols.join(", ")}`,
       );
+    }
+
+    await page.selectOption("#filterProtocol", fixture[0].protocol);
+    await page.locator("#proxiesTableBody tr").first().waitFor({
+      state: "visible",
+      timeout: 10000,
+    });
+    const filteredProtocols = await page
+      .locator("#proxiesTableBody .badge-protocol")
+      .evaluateAll((badges) => badges.map((badge) => badge.textContent.trim()));
+    if (filteredProtocols.length !== 1 || filteredProtocols[0] !== fixture[0].protocol.toUpperCase()) {
+      throw new Error("Protocol filter did not constrain the rendered proxy rows");
+    }
+
+    await page.selectOption("#filterProtocol", "");
+    await page.fill("#searchInput", "exact search");
+    await page.waitForFunction(
+      () => document.querySelectorAll("#proxiesTableBody tr").length === 1,
+      undefined,
+      { timeout: 10000 },
+    );
+    const searchRows = await page.locator("#proxiesTableBody tr").count();
+    if (searchRows !== 1) {
+      throw new Error(`Proxy search returned ${searchRows} rows for a unique fixture`);
+    }
+    const searchProtocol = await page
+      .locator("#proxiesTableBody .badge-protocol")
+      .innerText();
+    if (searchProtocol !== fixture[0].protocol.toUpperCase()) {
+      throw new Error("Proxy search did not retain its highest-relevance match");
     }
 
     if (consoleErrors.length > 0) {
@@ -536,6 +582,57 @@ async function exerciseLabXss(browser) {
   }
 }
 
+async function exerciseLabPipelineRetry(browser) {
+  const pipelineUri =
+    "vless://11111111-1111-4111-8111-111111111111@example.com:443#Retry%20fixture";
+  let pipelineRequests = 0;
+  const server = createServer({
+    "/base64.txt": (_request, response) => {
+      pipelineRequests += 1;
+      if (pipelineRequests === 1) {
+        response.writeHead(503, { "content-type": "text/plain; charset=utf-8" });
+        response.end("temporarily unavailable");
+        return;
+      }
+      response.writeHead(200, { "content-type": "text/plain; charset=utf-8" });
+      response.end(Buffer.from(pipelineUri).toString("base64"));
+    },
+  });
+  const port = await listen(server);
+  const baseUrl = `http://127.0.0.1:${port}`;
+  const allowedHost = new URL(baseUrl).host;
+  const context = await browser.newContext();
+  const page = await context.newPage();
+
+  await page.route("**/*", (route) => {
+    const parsed = new URL(route.request().url());
+    if ((parsed.protocol === "http:" || parsed.protocol === "https:") && parsed.host !== allowedHost) {
+      return route.abort();
+    }
+    return route.continue();
+  });
+
+  try {
+    await page.goto(`${baseUrl}/lab.html`, { waitUntil: "domcontentloaded", timeout: 10000 });
+    await page.locator("#loadPipelineBtn").click();
+    await page.locator("#step1Result").waitFor({ state: "visible", timeout: 10000 });
+    const firstResult = await page.locator("#step1Result").innerText();
+    if (!firstResult.includes("No pipeline proxies available")) {
+      throw new Error("Lab did not expose the initial pipeline fetch failure");
+    }
+
+    await page.locator("#loadPipelineBtn").click();
+    await page.locator("#pipelineProxySelect option").nth(1).waitFor({ state: "attached", timeout: 10000 });
+    const retryOption = await page.locator("#pipelineProxySelect option").nth(1).innerText();
+    if (!retryOption.includes("Retry fixture")) {
+      throw new Error("Lab pipeline picker did not recover after a transient fetch failure");
+    }
+  } finally {
+    await context.close();
+    await closeServer(server);
+  }
+}
+
 async function assertLabStrategies(page) {
   const expectedStrategies = labStrategyIds();
   const renderedStrategies = await page
@@ -597,6 +694,8 @@ async function main() {
       console.log("protocol render smoke passed");
       await exerciseLabXss(browser);
       console.log("lab xss smoke passed");
+      await exerciseLabPipelineRetry(browser);
+      console.log("lab pipeline retry smoke passed");
     }
 
     await exercisePages(browser, baseUrl, allowedHost, {

@@ -9,6 +9,7 @@ from unittest.mock import MagicMock
 import pytest
 
 import configstream.pipeline.consumer as pipeline_consumer
+import configstream.source_run_aggregation as source_run_aggregation
 from configstream.pipeline.consumer import processing_consumer
 from configstream.pipeline_stats import PipelineStats
 from configstream.source_quality import SourceQualityTracker
@@ -268,6 +269,182 @@ def test_empty_run_clears_previous_fingerprint_snapshot(
     assert state[2] == 1
     assert state[3] == pytest.approx(0.0)
     assert state[4:6] == (0, 0)
+
+
+def test_replacing_chunk_preserves_shared_fingerprint_from_other_chunk(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Replacement adjusts incremental key counts without dropping shared keys."""
+
+    monkeypatch.chdir(tmp_path)
+    source = "https://example.com/shared-key.txt"
+    tracker = SourceQualityTracker(db_path=tmp_path / "quality.db")
+
+    record_source_chunk(
+        tracker,
+        source,
+        "run-keys",
+        1,
+        1,
+        1,
+        1.0,
+        {"US": 1},
+        {"duplicate": 1},
+        "pipeline",
+        100,
+        [("shared.example", 443), ("old.example", 443)],
+    )
+    record_source_chunk(
+        tracker,
+        source,
+        "run-keys",
+        2,
+        1,
+        1,
+        1.0,
+        {"US": 1},
+        {"duplicate": 1},
+        "pipeline",
+        100,
+        [("shared.example", 443)],
+    )
+    record_source_chunk(
+        tracker,
+        source,
+        "run-keys",
+        1,
+        2,
+        1,
+        3.0,
+        {"NL": 1},
+        {"invalid": 2},
+        "pipeline",
+        100,
+        [("replacement.example", 443)],
+    )
+
+    fingerprint = json.loads(_fingerprint_path(tmp_path, source).read_text())
+    assert fingerprint["proxies"] == [
+        ["replacement.example", 443],
+        ["shared.example", 443],
+    ]
+
+    with sqlite3.connect(tmp_path / "quality.db") as conn:
+        row = conn.execute(
+            "SELECT fetched_count, working_count, duration_ms, geoip_json, failure_modes_json "
+            "FROM source_runs WHERE url = ?",
+            (source,),
+        ).fetchone()
+    assert row == (3, 2, 4.0, '{"NL":1,"US":1}', '{"duplicate":1,"invalid":2}')
+    tracker.close()
+
+
+def test_chunked_source_persists_observed_fingerprint_before_completion(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A stopped source run still exposes every observed fingerprint."""
+
+    monkeypatch.chdir(tmp_path)
+    source = "https://example.com/chunked.txt"
+    tracker = SourceQualityTracker(db_path=tmp_path / "quality.db")
+
+    record_source_chunk(
+        tracker,
+        source,
+        "run-complete",
+        2,
+        1,
+        1,
+        1.0,
+        {"US": 1},
+        {},
+        "pipeline",
+        100,
+        [("second.example", 443)],
+    )
+    partial = json.loads(_fingerprint_path(tmp_path, source).read_text())
+    assert partial["proxies"] == [["second.example", 443]]
+
+    record_source_chunk(
+        tracker,
+        source,
+        "run-complete",
+        1,
+        1,
+        1,
+        1.0,
+        {"NL": 1},
+        {},
+        "pipeline",
+        100,
+        [("first.example", 443)],
+    )
+    completed = json.loads(_fingerprint_path(tmp_path, source).read_text())
+    assert completed["proxies"] == [
+        ["first.example", 443],
+        ["second.example", 443],
+    ]
+    tracker.close()
+
+
+def test_run_row_failure_rolls_back_source_state_and_retry_is_idempotent(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A failed run-row write cannot leave quality state without its run row."""
+
+    monkeypatch.chdir(tmp_path)
+    tracker = SourceQualityTracker(db_path=tmp_path / "quality.db")
+    source = "https://example.com/transactional.txt"
+    original_persist_run_row = source_run_aggregation._persist_run_row
+
+    def fail_run_row(*_args: object, **_kwargs: object) -> None:
+        raise RuntimeError("run row write failed")
+
+    monkeypatch.setattr(source_run_aggregation, "_persist_run_row", fail_run_row)
+    with pytest.raises(RuntimeError, match="run row write failed"):
+        record_source_chunk(
+            tracker,
+            source,
+            "retry-run",
+            1,
+            2,
+            1,
+            3.0,
+            {"US": 1},
+            {},
+            "pipeline",
+            100,
+            [("retry.example", 443)],
+        )
+
+    assert tracker.get_source_state(source) is None
+    monkeypatch.setattr(
+        source_run_aggregation, "_persist_run_row", original_persist_run_row
+    )
+    record_source_chunk(
+        tracker,
+        source,
+        "retry-run",
+        1,
+        2,
+        1,
+        3.0,
+        {"US": 1},
+        {},
+        "pipeline",
+        100,
+        [("retry.example", 443)],
+    )
+
+    assert tracker.get_source_state(source)[4:6] == (2, 1)
+    with sqlite3.connect(tmp_path / "quality.db") as conn:
+        assert (
+            conn.execute(
+                "SELECT COUNT(*) FROM source_runs WHERE url = ?", (source,)
+            ).fetchone()[0]
+            == 1
+        )
+    tracker.close()
 
 
 @pytest.mark.asyncio

@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 package main
 
-import "testing"
+import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
+)
 
 func TestParseConfigRejectsEmpty(t *testing.T) {
 	if _, _, err := parseConfig("  "); err == nil {
@@ -39,6 +43,41 @@ func TestParseConfigPreservesOutboundArray(t *testing.T) {
 	}
 	if outs[1].Tag != "proxy" {
 		t.Fatalf("entry outbound tag = %q, want proxy", outs[1].Tag)
+	}
+}
+
+func TestProxyConnectsWithExistingDirectOutbound(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+	result := testProxy(ProxyTestRequest{
+		ID:        "existing-direct",
+		ConfigStr: `[{"type":"direct","tag":"direct"},{"type":"direct","tag":"proxy"}]`,
+		Target:    server.URL,
+		Timeout:   5,
+	})
+	if !result.IsWorking {
+		t.Fatalf("local connectivity through existing direct outbound failed: %s", result.Error)
+	}
+}
+
+func TestActiveScanningEnabledRequiresExplicitOptIn(t *testing.T) {
+	t.Setenv("ALLOW_ACTIVE_SCANNING", "false")
+	t.Setenv("FORCE_SCANNER", "")
+	if activeScanningEnabled() {
+		t.Fatal("active scanning must be disabled by default")
+	}
+
+	t.Setenv("ALLOW_ACTIVE_SCANNING", "yes")
+	if !activeScanningEnabled() {
+		t.Fatal("ALLOW_ACTIVE_SCANNING=yes must enable an explicit local opt-in")
+	}
+
+	t.Setenv("ALLOW_ACTIVE_SCANNING", "false")
+	t.Setenv("FORCE_SCANNER", "true")
+	if !activeScanningEnabled() {
+		t.Fatal("FORCE_SCANNER=true must preserve the diagnostic override")
 	}
 }
 

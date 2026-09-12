@@ -312,6 +312,7 @@ async function loadProxiesPage() {
         // Initial Data Processing
         allProxies = proxies.map(processProxyData);
         filteredProxies = [...allProxies];
+        sortProxies();
 
         // Populate Dropdowns
         populateDropdowns(allProxies);
@@ -676,7 +677,6 @@ function renderTable() {
 
     tbody.appendChild(frag);
     if(window.inlineIcons) window.inlineIcons.replace();
-    if(window.feather && typeof window.feather.replace === 'function') window.feather.replace();
 
     // History charts removed in favor of Process column
 }
@@ -780,7 +780,10 @@ function setupFilters() {
         currentPage = 1;
 
         applyCountryTheme(fCountry);
-        sortProxies();
+        // Relevance is the useful ordering while a fuzzy query is active.
+        // Sorting it again by the table's default latency both discards that
+        // ordering and adds another full-list sort on every keystroke.
+        if (!search) sortProxies();
         renderTable();
         updatePaginationInfo();
     };

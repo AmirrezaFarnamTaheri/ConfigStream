@@ -6,13 +6,12 @@ from configstream.geoip import GeoIPResolver
 
 @pytest.fixture
 def resolver():
-    # Reset singleton for test
-    GeoIPResolver._instance = None
+    # These tests exercise lookup failures, not filesystem/database opening.
     with (
-        patch("configstream.geoip.Path.exists", return_value=True),
-        patch("geoip2.database.Reader"),
+        patch.object(GeoIPResolver, "_instance", None),
+        patch.object(GeoIPResolver, "_open_database", return_value=(MagicMock(), 0.0)),
     ):
-        return GeoIPResolver()
+        yield GeoIPResolver()
 
 
 @pytest.mark.asyncio

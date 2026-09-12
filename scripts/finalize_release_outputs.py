@@ -15,9 +15,15 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
-from configstream.constants import is_tester_infrastructure_drop_reason
 from configstream.constants import ARTIFACT_TRANSIENT_SUFFIXES as TRANSIENT_SUFFIXES
 from configstream.output.client_formats import generate_xray_config
+from configstream.release_policy import (
+    MIN_SOURCE_COVERAGE,
+    MAX_TESTER_ERROR_RATIO,
+    coverage_fraction,
+    tester_error_count,
+    tester_errors_block_release,
+)
 
 try:
     from scripts.public_client_configs import (
@@ -446,16 +452,21 @@ def _blockers(metadata: dict[str, Any], threshold: float) -> list[str]:
         )
     # metadata.time_limited is deliberately NOT a blocker: it means source
     # intake stopped at the batch window, not that published proxies are bad.
-    # Every emitted proxy still passed testing, native-client validation, and
-    # the coverage gate below. The gate classifies the residual
+    # Working proxies remain distinct from unverified candidates. Native-client
+    # validation and coverage still apply. The gate classifies the residual
     # "pipeline_time_limited" note as non-blocking (see release_gate).
     tester_errors = 0
     drop_reasons = metadata.get("drop_reasons")
     if isinstance(drop_reasons, dict):
-        for key, value in drop_reasons.items():
-            if is_tester_infrastructure_drop_reason(key):
-                tester_errors += int(value or 0)
-    if tester_errors:
+        try:
+            tester_errors = tester_error_count(drop_reasons)
+        except ValueError:
+            reasons.append("invalid_tester_error_counts")
+    if tester_errors_block_release(
+        tester_errors,
+        int(metadata.get("total_tested", metadata.get("tested")) or 0),
+        int(metadata.get("logical_total_working", metadata.get("total_working")) or 0),
+    ):
         reasons.append(f"tester_errors:{tester_errors}")
     candidates = int(
         metadata.get("shielded_candidate_count") or metadata.get("shielded_count") or 0
@@ -614,7 +625,11 @@ def finalize(root: Path, repo_root: Path, threshold: float) -> None:
         "schema_validated": False,
         "native_clients_validated": False,
         "release_blockers": reasons,
-        "notes": ["Promoted to ok only by scripts/release_gate.py"],
+        "notes": [
+            "Promoted to ok only by scripts/release_gate.py",
+            f"Minimum usable-source coverage: {threshold:.0%}",
+            f"Maximum tester infrastructure error fraction: {MAX_TESTER_ERROR_RATIO:.0%}",
+        ],
     }
     _write(root / "health.json", health)
     (root / "api").mkdir(parents=True, exist_ok=True)
@@ -664,14 +679,14 @@ def main() -> int:
     parser.add_argument("--repo-root", type=Path, default=Path.cwd())
     parser.add_argument(
         "--min-source-coverage",
-        type=float,
-        default=float(os.environ.get("MIN_SOURCE_COVERAGE", "0.80")),
+        type=coverage_fraction,
+        default=os.environ.get("MIN_SOURCE_COVERAGE", str(MIN_SOURCE_COVERAGE)),
     )
     args = parser.parse_args()
     finalize(
         args.artifact_dir.resolve(),
         args.repo_root.resolve(),
-        max(0.0, min(args.min_source_coverage, 1.0)),
+        args.min_source_coverage,
     )
     print(f"Finalized release artifact at {args.artifact_dir}")
     return 0

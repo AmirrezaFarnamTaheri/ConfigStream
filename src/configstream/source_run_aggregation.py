@@ -9,7 +9,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Iterable, Tuple, cast
+from typing import Any, Dict, Iterable, Tuple
 
 from .config import AppSettings
 from .security_validator import SecurityValidator
@@ -36,6 +36,12 @@ class _SourceRunAggregate:
     base_failures: int
     base_status: str
     chunks: Dict[int, _ChunkResult] = field(default_factory=dict)
+    fetched: int = 0
+    working: int = 0
+    duration_ms: float = 0.0
+    geoip_stats: Dict[str, int] = field(default_factory=dict)
+    failure_modes: Dict[str, int] = field(default_factory=dict)
+    fingerprint_key_counts: Dict[FingerprintKey, int] = field(default_factory=dict)
 
 
 def _normalized_counts(values: Dict[str, int]) -> Dict[str, int]:
@@ -47,13 +53,46 @@ def _normalized_counts(values: Dict[str, int]) -> Dict[str, int]:
     return normalized
 
 
-def _merge_counts(chunks: Iterable[_ChunkResult], field_name: str) -> Dict[str, int]:
-    merged: Dict[str, int] = {}
-    for chunk in chunks:
-        values = cast(Dict[str, int], getattr(chunk, field_name))
-        for key, value in values.items():
-            merged[key] = merged.get(key, 0) + value
-    return merged
+def _apply_counts(
+    aggregate: Dict[str, int], values: Dict[str, int], multiplier: int
+) -> None:
+    """Apply one chunk's counts, removing zero-valued aggregate entries."""
+    for key, value in values.items():
+        updated = aggregate.get(key, 0) + (value * multiplier)
+        if updated > 0:
+            aggregate[key] = updated
+        else:
+            aggregate.pop(key, None)
+
+
+def _apply_chunk(
+    aggregate: _SourceRunAggregate, chunk_id: int, chunk: _ChunkResult
+) -> None:
+    """Replace a chunk while maintaining run totals in constant time."""
+    previous = aggregate.chunks.get(chunk_id)
+    if previous is not None:
+        aggregate.fetched -= previous.fetched
+        aggregate.working -= previous.working
+        aggregate.duration_ms -= previous.duration_ms
+        _apply_counts(aggregate.geoip_stats, previous.geoip_stats, -1)
+        _apply_counts(aggregate.failure_modes, previous.failure_modes, -1)
+        for key in previous.fingerprint_keys:
+            count = aggregate.fingerprint_key_counts[key] - 1
+            if count:
+                aggregate.fingerprint_key_counts[key] = count
+            else:
+                del aggregate.fingerprint_key_counts[key]
+
+    aggregate.chunks[chunk_id] = chunk
+    aggregate.fetched += chunk.fetched
+    aggregate.working += chunk.working
+    aggregate.duration_ms += chunk.duration_ms
+    _apply_counts(aggregate.geoip_stats, chunk.geoip_stats, 1)
+    _apply_counts(aggregate.failure_modes, chunk.failure_modes, 1)
+    for key in chunk.fingerprint_keys:
+        aggregate.fingerprint_key_counts[key] = (
+            aggregate.fingerprint_key_counts.get(key, 0) + 1
+        )
 
 
 def _diversity_score(country_counts: Dict[str, int]) -> float:
@@ -228,42 +267,39 @@ def record_source_chunk(
     # atomic with respect to other consumer threads for this tracker.
     with tracker._lock:
         aggregate = _get_aggregate(tracker, logical_run_id, url)
-        aggregate.chunks[chunk_id] = chunk
-        chunks = list(aggregate.chunks.values())
-        total_fetched = sum(item.fetched for item in chunks)
-        total_working = sum(item.working for item in chunks)
-        total_duration_ms = sum(item.duration_ms for item in chunks)
-        merged_geoip = _merge_counts(chunks, "geoip_stats")
-        merged_failures = _merge_counts(chunks, "failure_modes")
-        merged_fingerprints = {key for item in chunks for key in item.fingerprint_keys}
-        diversity = _diversity_score(merged_geoip)
+        _apply_chunk(aggregate, chunk_id, chunk)
+        diversity = _diversity_score(aggregate.geoip_stats)
 
-        _persist_source_state(
-            tracker,
-            url,
-            aggregate,
-            total_fetched,
-            total_working,
-            diversity,
-        )
-        _persist_run_row(
-            tracker,
-            url,
-            logical_run_id,
-            timestamp,
-            total_duration_ms,
-            total_fetched,
-            total_working,
-            merged_geoip,
-            merged_failures,
-            batch_source,
-        )
+        # QualityStorage supports nested transactions. Keeping source state and
+        # the corresponding run row in this outer transaction gives them one
+        # commit boundary and avoids an observable half-applied quality update.
+        with tracker._transaction():
+            _persist_source_state(
+                tracker,
+                url,
+                aggregate,
+                aggregate.fetched,
+                aggregate.working,
+                diversity,
+            )
+            _persist_run_row(
+                tracker,
+                url,
+                logical_run_id,
+                timestamp,
+                aggregate.duration_ms,
+                aggregate.fetched,
+                aggregate.working,
+                aggregate.geoip_stats,
+                aggregate.failure_modes,
+                batch_source,
+            )
         try:
             _persist_fingerprint(
                 url,
                 logical_run_id,
                 timestamp,
-                merged_fingerprints,
+                aggregate.fingerprint_key_counts,
             )
         except (OSError, TypeError, ValueError) as exc:
             logger.debug(

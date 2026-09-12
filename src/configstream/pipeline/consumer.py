@@ -139,6 +139,7 @@ async def processing_consumer(
     if washer is None:
         washer = ProxyWasher(AppSettings().WARP_KEY_POOL)
     washer_ready = False
+    revival_stop_logged = False
 
     while True:
         # The producer sends None as sentinel when done, which is the proper
@@ -283,7 +284,21 @@ async def processing_consumer(
 
         # 4. Proxy Revival Loop
         if failed_proxies:
-            if not tester.go_tester.available:
+            if stop_event.is_set():
+                # The time-limit watcher stops intake but deliberately leaves
+                # consumers alive to drain queued work.  Revival is optional
+                # and can invoke several long-lived chain tests per failed
+                # proxy, so beginning it after intake has stopped can consume
+                # the entire shutdown grace period without progressing the
+                # queue. Preserve the normal failed-result accounting and
+                # continue draining queued work.
+                if not revival_stop_logged:
+                    logger.info(
+                        "Skipping optional proxy revival after intake stop; "
+                        "continuing queued-result processing."
+                    )
+                    revival_stop_logged = True
+            elif not tester.go_tester.available:
                 logger.info(
                     "Skipping proxy revival (WARP) because Go tester is unavailable."
                 )
@@ -415,8 +430,12 @@ async def _record_source_outcome(
             int(stats.start_time.timestamp()),
             fingerprint_keys,
         )
-    except Exception:  # nosec B110
-        logging.getLogger(__name__).debug("Suppressed broad exception")
+    except Exception as exc:  # nosec B110
+        logger.debug(
+            "Source quality outcome recording failed for %s: %s",
+            SecurityValidator.sanitize_log_message(source),
+            SecurityValidator.sanitize_log_message(str(exc)),
+        )
 
 
 def _deduplicate_batch(
@@ -637,8 +656,8 @@ async def _test_candidates(
                             )
                         )
                     # Only count tester_error when Python fallback also could
-                    # not complete a test. Recovered proxies must not block
-                    # release_gate, which treats any tester_error as fatal.
+                    # not complete a test. Recovered proxies must not consume
+                    # the release gate's infrastructure error budget.
                     if fallback_exceptions:
                         async with seen_lock:
                             stats.drop_reasons["tester_error"] = (

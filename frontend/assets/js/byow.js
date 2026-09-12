@@ -18,19 +18,30 @@ const BYOW_DISABLED_MESSAGE =
     'tools/worker.js and configure one compatible raw-TCP upstream manually.';
 
 document.addEventListener('DOMContentLoaded', () => {
-    const button = document.getElementById('generatePrivateBridgeBtn');
-    const input = document.getElementById('userWorkerUrl');
+    const inputs = [
+        document.getElementById('userWorkerUrl'),
+        document.getElementById('worker-url'),
+        document.getElementById('worker-uuid'),
+    ].filter(Boolean);
+    const buttons = [
+        document.getElementById('generatePrivateBridgeBtn'),
+        document.getElementById('apply-byow-btn'),
+    ].filter(Boolean);
 
-    if (input) {
+    inputs.forEach((input) => {
         input.disabled = true;
         input.setAttribute('aria-disabled', 'true');
         input.placeholder = 'Manual BYOW configuration required';
-    }
+    });
 
-    if (button) {
+    buttons.forEach((button) => {
         button.disabled = true;
         button.setAttribute('aria-disabled', 'true');
+        button.setAttribute('aria-label', 'Manual Bridge Setup Required');
         button.title = BYOW_DISABLED_MESSAGE;
+        // i18n.js updates data-i18n nodes after DOMContentLoaded. Remove this
+        // legacy key so it cannot restore the old actionable label.
+        button.removeAttribute('data-i18n');
         button.replaceChildren();
 
         const icon = document.createElement('i');
@@ -41,9 +52,9 @@ document.addEventListener('DOMContentLoaded', () => {
         button.appendChild(icon);
         button.appendChild(document.createTextNode(' '));
         button.appendChild(label);
-    }
+    });
 
-    const group = document.querySelector('.byow-input-group');
+    const group = document.querySelector('.byow-input-group, .byow-panel');
     if (group && !document.getElementById('byowSafetyNotice')) {
         const notice = document.createElement('p');
         notice.id = 'byowSafetyNotice';

@@ -67,7 +67,7 @@ def _parse_url_scheme(config: str, protocol: str, default_port: int) -> Optional
 
         if not parsed.hostname or len(parsed.hostname) > 255:
             return None
-        port = parsed.port or default_port
+        port = parsed.port if parsed.port is not None else default_port
         if not (1 <= port <= 65535):
             return None
 
@@ -75,10 +75,10 @@ def _parse_url_scheme(config: str, protocol: str, default_port: int) -> Optional
 
         # Capture password if present (standard URL parsing)
         if parsed.password:
-            details["password"] = parsed.password
+            details["password"] = unquote(parsed.password)
 
         # Special handling for username as uuid or private_key
-        cred = parsed.username or ""
+        cred = unquote(parsed.username or "")
 
         proxy = Proxy(
             config=config,
@@ -92,7 +92,7 @@ def _parse_url_scheme(config: str, protocol: str, default_port: int) -> Optional
         if cred:
             # Different protocols expect credentials in different fields
             # We'll put it in both places and let the converter sort it out
-            proxy.details["password"] = cred
+            proxy.details.setdefault("password", cred)
             proxy.details["username"] = cred
         normalize_proxy_details(proxy)
         return proxy
@@ -489,6 +489,6 @@ def parse_ssh(config: str) -> Optional[Proxy]:
         # SSH Tunnels: Parse credentials
         parsed = urlparse(config)
         if parsed.password:
-            proxy.details["password"] = parsed.password
+            proxy.details["password"] = unquote(parsed.password)
 
     return proxy

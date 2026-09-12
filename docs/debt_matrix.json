@@ -576,7 +576,7 @@
     },
     {
       "path": "src/configstream/converters/clash.py",
-      "line": 194,
+      "line": 217,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1088,7 +1088,7 @@
     },
     {
       "path": "src/configstream/pipeline/consumer.py",
-      "line": 191,
+      "line": 192,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1096,7 +1096,7 @@
     },
     {
       "path": "src/configstream/pipeline/consumer.py",
-      "line": 418,
+      "line": 433,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1104,7 +1104,7 @@
     },
     {
       "path": "src/configstream/pipeline/consumer.py",
-      "line": 504,
+      "line": 523,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1112,7 +1112,7 @@
     },
     {
       "path": "src/configstream/pipeline/consumer.py",
-      "line": 599,
+      "line": 618,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1120,7 +1120,7 @@
     },
     {
       "path": "src/configstream/pipeline/consumer.py",
-      "line": 613,
+      "line": 632,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1128,7 +1128,7 @@
     },
     {
       "path": "src/configstream/pipeline/consumer.py",
-      "line": 811,
+      "line": 830,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1136,7 +1136,7 @@
     },
     {
       "path": "src/configstream/pipeline/consumer.py",
-      "line": 829,
+      "line": 848,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1144,7 +1144,7 @@
     },
     {
       "path": "src/configstream/pipeline/consumer.py",
-      "line": 870,
+      "line": 889,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1176,7 +1176,7 @@
     },
     {
       "path": "src/configstream/pipeline/core.py",
-      "line": 458,
+      "line": 465,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1184,7 +1184,7 @@
     },
     {
       "path": "src/configstream/pipeline/core.py",
-      "line": 485,
+      "line": 492,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1648,7 +1648,7 @@
     },
     {
       "path": "src/configstream/testers/python.py",
-      "line": 135,
+      "line": 85,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1656,7 +1656,7 @@
     },
     {
       "path": "src/configstream/testers/python.py",
-      "line": 211,
+      "line": 117,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1664,7 +1664,7 @@
     },
     {
       "path": "src/configstream/testers/python.py",
-      "line": 245,
+      "line": 218,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1672,7 +1672,7 @@
     },
     {
       "path": "src/configstream/testers/python.py",
-      "line": 266,
+      "line": 295,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1680,15 +1680,15 @@
     },
     {
       "path": "src/configstream/testers/python.py",
-      "line": 290,
+      "line": 329,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
       "text": "Broad exception boundary requires semantic review and structured outcome."
     },
     {
-      "path": "src/configstream/testers/utils.py",
-      "line": 22,
+      "path": "src/configstream/testers/python.py",
+      "line": 374,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",

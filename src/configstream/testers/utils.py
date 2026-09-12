@@ -1,55 +1,56 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-import os
-import logging
-import tempfile
-import stat
-import threading
+"""Private temporary configs with retryable cleanup."""
+
 import atexit
-from typing import Set
+import logging
+import os
+import stat
+import tempfile
+import threading
 from contextlib import contextmanager
+from typing import Iterator, Set
+
+from ..security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
-
 _TEMP_FILES: Set[str] = set()
 _TEMP_FILES_LOCK = threading.Lock()
 
 
-def _cleanup_temp_files():
-    for path in _TEMP_FILES:
-        try:
-            if os.path.exists(path):
-                os.unlink(path)
-        except Exception:  # nosec B110
-            logging.getLogger(__name__).debug("Suppressed broad exception")
-            pass
+def _remove_temp_file(path: str) -> None:
+    try:
+        os.unlink(path)
+    except FileNotFoundError:
+        pass
+    except OSError as exc:
+        logger.warning(
+            "Temporary config cleanup failed: %s",
+            SecurityValidator.sanitize_log_message(str(exc)),
+        )
+        return  # Retain ownership so shutdown can retry.
+    with _TEMP_FILES_LOCK:
+        _TEMP_FILES.discard(path)
+
+
+def _cleanup_temp_files() -> None:
+    with _TEMP_FILES_LOCK:
+        paths = tuple(_TEMP_FILES)
+    for path in paths:
+        _remove_temp_file(path)
 
 
 atexit.register(_cleanup_temp_files)
 
 
 @contextmanager
-def SecureConfigContext(content: str):
+def SecureConfigContext(content: str) -> Iterator[str]:
     fd, path = tempfile.mkstemp(suffix=".json")
     with _TEMP_FILES_LOCK:
         _TEMP_FILES.add(path)
     try:
-        os.chmod(path, stat.S_IRUSR | stat.S_IWUSR)
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            f.write(content)
-            f.flush()
-        if not os.path.exists(path):
-            raise OSError(f"Failed to create temp config file at {path}")
-        logger.debug(f"Created temp config file: {path}")
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            os.chmod(path, stat.S_IRUSR | stat.S_IWUSR)
+            stream.write(content)
         yield path
     finally:
-        try:
-            # os.unlink raises FileNotFoundError if file doesn't exist, which is fine
-            os.unlink(path)
-        except FileNotFoundError:
-            pass
-        except OSError as e:
-            logger.warning(f"Failed to unlink temp file {path}: {e}")
-        finally:
-            with _TEMP_FILES_LOCK:
-                _TEMP_FILES.discard(path)
-            logger.debug(f"Cleaned up temp config file: {path}")
+        _remove_temp_file(path)

@@ -14,7 +14,7 @@ ConfigStream supports **26+ protocols** with comprehensive parsing and validatio
 | Protocol | Kind | Parser Module | Sing-box Export | Clash Export | Notes |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **brook** | canonical | `parse_brook` | no | no | Brook parser support; export support is limited. |
-| **http** | canonical | `parse_generic_url_scheme` | yes | no | Generic HTTP proxy and naked host:port parsing; Sing-box export is implemented. |
+| **http** | canonical | `parse_generic_url_scheme` | yes | yes | Generic HTTP proxy and naked host:port parsing; Sing-box and Clash/Mihomo exports preserve authentication and HTTPS TLS. |
 | **hysteria** | canonical | `parse_hysteria` | yes | no | Hysteria URI parsing is supported; not all legacy clients support export. |
 | **hysteria2** | canonical | `parse_hysteria2` | yes | yes | Hysteria2 URI parsing and Sing-box export support. |
 | **juicity** | canonical | `parse_juicity` | no | no | Juicity parser support; generated client export support is not currently implemented. |

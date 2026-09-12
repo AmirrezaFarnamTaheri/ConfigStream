@@ -2,12 +2,6 @@
   "policy": "Vendored assets preserve the previous online runtime experience. If an exact local equivalent is unavailable, keep any reduced offline fallback separate from the primary UI path.",
   "libraries": [
     {
-      "name": "feather-icons",
-      "version": "4.29.1",
-      "source": "https://unpkg.com/feather-icons@4.29.1/dist/feather.min.js",
-      "local": "assets/libs/feather.min.js"
-    },
-    {
       "name": "three",
       "version": "0.160.0",
       "source": "https://unpkg.com/three@0.160.0/build/three.min.js",
