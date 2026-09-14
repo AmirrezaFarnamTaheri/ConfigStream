@@ -3272,7 +3272,7 @@
       "version": "7.1.8"
     },
     {
-      "bom-ref": "pkg:pypi/certifi@2025.11.12",
+      "bom-ref": "pkg:pypi/certifi@2026.7.22",
       "name": "certifi",
       "properties": [
         {
@@ -3288,10 +3288,10 @@
           "value": "requirements-prod.txt"
         }
       ],
-      "purl": "pkg:pypi/certifi@2025.11.12",
+      "purl": "pkg:pypi/certifi@2026.7.22",
       "scope": "required",
       "type": "library",
-      "version": "2025.11.12"
+      "version": "2026.7.22"
     },
     {
       "bom-ref": "pkg:pypi/charset-normalizer@3.4.4",

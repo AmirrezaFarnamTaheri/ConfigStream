@@ -141,7 +141,7 @@ Unknown licenses requiring external resolution: **147**
 | python | `attrs` | `25.4.0` | required | unknown |
 | python | `beautifulsoup4` | `4.15.0` | required | unknown |
 | python | `cachetools` | `7.1.8` | required | unknown |
-| python | `certifi` | `2025.11.12` | required | unknown |
+| python | `certifi` | `2026.7.22` | required | unknown |
 | python | `charset-normalizer` | `3.4.4` | required | unknown |
 | python | `click` | `8.3.3` | required | unknown |
 | python | `cryptography` | `50.0.0` | required | unknown |

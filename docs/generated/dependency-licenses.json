@@ -1303,7 +1303,7 @@
       "name": "certifi",
       "scope": "required",
       "source": "requirements-prod.txt",
-      "version": "2025.11.12"
+      "version": "2026.7.22"
     },
     {
       "ecosystem": "python",
