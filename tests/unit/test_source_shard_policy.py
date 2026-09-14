@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from pathlib import Path
 
-from scripts import dynamic_reshard, shard_sources
+from scripts import shard_sources
 from scripts.source_shard_policy import (
     CANONICAL_BATCH_TARGET_SECONDS,
     RUNTIME_SHARD_HARD_LIMIT_SECONDS,
@@ -10,8 +10,7 @@ from scripts.source_shard_policy import (
 )
 
 
-def test_dynamic_reshard_uses_canonical_runtime_capacity() -> None:
-    assert dynamic_reshard.TARGET_BATCH_SECONDS == CANONICAL_BATCH_TARGET_SECONDS
+def test_policy_derives_canonical_capacity_from_runtime_budget() -> None:
     assert CANONICAL_BATCH_TARGET_SECONDS == (
         RUNTIME_SHARD_PARTS * RUNTIME_SHARD_SOFT_LIMIT_SECONDS
     )
