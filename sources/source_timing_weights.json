@@ -1,0 +1,9 @@
+{
+  "default_weight": 23414,
+  "schema_version": 1,
+  "source_set_sha256": "ddeed43d8406dcff86a664248aa7fdb7b88f93ecc2197f3b049933a3f8b89216",
+  "unit": "deciseconds",
+  "weights": {
+    "79b77d9e0ba63a82b42ca94f28521fd1cb6da73092b443cce5314f7409b071f2": 147097
+  }
+}
