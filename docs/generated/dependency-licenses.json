@@ -1816,7 +1816,7 @@
       "name": "uvicorn",
       "scope": "required",
       "source": "requirements-prod.txt",
-      "version": "0.40.0"
+      "version": "0.52.4"
     },
     {
       "ecosystem": "python",

@@ -4526,7 +4526,7 @@
       "version": "2.7.0"
     },
     {
-      "bom-ref": "pkg:pypi/uvicorn@0.40.0",
+      "bom-ref": "pkg:pypi/uvicorn@0.52.4",
       "name": "uvicorn",
       "properties": [
         {
@@ -4542,10 +4542,10 @@
           "value": "requirements-prod.txt"
         }
       ],
-      "purl": "pkg:pypi/uvicorn@0.40.0",
+      "purl": "pkg:pypi/uvicorn@0.52.4",
       "scope": "required",
       "type": "library",
-      "version": "0.40.0"
+      "version": "0.52.4"
     },
     {
       "bom-ref": "pkg:pypi/uvloop@0.22.1",
