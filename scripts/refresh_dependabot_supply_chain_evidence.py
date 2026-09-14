@@ -118,7 +118,7 @@ def _validated_context(
 
 
 def _ref_path(repository: str, branch: str) -> str:
-    return f"/repos/{repository}/git/ref/heads/{quote(branch, safe='/')}"
+    return f"/repos/{repository}/git/refs/heads/{quote(branch, safe='/')}"
 
 
 def _current_ref_sha(api: GitHubApi, branch: str) -> str:
