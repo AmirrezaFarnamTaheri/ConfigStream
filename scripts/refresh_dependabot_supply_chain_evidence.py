@@ -25,8 +25,12 @@ from urllib.request import Request, urlopen
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from scripts.generate_dependency_inventory import generate as generate_dependency_inventory
-from scripts.generate_supply_chain_evidence import generate as generate_supply_chain_evidence
+from scripts.generate_dependency_inventory import (
+    generate as generate_dependency_inventory,
+)
+from scripts.generate_supply_chain_evidence import (
+    generate as generate_supply_chain_evidence,
+)
 
 OUTPUT_PATHS = (
     "docs/generated/sbom.cdx.json",
@@ -268,7 +272,9 @@ def refresh(
         api, head_sha=head_sha, base_tree_sha=base_tree_sha, rendered=rendered
     )
     if _current_ref_sha(api, head_branch) != head_sha:
-        print("Dependabot branch moved while evidence was generated; skipping stale run.")
+        print(
+            "Dependabot branch moved while evidence was generated; skipping stale run."
+        )
         return None
     try:
         api.json(
