@@ -1247,7 +1247,7 @@
       "name": "anyio",
       "scope": "required",
       "source": "requirements-prod.txt",
-      "version": "4.12.0"
+      "version": "4.15.1"
     },
     {
       "ecosystem": "python",
@@ -1292,7 +1292,7 @@
       "name": "certifi",
       "scope": "required",
       "source": "requirements-prod.txt",
-      "version": "2025.11.12"
+      "version": "2026.7.22"
     },
     {
       "ecosystem": "python",
@@ -1652,7 +1652,7 @@
       "name": "python-dotenv",
       "scope": "required",
       "source": "requirements-prod.txt",
-      "version": "1.2.2"
+      "version": "1.2.3"
     },
     {
       "ecosystem": "python",
@@ -1805,7 +1805,7 @@
       "name": "uvicorn",
       "scope": "required",
       "source": "requirements-prod.txt",
-      "version": "0.40.0"
+      "version": "0.52.4"
     },
     {
       "ecosystem": "python",
