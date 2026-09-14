@@ -1,9 +1,26 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import subprocess
+import sys
+from pathlib import Path
 from typing import Any
 
 import pytest
 
 from scripts import refresh_dependabot_supply_chain_evidence as refresh
+
+
+def test_direct_script_entrypoint_can_import_repo_modules() -> None:
+    repo_root = Path(__file__).resolve().parents[2]
+    script = repo_root / "scripts" / "refresh_dependabot_supply_chain_evidence.py"
+    result = subprocess.run(
+        [sys.executable, str(script), "--help"],
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    assert "--repository" in result.stdout
 
 
 def test_validated_context_rejects_non_dependabot_branch() -> None:
