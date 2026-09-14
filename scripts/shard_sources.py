@@ -144,7 +144,9 @@ def load_timing_weights(sources_dir: Path) -> tuple[dict[str, int], int]:
         raw_vector = payload.get("weights_by_sorted_source")
         ordered_urls = sorted(canonical_urls)
         if not isinstance(raw_vector, list) or len(raw_vector) != len(ordered_urls):
-            raise SystemExit(f"invalid {TIMING_WEIGHTS_FILENAME}: malformed weight vector")
+            raise SystemExit(
+                f"invalid {TIMING_WEIGHTS_FILENAME}: malformed weight vector"
+            )
         weights: dict[str, int] = {}
         for url, value in zip(ordered_urls, raw_vector, strict=True):
             if not isinstance(value, int) or isinstance(value, bool) or value < 1:
