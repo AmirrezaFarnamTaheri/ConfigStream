@@ -76,7 +76,7 @@ class FakeApi(refresh.GitHubApi):
         *,
         payload: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        if method == "GET" and "/git/ref/heads/" in path:
+        if method == "GET" and "/git/refs/heads/" in path:
             return {"object": {"sha": self.ref}}
         if method == "PATCH":
             assert payload is not None
@@ -145,6 +145,9 @@ def test_refresh_updates_ref_only_after_rendered_commit(monkeypatch) -> None:
 
     assert commit == "c" * 40
     assert api.ref == "c" * 40
+    assert api.patched[0][0] == (
+        "/repos/owner/repo/git/refs/heads/dependabot/pip/anyio-4.15.1"
+    )
     assert api.patched[0][1] == {"sha": "c" * 40, "force": False}
 
 
