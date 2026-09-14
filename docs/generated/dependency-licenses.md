@@ -136,7 +136,7 @@ Unknown licenses requiring external resolution: **147**
 | python | `aiohttp-proxy` | `0.1.2` | required | unknown |
 | python | `aiohttp_socks` | `0.11.0` | required | unknown |
 | python | `aiosignal` | `1.4.0` | required | unknown |
-| python | `anyio` | `4.12.0` | required | unknown |
+| python | `anyio` | `4.15.1` | required | unknown |
 | python | `async-timeout` | `5.0.1` | required | unknown |
 | python | `attrs` | `25.4.0` | required | unknown |
 | python | `beautifulsoup4` | `4.15.0` | required | unknown |
