@@ -42,7 +42,11 @@ class FakeApi(refresh.GitHubApi):
         accept: str = "application/vnd.github+json",
     ) -> bytes:
         del accept
-        if method == "POST" and path.endswith("/actions/workflows/ci.yml/dispatches"):
+        if (
+            method == "POST"
+            and "/actions/workflows/" in path
+            and path.endswith("/dispatches")
+        ):
             assert payload is not None
             self.dispatched.append((path, payload))
             return b""
@@ -106,12 +110,16 @@ def test_refresh_noops_when_evidence_is_current(monkeypatch) -> None:
     assert not api.patched
 
 
-def test_dispatch_ci_targets_dependabot_branch() -> None:
+def test_dispatch_followup_checks_targets_dependabot_branch() -> None:
     api = FakeApi()
     branch = "dependabot/pip/anyio-4.15.1"
 
-    refresh._dispatch_ci(api, branch)
+    refresh._dispatch_followup_checks(api, branch)
 
     assert api.dispatched == [
-        ("/repos/owner/repo/actions/workflows/ci.yml/dispatches", {"ref": branch})
+        (
+            f"/repos/owner/repo/actions/workflows/{workflow}/dispatches",
+            {"ref": branch},
+        )
+        for workflow in refresh.FOLLOWUP_WORKFLOWS
     ]
