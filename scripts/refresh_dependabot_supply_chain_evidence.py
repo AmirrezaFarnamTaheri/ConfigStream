@@ -242,7 +242,8 @@ def refresh(
     if repository != api.repository:
         raise ValueError("repository context does not match API target")
     if _current_ref_sha(api, head_branch) != head_sha:
-        raise RuntimeError("Dependabot branch moved before evidence refresh")
+        print("Dependabot branch moved before evidence refresh; skipping stale run.")
+        return None
     base_tree_sha, tree_paths = _tree_paths(api, head_sha)
     rendered = _render_evidence(api, head_sha, tree_paths)
     if _outputs_are_current(api, head_sha, rendered):
@@ -252,12 +253,22 @@ def refresh(
         api, head_sha=head_sha, base_tree_sha=base_tree_sha, rendered=rendered
     )
     if _current_ref_sha(api, head_branch) != head_sha:
-        raise RuntimeError("Dependabot branch moved while evidence was generated")
-    api.json(
-        "PATCH",
-        _ref_path(repository, head_branch),
-        payload={"sha": commit_sha, "force": False},
-    )
+        print("Dependabot branch moved while evidence was generated; skipping stale run.")
+        return None
+    try:
+        api.json(
+            "PATCH",
+            _ref_path(repository, head_branch),
+            payload={"sha": commit_sha, "force": False},
+        )
+    except RuntimeError:
+        if _current_ref_sha(api, head_branch) != head_sha:
+            print(
+                "Dependabot branch moved before the evidence ref update; "
+                "discarding the stale generated commit."
+            )
+            return None
+        raise
     print(f"Updated {head_branch} with supply-chain evidence commit {commit_sha}.")
     return commit_sha
 
