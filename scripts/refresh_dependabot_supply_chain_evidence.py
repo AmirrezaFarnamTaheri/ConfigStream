@@ -68,7 +68,7 @@ class GitHubApi:
         )
         try:
             with urlopen(request, timeout=30) as response:  # nosec B310
-                return response.read()
+                return bytes(response.read())
         except HTTPError as exc:
             detail = exc.read().decode("utf-8", errors="replace")[:500]
             raise RuntimeError(
