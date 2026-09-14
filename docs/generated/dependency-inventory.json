@@ -93,7 +93,7 @@
         "source": "package.json"
       },
       {
-        "constraint": "^1.62.0",
+        "constraint": "^1.63.0",
         "name": "playwright",
         "scope": "devDependencies",
         "source": "package.json"

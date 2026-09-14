@@ -2,8 +2,8 @@
 
 Only licenses declared in checked-in package manifests/locks are reported. Unknown does not imply unlicensed.
 
-Components: **196**
-Manifest-declared licenses: **49**
+Components: **195**
+Manifest-declared licenses: **48**
 Unknown licenses requiring external resolution: **147**
 
 | Ecosystem | Package | Version | Scope | License evidence |
@@ -104,7 +104,6 @@ Unknown licenses requiring external resolution: **147**
 | npm | `@tybys/wasm-util` | `0.10.3` | optional | `MIT` |
 | npm | `detect-libc` | `2.1.2` | development | `Apache-2.0` |
 | npm | `fdir` | `6.5.0` | development | `MIT` |
-| npm | `fsevents` | `2.3.2` | optional | `MIT` |
 | npm | `lightningcss` | `1.32.0` | development | `MPL-2.0` |
 | npm | `lightningcss-android-arm64` | `1.32.0` | optional | `MPL-2.0` |
 | npm | `lightningcss-darwin-arm64` | `1.32.0` | optional | `MPL-2.0` |
@@ -120,8 +119,8 @@ Unknown licenses requiring external resolution: **147**
 | npm | `nanoid` | `3.3.18` | development | `MIT` |
 | npm | `picocolors` | `1.1.1` | development | `ISC` |
 | npm | `picomatch` | `4.0.5` | development | `MIT` |
-| npm | `playwright` | `1.62.0` | development | `Apache-2.0` |
-| npm | `playwright-core` | `1.62.0` | development | `Apache-2.0` |
+| npm | `playwright` | `1.63.0` | development | `Apache-2.0` |
+| npm | `playwright-core` | `1.63.0` | development | `Apache-2.0` |
 | npm | `postcss` | `8.5.28` | development | `MIT` |
 | npm | `rolldown` | `1.1.5` | development | `MIT` |
 | npm | `source-map-js` | `1.2.1` | development | `BSD-3-Clause` |

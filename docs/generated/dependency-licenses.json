@@ -1,5 +1,5 @@
 {
-  "component_count": 196,
+  "component_count": 195,
   "components": [
     {
       "ecosystem": "cargo",
@@ -917,17 +917,6 @@
       "ecosystem": "npm",
       "license_status": "declared",
       "licenses": [
-        "MIT"
-      ],
-      "name": "fsevents",
-      "scope": "optional",
-      "source": "package-lock.json",
-      "version": "2.3.2"
-    },
-    {
-      "ecosystem": "npm",
-      "license_status": "declared",
-      "licenses": [
         "MPL-2.0"
       ],
       "name": "lightningcss",
@@ -1098,7 +1087,7 @@
       "name": "playwright",
       "scope": "development",
       "source": "package-lock.json",
-      "version": "1.62.0"
+      "version": "1.63.0"
     },
     {
       "ecosystem": "npm",
@@ -1109,7 +1098,7 @@
       "name": "playwright-core",
       "scope": "development",
       "source": "package-lock.json",
-      "version": "1.62.0"
+      "version": "1.63.0"
     },
     {
       "ecosystem": "npm",
@@ -1865,7 +1854,7 @@
     }
   ],
   "evidence_basis": "Only licenses declared in checked-in package manifests/locks are reported. Unknown does not imply unlicensed.",
-  "known_license_count": 49,
+  "known_license_count": 48,
   "schema_version": 1,
   "unknown_license_count": 147
 }
