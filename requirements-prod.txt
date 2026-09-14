@@ -56,7 +56,7 @@ pydantic-settings==2.14.2
 pydantic==2.13.5
 pydantic_core==2.46.5
 pyparsing==3.3.2
-python-dotenv==1.2.2
+python-dotenv==1.2.3
 python-slugify==8.0.4
 python-socks==2.8.2
 python-telegram-bot==22.5
