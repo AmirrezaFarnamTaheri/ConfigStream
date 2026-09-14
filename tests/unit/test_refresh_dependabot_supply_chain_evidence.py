@@ -42,6 +42,70 @@ def test_input_paths_discovers_only_one_level_go_modules() -> None:
     ]
 
 
+def test_dependency_evidence_surface_includes_inventory_inputs_and_outputs() -> None:
+    assert refresh.OUTPUT_PATHS == (
+        "docs/generated/sbom.cdx.json",
+        "docs/generated/dependency-licenses.json",
+        "docs/generated/dependency-licenses.md",
+        "docs/generated/dependency-inventory.json",
+        "docs/generated/dependency-inventory.md",
+    )
+    assert {
+        ".github/dependabot.yml",
+        "config/container-images.json",
+        "package.json",
+        "requirements-publish.txt",
+    }.issubset(refresh.FIXED_INPUT_PATHS)
+
+
+class RenderApi(refresh.GitHubApi):
+    repository = "owner/repo"
+
+    def __init__(self) -> None:
+        self.requested: list[str] = []
+
+    def raw_file(self, path: str, ref: str) -> bytes:
+        assert ref == "a" * 40
+        self.requested.append(path)
+        return f"fixture:{path}\n".encode()
+
+
+def test_render_evidence_runs_all_dependency_generators(monkeypatch) -> None:
+    api = RenderApi()
+    calls: list[str] = []
+
+    def write_outputs(root: Path, paths: tuple[str, ...]) -> None:
+        for relative in paths:
+            target = root / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(f"generated:{relative}\n", encoding="utf-8")
+
+    def fake_supply_chain(root: Path, *, check: bool = False) -> list[str]:
+        assert not check
+        calls.append("supply-chain")
+        write_outputs(root, refresh.OUTPUT_PATHS[:3])
+        return []
+
+    def fake_inventory(root: Path, *, check: bool = False) -> list[str]:
+        assert not check
+        calls.append("inventory")
+        write_outputs(root, refresh.OUTPUT_PATHS[3:])
+        return []
+
+    monkeypatch.setattr(refresh, "generate_supply_chain_evidence", fake_supply_chain)
+    monkeypatch.setattr(refresh, "generate_dependency_inventory", fake_inventory)
+
+    rendered = refresh._render_evidence(
+        api,
+        "a" * 40,
+        ["src/go/tester/go.mod"],
+    )
+
+    assert calls == ["supply-chain", "inventory"]
+    assert tuple(rendered) == refresh.OUTPUT_PATHS
+    assert api.requested == [*refresh.FIXED_INPUT_PATHS, "src/go/tester/go.mod"]
+
+
 class FakeApi(refresh.GitHubApi):
     repository = "owner/repo"
 
