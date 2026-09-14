@@ -5,6 +5,7 @@ from pathlib import Path
 
 from scripts.aggregate_shard_health import expected_from_sources
 from scripts.shard_sources import (
+    MIN_RUNTIME_SHARD_PARTS,
     active_source_lines,
     load_quarantined_sources,
     partition,
@@ -31,7 +32,7 @@ def test_expected_shards_exclude_quarantine_only_batch(tmp_path: Path) -> None:
     active_expected = sum(
         bool(bucket)
         for bucket in partition(
-            active_source_lines(sources / "batch_2.txt", quarantined), 4
+            active_source_lines(sources / "batch_2.txt", quarantined), MIN_RUNTIME_SHARD_PARTS
         )
     )
 
@@ -49,3 +50,19 @@ def test_expected_shards_are_zero_when_every_source_is_quarantined(
     (sources / "quarantine.txt").write_text(url + "\n", encoding="utf-8")
 
     assert expected_from_sources(sources, parts=4) == 0
+
+
+def test_runtime_cost_quarantine_is_applied_without_mutating_admission(tmp_path: Path) -> None:
+    sources = tmp_path / "sources"
+    sources.mkdir()
+    url = "https://expensive.example/huge-list"
+    (sources / "batch_1.txt").write_text(url + "\n", encoding="utf-8")
+    (sources / "runtime_quarantine.txt").write_text(
+        "# production cost quarantine\n" + url + "\n", encoding="utf-8"
+    )
+
+    quarantined = load_quarantined_sources(sources)
+
+    assert quarantined == {url}
+    assert active_source_lines(sources / "batch_1.txt", quarantined) == []
+    assert expected_from_sources(sources, parts=6) == 0

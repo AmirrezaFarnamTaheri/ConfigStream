@@ -86,6 +86,30 @@ def test_runtime_timing_weights_accept_exact_subset_of_observed_sources(
     _validate_timing_weights(tmp_path, urls)
 
 
+def test_runtime_timing_weights_accept_compact_vector_schema(tmp_path: Path) -> None:
+    urls = {"https://a.example/sub", "https://b.example/sub"}
+    ordered = sorted(urls)
+    (tmp_path / "batch_1.txt").write_text("\n".join(ordered) + "\n", encoding="utf-8")
+    payload = {
+        "schema_version": 2,
+        "unit": "deciseconds",
+        "default_weight": 130,
+        "source_set_sha256": _source_set_sha256(urls),
+        "weights_by_sorted_source": [41, 73],
+    }
+    (tmp_path / TIMING_WEIGHTS_FILENAME).write_text(
+        json.dumps(payload), encoding="utf-8"
+    )
+
+    weights, default_weight = load_timing_weights(tmp_path)
+
+    assert weights == {
+        source_timing_id(ordered[0]): 41,
+        source_timing_id(ordered[1]): 73,
+    }
+    assert default_weight == 130
+
+
 def test_operator_validation_rejects_non_integer_weight(tmp_path: Path) -> None:
     urls = {"https://a.example/sub"}
     source_id = source_timing_id("https://a.example/sub")

@@ -1,0 +1,44 @@
+name: Dependabot Supply Chain Evidence
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: dependabot-evidence-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    name: Refresh generated dependency evidence
+    if: >-
+      github.event.workflow_run.event == 'pull_request' &&
+      startsWith(github.event.workflow_run.head_branch, 'dependabot/') &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.11'
+      - name: Refresh evidence on the Dependabot head branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CS_REPOSITORY: ${{ github.repository }}
+          CS_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          CS_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          printf '%s' "$GH_TOKEN" | python scripts/refresh_dependabot_supply_chain_evidence.py \
+            --repository "$CS_REPOSITORY" \
+            --head-branch "$CS_HEAD_BRANCH" \
+            --head-sha "$CS_HEAD_SHA" \
+            --token-stdin

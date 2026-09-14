@@ -20,7 +20,9 @@ from configstream.source_admission import (
 )
 
 QUARANTINE_FILENAME = "quarantine.txt"
+RUNTIME_QUARANTINE_FILENAME = "runtime_quarantine.txt"
 TIMING_WEIGHTS_FILENAME = "source_timing_weights.json"
+MIN_RUNTIME_SHARD_PARTS = 8
 
 
 def source_timing_id(url: str) -> str:
@@ -101,11 +103,11 @@ def partition(
 
 
 def load_timing_weights(sources_dir: Path) -> tuple[dict[str, int], int]:
-    """Load the optional governed runtime timing sidecar.
+    """Load optional governed runtime timing evidence.
 
-    Invalid or stale sidecars fail closed because silently ignoring corrupt
-    scheduling evidence would recreate the imbalance this file is meant to
-    prevent.
+    Schema v1 stores sparse opaque-ID weights and remains the reshard artifact
+    contract. Schema v2 stores the same effective weights as a compact vector
+    aligned to the sorted canonical source set. Both fail closed on drift.
     """
 
     path = sources_dir / TIMING_WEIGHTS_FILENAME
@@ -117,20 +119,45 @@ def load_timing_weights(sources_dir: Path) -> tuple[dict[str, int], int]:
         raise SystemExit(f"invalid {TIMING_WEIGHTS_FILENAME}: {exc}") from exc
     if not isinstance(payload, dict):
         raise SystemExit(f"invalid {TIMING_WEIGHTS_FILENAME}: expected object")
-    if payload.get("schema_version") != 1 or payload.get("unit") != "deciseconds":
+    schema_version = payload.get("schema_version")
+    if schema_version not in (1, 2) or payload.get("unit") != "deciseconds":
         raise SystemExit(f"invalid {TIMING_WEIGHTS_FILENAME}: unsupported schema")
 
     default_weight = payload.get("default_weight")
-    raw_weights = payload.get("weights", {})
     if (
         not isinstance(default_weight, int)
         or isinstance(default_weight, bool)
         or default_weight < 1
-        or not isinstance(raw_weights, dict)
     ):
         raise SystemExit(f"invalid {TIMING_WEIGHTS_FILENAME}: malformed weights")
 
-    weights: dict[str, int] = {}
+    canonical_urls = _canonical_source_urls(sources_dir)
+    expected_digest = _source_set_sha256(canonical_urls)
+    if payload.get("source_set_sha256") != expected_digest:
+        raise SystemExit(f"invalid {TIMING_WEIGHTS_FILENAME}: source-set mismatch")
+
+    if schema_version == 2:
+        raw_vector = payload.get("weights_by_sorted_source")
+        ordered_urls = sorted(canonical_urls)
+        if not isinstance(raw_vector, list) or len(raw_vector) != len(ordered_urls):
+            raise SystemExit(f"invalid {TIMING_WEIGHTS_FILENAME}: malformed weight vector")
+        weights: dict[str, int] = {}
+        for url, value in zip(ordered_urls, raw_vector, strict=True):
+            if (
+                not isinstance(value, int)
+                or isinstance(value, bool)
+                or value < 1
+            ):
+                raise SystemExit(
+                    f"invalid {TIMING_WEIGHTS_FILENAME}: invalid source weight"
+                )
+            weights[source_timing_id(url)] = value
+        return weights, default_weight
+
+    raw_weights = payload.get("weights", {})
+    if not isinstance(raw_weights, dict):
+        raise SystemExit(f"invalid {TIMING_WEIGHTS_FILENAME}: malformed weights")
+    weights = {}
     for key, value in raw_weights.items():
         if (
             not isinstance(key, str)
@@ -145,10 +172,6 @@ def load_timing_weights(sources_dir: Path) -> tuple[dict[str, int], int]:
             )
         weights[key] = value
 
-    canonical_urls = _canonical_source_urls(sources_dir)
-    expected_digest = _source_set_sha256(canonical_urls)
-    if payload.get("source_set_sha256") != expected_digest:
-        raise SystemExit(f"invalid {TIMING_WEIGHTS_FILENAME}: source-set mismatch")
     allowed_ids = {source_timing_id(url) for url in canonical_urls}
     if set(weights) - allowed_ids:
         raise SystemExit(
@@ -170,16 +193,19 @@ def _default_output_dir() -> Path:
 
 
 def load_quarantined_sources(sources_dir: Path) -> set[str]:
-    """Return explicitly quarantined source locators for runtime exclusion."""
+    """Return operator and runtime-cost quarantines for scheduled exclusion."""
 
-    path = sources_dir / QUARANTINE_FILENAME
-    if not path.is_file():
-        return set()
-    return {
-        line.strip()
-        for line in path.read_text(encoding="utf-8").splitlines()
-        if line.strip() and not line.lstrip().startswith("#")
-    }
+    quarantined: set[str] = set()
+    for filename in (QUARANTINE_FILENAME, RUNTIME_QUARANTINE_FILENAME):
+        path = sources_dir / filename
+        if not path.is_file():
+            continue
+        quarantined.update(
+            line.strip()
+            for line in path.read_text(encoding="utf-8").splitlines()
+            if line.strip() and not line.lstrip().startswith("#")
+        )
+    return quarantined
 
 
 def active_source_lines(source_file: Path, quarantined: set[str]) -> list[str]:
@@ -232,6 +258,7 @@ def main() -> int:
     args = parser.parse_args()
     if args.parts < 1:
         raise SystemExit("--parts must be >= 1")
+    runtime_parts = max(args.parts, MIN_RUNTIME_SHARD_PARTS)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     quarantined = load_quarantined_sources(args.sources_dir)
     timing_weights, default_weight = load_timing_weights(args.sources_dir)
@@ -242,7 +269,7 @@ def main() -> int:
         for part, bucket in enumerate(
             partition(
                 lines,
-                args.parts,
+                runtime_parts,
                 weights=timing_weights,
                 default_weight=default_weight,
             ),

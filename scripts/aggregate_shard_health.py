@@ -14,12 +14,14 @@ from urllib.parse import urlparse
 
 try:
     from shard_sources import (
+        MIN_RUNTIME_SHARD_PARTS,
         load_quarantined_sources,
         partition,
         runtime_source_lines,
     )
 except ModuleNotFoundError:
     from scripts.shard_sources import (
+        MIN_RUNTIME_SHARD_PARTS,
         load_quarantined_sources,
         partition,
         runtime_source_lines,
@@ -89,10 +91,11 @@ def expected_from_sources(sources_dir: Path, parts: int) -> int:
     """Count non-empty runtime shards using the canonical admission contract."""
 
     expected = 0
+    runtime_parts = max(parts, MIN_RUNTIME_SHARD_PARTS)
     quarantined = load_quarantined_sources(sources_dir)
     for source_file in sorted(sources_dir.glob("batch_*.txt")):
         lines = runtime_source_lines(source_file, quarantined)
-        expected += sum(bool(bucket) for bucket in partition(lines, parts))
+        expected += sum(bool(bucket) for bucket in partition(lines, runtime_parts))
     return expected
 
 

@@ -18,8 +18,10 @@ Safety contract:
   recommendation;
 - the timing sidecar must match that exact source set and contain only
   positive integer weights for known opaque source IDs;
-- every batch must carry an ``Est. Fetch Time`` header that matches the timing
-  sidecar and remains at or below dynamic_reshard.TARGET_BATCH_SECONDS;
+- every canonical batch must carry an ``Est. Fetch Time`` header that matches
+  the timing sidecar;
+- re-partitioning each canonical batch with the production runtime shard count
+  must keep every runtime shard within the configured hard time budget;
 - mutation requires a clean worktree so unrelated local changes cannot be
   overwritten or included in the generated commit;
 - a review branch is created before any source mutation;
@@ -43,13 +45,18 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 SRC_ROOT = REPO / "src"
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
 from configstream.source_admission import normalize_source_locator
+from scripts.shard_sources import load_quarantined_sources, partition
+
+RUNTIME_SHARD_PARTS = 8
+RUNTIME_SHARD_HARD_LIMIT_SECONDS = 15_300
 
 SOURCES_DIR = REPO / "sources"
-TARGET_BATCH_SECONDS = 14400.0
 EST_TIME_RE = re.compile(r"Est\. Fetch Time: ([\d.]+)s")
 TIMING_WEIGHTS_FILENAME = "source_timing_weights.json"
 
@@ -254,10 +261,28 @@ def _validate(recommendation: Path) -> dict[str, float]:
                 f"{path.name} estimate {declared_seconds:.1f}s does not match "
                 f"timing sidecar ({computed_seconds:.1f}s)"
             )
-        if computed_seconds > TARGET_BATCH_SECONDS:
+        runtime_quarantine = load_quarantined_sources(SOURCES_DIR)
+        runtime_buckets = partition(
+            [url for url in _source_lines(path) if url not in runtime_quarantine],
+            RUNTIME_SHARD_PARTS,
+            weights=timing_weights,
+            default_weight=default_weight,
+        )
+        runtime_estimates = [
+            sum(
+                timing_weights.get(_source_timing_id(url), default_weight)
+                for url in bucket
+            )
+            / 10.0
+            for bucket in runtime_buckets
+            if bucket
+        ]
+        worst_runtime = max(runtime_estimates, default=0.0)
+        if worst_runtime > RUNTIME_SHARD_HARD_LIMIT_SECONDS:
             raise SystemExit(
-                f"{path.name} estimate {computed_seconds:.0f}s exceeds target "
-                f"{TARGET_BATCH_SECONDS:.0f}s"
+                f"{path.name} runtime shard estimate {worst_runtime:.0f}s exceeds "
+                f"hard limit {RUNTIME_SHARD_HARD_LIMIT_SECONDS:.0f}s "
+                f"across {RUNTIME_SHARD_PARTS} parts"
             )
         estimates[path.name] = computed_seconds
     if not estimates:
@@ -422,7 +447,8 @@ def main(argv: list[str] | None = None) -> int:
         worst = max(estimates.values())
         print(
             f"recommendation OK: {len(estimates)} batches, "
-            f"slowest {worst:.0f}s (target {TARGET_BATCH_SECONDS:.0f}s)"
+            f"slowest canonical batch {worst:.0f}s; runtime shards must stay "
+            f"<= {RUNTIME_SHARD_HARD_LIMIT_SECONDS:.0f}s across {RUNTIME_SHARD_PARTS} parts"
         )
         if args.check:
             return 0
