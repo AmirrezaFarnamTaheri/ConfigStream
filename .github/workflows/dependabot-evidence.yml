@@ -7,7 +7,7 @@ on:
 
 permissions:
   contents: write
-  actions: read
+  actions: write
 
 concurrency:
   group: dependabot-evidence-${{ github.event.workflow_run.head_branch }}
