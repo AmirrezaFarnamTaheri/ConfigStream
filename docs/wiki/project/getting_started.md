@@ -109,7 +109,7 @@ Configuration is managed via environment variables (or a `.env` file in the proj
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `MAX_WORKERS` | `0` (auto) | Concurrency limit for testing |
+| `MAX_WORKERS` | `128` | Maximum concurrency for proxy testing |
 | `TEST_TIMEOUT` | `10` | Seconds before a proxy test times out |
 | `WARP_KEY_POOL` | `[]` | JSON array of WARP credentials for washing/shielding |
 | `EVASION_MODE` | `aggressive` | Evasion level: `standard`, `stealth`, `aggressive` |
