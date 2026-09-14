@@ -1,4 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+from typing import Any
+
 import pytest
 
 from scripts import refresh_dependabot_supply_chain_evidence as refresh
@@ -28,9 +30,31 @@ class FakeApi(refresh.GitHubApi):
 
     def __init__(self) -> None:
         self.ref = "a" * 40
-        self.patched: list[tuple[str, dict[str, object]]] = []
+        self.patched: list[tuple[str, dict[str, Any]]] = []
+        self.dispatched: list[tuple[str, dict[str, Any]]] = []
 
-    def json(self, method: str, path: str, *, payload=None):
+    def request(
+        self,
+        method: str,
+        path: str,
+        *,
+        payload: dict[str, Any] | None = None,
+        accept: str = "application/vnd.github+json",
+    ) -> bytes:
+        del accept
+        if method == "POST" and path.endswith("/actions/workflows/ci.yml/dispatches"):
+            assert payload is not None
+            self.dispatched.append((path, payload))
+            return b""
+        raise AssertionError((method, path, payload))
+
+    def json(
+        self,
+        method: str,
+        path: str,
+        *,
+        payload: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         if method == "GET" and "/git/ref/heads/" in path:
             return {"object": {"sha": self.ref}}
         if method == "PATCH":
@@ -80,3 +104,14 @@ def test_refresh_noops_when_evidence_is_current(monkeypatch) -> None:
         is None
     )
     assert not api.patched
+
+
+def test_dispatch_ci_targets_dependabot_branch() -> None:
+    api = FakeApi()
+    branch = "dependabot/pip/anyio-4.15.1"
+
+    refresh._dispatch_ci(api, branch)
+
+    assert api.dispatched == [
+        ("/repos/owner/repo/actions/workflows/ci.yml/dispatches", {"ref": branch})
+    ]
