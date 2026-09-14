@@ -69,8 +69,38 @@ class FakeApi(refresh.GitHubApi):
         raise AssertionError((method, path, payload))
 
 
-def test_refresh_updates_ref_only_after_rendered_commit(monkeypatch) -> None:
-    api = FakeApi()
+class PatchRaceApi(FakeApi):
+    def json(
+        self,
+        method: str,
+        path: str,
+        *,
+        payload: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        if method == "PATCH":
+            self.ref = "d" * 40
+            raise RuntimeError("non-fast-forward ref update")
+        return super().json(method, path, payload=payload)
+
+
+class PatchFailureApi(FakeApi):
+    def json(
+        self,
+        method: str,
+        path: str,
+        *,
+        payload: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        if method == "PATCH":
+            raise RuntimeError("ref update API failure")
+        return super().json(method, path, payload=payload)
+
+
+def _stub_evidence_generation(
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    commit_factory: Any | None = None,
+) -> None:
     monkeypatch.setattr(refresh, "_tree_paths", lambda _api, _sha: ("b" * 40, []))
     monkeypatch.setattr(
         refresh,
@@ -78,7 +108,16 @@ def test_refresh_updates_ref_only_after_rendered_commit(monkeypatch) -> None:
         lambda _api, _sha, _paths: {"docs/generated/sbom.cdx.json": "{}\n"},
     )
     monkeypatch.setattr(refresh, "_outputs_are_current", lambda *_args: False)
-    monkeypatch.setattr(refresh, "_create_commit", lambda *_args, **_kwargs: "c" * 40)
+    monkeypatch.setattr(
+        refresh,
+        "_create_commit",
+        commit_factory or (lambda *_args, **_kwargs: "c" * 40),
+    )
+
+
+def test_refresh_updates_ref_only_after_rendered_commit(monkeypatch) -> None:
+    api = FakeApi()
+    _stub_evidence_generation(monkeypatch)
 
     commit = refresh.refresh(
         api,
@@ -108,6 +147,77 @@ def test_refresh_noops_when_evidence_is_current(monkeypatch) -> None:
         is None
     )
     assert not api.patched
+
+
+def test_refresh_noops_when_branch_moved_before_run(monkeypatch) -> None:
+    api = FakeApi()
+    api.ref = "d" * 40
+
+    def unexpected_tree_lookup(*_args: Any, **_kwargs: Any) -> tuple[str, list[str]]:
+        raise AssertionError("stale run must stop before reading the old commit")
+
+    monkeypatch.setattr(refresh, "_tree_paths", unexpected_tree_lookup)
+
+    assert (
+        refresh.refresh(
+            api,
+            repository="owner/repo",
+            head_branch="dependabot/pip/certifi-2026.7.22",
+            head_sha="a" * 40,
+        )
+        is None
+    )
+    assert not api.patched
+
+
+def test_refresh_noops_when_branch_moves_during_generation(monkeypatch) -> None:
+    api = FakeApi()
+
+    def create_commit(*_args: Any, **_kwargs: Any) -> str:
+        api.ref = "d" * 40
+        return "c" * 40
+
+    _stub_evidence_generation(monkeypatch, commit_factory=create_commit)
+
+    assert (
+        refresh.refresh(
+            api,
+            repository="owner/repo",
+            head_branch="dependabot/pip/uvicorn-0.52.4",
+            head_sha="a" * 40,
+        )
+        is None
+    )
+    assert not api.patched
+
+
+def test_refresh_noops_when_branch_moves_during_ref_update(monkeypatch) -> None:
+    api = PatchRaceApi()
+    _stub_evidence_generation(monkeypatch)
+
+    assert (
+        refresh.refresh(
+            api,
+            repository="owner/repo",
+            head_branch="dependabot/pip/python-dotenv-1.2.3",
+            head_sha="a" * 40,
+        )
+        is None
+    )
+    assert api.ref == "d" * 40
+
+
+def test_refresh_preserves_real_ref_update_failures(monkeypatch) -> None:
+    api = PatchFailureApi()
+    _stub_evidence_generation(monkeypatch)
+
+    with pytest.raises(RuntimeError, match="ref update API failure"):
+        refresh.refresh(
+            api,
+            repository="owner/repo",
+            head_branch="dependabot/pip/anyio-4.15.1",
+            head_sha="a" * 40,
+        )
 
 
 def test_dispatch_followup_checks_targets_dependabot_branch() -> None:
