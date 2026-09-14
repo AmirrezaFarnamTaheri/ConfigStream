@@ -6,18 +6,18 @@ ConfigStream is configured via Environment Variables.
 
 | Variable | Default | Description |
 | :--- | :--- | :--- |
-| `MAX_WORKERS` | `0` | Override max workers (0 = auto-scale). |
+| `MAX_WORKERS` | `128` | Maximum proxy-test worker concurrency. |
 | `TEST_TIMEOUT` | `10` | Timeout in seconds for proxy testing. |
 | `FETCH_TIMEOUT` | `15` | Timeout in seconds for source fetching. |
 | `CANARY_URL` | `""` | Optional override target used during strict security checks. |
-| `MAX_LINES_PER_SOURCE` | `0` | Max lines processed per source payload (0 = unlimited). |
-| `MAX_CONFIG_LINE_LENGTH` | `0` | Max length of a single config line (0 = unlimited). |
-| `MAX_B64_INPUT_SIZE` | `0` | Max input size (bytes) before Base64 decode (0 = unlimited). |
-| `MAX_B64_OUTPUT_SIZE` | `0` | Max decoded size (bytes) before parsing (0 = unlimited). |
+| `MAX_LINES_PER_SOURCE` | `250000` | Maximum lines processed per source payload. |
+| `MAX_CONFIG_LINE_LENGTH` | `262144` | Maximum length in bytes of a single config line. |
+| `MAX_B64_INPUT_SIZE` | `8388608` | Maximum Base64 input size in bytes before decoding. |
+| `MAX_B64_OUTPUT_SIZE` | `33554432` | Maximum decoded Base64 size in bytes before parsing. |
 | `MAX_SOURCE_URL_LENGTH` | `2048` | Max source URL length. |
-| `MAX_SEEN_KEYS` | `0` | Max dedup keys retained in memory (0 = unlimited). |
-| `MAX_OPENVPN_CONFIG_SIZE` | `0` | Max OpenVPN config size (bytes) (0 = unlimited). |
-| `MAX_RESPONSE_SIZE` | `0` | Max fetch response size (bytes) (0 = unlimited). |
+| `MAX_SEEN_KEYS` | `2000000` | Maximum deduplication keys retained in memory. |
+| `MAX_OPENVPN_CONFIG_SIZE` | `2097152` | Maximum OpenVPN config size in bytes. |
+| `MAX_RESPONSE_SIZE` | `16777216` | Maximum remote fetch response size in bytes. |
 | `GO_TESTER_BATCH_SIZE` | `0` | Go tester batch size (0 = no chunking). |
 | `PY_TESTER_BATCH_SIZE` | `0` | Python tester batch size (0 = no chunking). |
 | `SOURCE_PROBATION_FAILURES` | `3` | Consecutive failures before a source enters probation (cooldown) status. |

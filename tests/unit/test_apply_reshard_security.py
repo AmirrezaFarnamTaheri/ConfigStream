@@ -196,3 +196,56 @@ def test_apply_rolls_back_when_publication_is_interrupted(
         apply_reshard._apply(recommendation)
 
     _assert_old_layout_restored(sources)
+
+
+def test_validate_accepts_canonical_batch_when_runtime_parts_fit(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    sources = tmp_path / "sources"
+    recommendation = tmp_path / "recommendation"
+    sources.mkdir()
+    recommendation.mkdir()
+    urls = {f"https://example.com/sub-{index}" for index in range(7)}
+    content = "\n".join(sorted(urls)) + "\n"
+    (sources / "batch_1.txt").write_text(content, encoding="utf-8")
+    (recommendation / "batch_1.txt").write_text(
+        "# Est. Fetch Time: 98000.0s\n" + content,
+        encoding="utf-8",
+    )
+    weights = {apply_reshard._source_timing_id(url): 140_000 for url in urls}
+    payload = {
+        "schema_version": 1,
+        "unit": "deciseconds",
+        "source_set_sha256": apply_reshard._source_set_sha256(urls),
+        "default_weight": 140_000,
+        "weights": weights,
+    }
+    (recommendation / apply_reshard.TIMING_WEIGHTS_FILENAME).write_text(
+        json.dumps(payload), encoding="utf-8"
+    )
+    monkeypatch.setattr(apply_reshard, "SOURCES_DIR", sources)
+
+    estimates = apply_reshard._validate(recommendation)
+
+    assert estimates == {"batch_1.txt": 98_000.0}
+
+
+def test_validate_rejects_runtime_part_over_hard_limit(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    sources = tmp_path / "sources"
+    recommendation = tmp_path / "recommendation"
+    sources.mkdir()
+    recommendation.mkdir()
+    url = "https://example.com/oversized-source"
+    (sources / "batch_1.txt").write_text(f"{url}\n", encoding="utf-8")
+    (recommendation / "batch_1.txt").write_text(
+        f"# Est. Fetch Time: 15400.0s\n{url}\n", encoding="utf-8"
+    )
+    _write_sidecar(recommendation, {url}, weight=154_000)
+    monkeypatch.setattr(apply_reshard, "SOURCES_DIR", sources)
+
+    with pytest.raises(SystemExit, match="runtime shard estimate"):
+        apply_reshard._validate(recommendation)

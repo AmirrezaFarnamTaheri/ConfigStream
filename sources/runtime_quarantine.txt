@@ -1,0 +1,8 @@
+# ConfigStream runtime-cost quarantine
+#
+# Production timing evidence from Actions run 34828538483 measured this feed at
+# about 14,710 seconds by itself with near-zero useful yield, consuming an entire
+# shard budget. Keep it in the canonical admitted inventory for provenance, but
+# exclude it from scheduled runtime work until fresh evidence shows bounded cost.
+
+https://raw.githubusercontent.com/MuRongPIG/Proxy-Master/main/socks4.txt
