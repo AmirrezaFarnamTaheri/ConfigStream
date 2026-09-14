@@ -23,7 +23,7 @@ def test_input_paths_discovers_only_one_level_go_modules() -> None:
     ]
 
 
-class FakeApi:
+class FakeApi(refresh.GitHubApi):
     repository = "owner/repo"
 
     def __init__(self) -> None:
