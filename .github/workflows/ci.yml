@@ -6,6 +6,7 @@ on:
     paths-ignore:
       - 'sources/backup_dynamic/**'
   pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
