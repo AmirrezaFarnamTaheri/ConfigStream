@@ -181,7 +181,7 @@ Unknown licenses requiring external resolution: **147**
 | python | `pydantic_core` | `2.46.5` | required | unknown |
 | python | `Pygments` | `2.20.0` | required | unknown |
 | python | `pyparsing` | `3.3.2` | required | unknown |
-| python | `python-dotenv` | `1.2.2` | required | unknown |
+| python | `python-dotenv` | `1.2.3` | required | unknown |
 | python | `python-slugify` | `8.0.4` | required | unknown |
 | python | `python-socks` | `2.8.2` | required | unknown |
 | python | `python-telegram-bot` | `22.5` | required | unknown |

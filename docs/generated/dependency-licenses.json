@@ -1663,7 +1663,7 @@
       "name": "python-dotenv",
       "scope": "required",
       "source": "requirements-prod.txt",
-      "version": "1.2.2"
+      "version": "1.2.3"
     },
     {
       "ecosystem": "python",

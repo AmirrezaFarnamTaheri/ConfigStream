@@ -4152,7 +4152,7 @@
       "version": "3.3.2"
     },
     {
-      "bom-ref": "pkg:pypi/python-dotenv@1.2.2",
+      "bom-ref": "pkg:pypi/python-dotenv@1.2.3",
       "name": "python-dotenv",
       "properties": [
         {
@@ -4168,10 +4168,10 @@
           "value": "requirements-prod.txt"
         }
       ],
-      "purl": "pkg:pypi/python-dotenv@1.2.2",
+      "purl": "pkg:pypi/python-dotenv@1.2.3",
       "scope": "required",
       "type": "library",
-      "version": "1.2.2"
+      "version": "1.2.3"
     },
     {
       "bom-ref": "pkg:pypi/python-slugify@8.0.4",
