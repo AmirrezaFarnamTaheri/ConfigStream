@@ -13,8 +13,8 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import re
+import sys
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -259,18 +259,19 @@ def refresh(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--repository", default=os.environ.get("CS_REPOSITORY"))
-    parser.add_argument("--head-branch", default=os.environ.get("CS_HEAD_BRANCH"))
-    parser.add_argument("--head-sha", default=os.environ.get("CS_HEAD_SHA"))
+    parser.add_argument("--repository", required=True)
+    parser.add_argument("--head-branch", required=True)
+    parser.add_argument("--head-sha", required=True)
+    parser.add_argument("--api-url", default="https://api.github.com")
     parser.add_argument(
-        "--api-url", default=os.environ.get("GITHUB_API_URL", "https://api.github.com")
+        "--token-stdin", action="store_true", help="read the GitHub token from stdin"
     )
     args = parser.parse_args(argv)
-    token = os.environ.get("GH_TOKEN")
+    if not args.token_stdin:
+        raise SystemExit("--token-stdin is required")
+    token = sys.stdin.read().strip()
     if not token:
-        raise SystemExit("GH_TOKEN is required")
-    if not args.repository or not args.head_branch or not args.head_sha:
-        raise SystemExit("repository, head branch, and head SHA are required")
+        raise SystemExit("GitHub token stdin is empty")
     api = GitHubApi(token, args.repository, args.api_url)
     refresh(
         api,
