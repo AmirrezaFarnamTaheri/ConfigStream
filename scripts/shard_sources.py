@@ -22,6 +22,11 @@ from configstream.source_admission import (
 QUARANTINE_FILENAME = "quarantine.txt"
 TIMING_WEIGHTS_FILENAME = "source_timing_weights.json"
 
+try:
+    from source_shard_policy import RUNTIME_SHARD_PARTS
+except ModuleNotFoundError:
+    from scripts.source_shard_policy import RUNTIME_SHARD_PARTS
+
 
 def source_timing_id(url: str) -> str:
     """Return the stable canonical source identity used by timing evidence."""
@@ -232,6 +237,7 @@ def main() -> int:
     args = parser.parse_args()
     if args.parts < 1:
         raise SystemExit("--parts must be >= 1")
+    runtime_parts = max(args.parts, RUNTIME_SHARD_PARTS)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     quarantined = load_quarantined_sources(args.sources_dir)
     timing_weights, default_weight = load_timing_weights(args.sources_dir)
@@ -242,7 +248,7 @@ def main() -> int:
         for part, bucket in enumerate(
             partition(
                 lines,
-                args.parts,
+                runtime_parts,
                 weights=timing_weights,
                 default_weight=default_weight,
             ),
