@@ -39,9 +39,7 @@ def test_runtime_cost_quarantine_is_combined_with_operator_quarantine(
 def test_runtime_timing_weights_accept_compact_vector_schema(tmp_path: Path) -> None:
     urls = {"https://a.example/sub", "https://b.example/sub"}
     ordered = sorted(urls)
-    (tmp_path / "batch_1.txt").write_text(
-        "\n".join(ordered) + "\n", encoding="utf-8"
-    )
+    (tmp_path / "batch_1.txt").write_text("\n".join(ordered) + "\n", encoding="utf-8")
     payload = {
         "schema_version": 2,
         "unit": "deciseconds",
