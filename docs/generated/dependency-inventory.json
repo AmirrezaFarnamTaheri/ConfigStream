@@ -105,7 +105,7 @@
         "source": "package.json"
       },
       {
-        "constraint": "^8.1.5",
+        "constraint": "^8.3.0",
         "name": "vite",
         "scope": "devDependencies",
         "source": "package.json"

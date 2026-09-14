@@ -1,5 +1,5 @@
 {
-  "component_count": 195,
+  "component_count": 189,
   "components": [
     {
       "ecosystem": "cargo",
@@ -655,54 +655,21 @@
       "licenses": [
         "MIT"
       ],
-      "name": "@emnapi/core",
-      "scope": "optional",
-      "source": "package-lock.json",
-      "version": "1.11.1"
-    },
-    {
-      "ecosystem": "npm",
-      "license_status": "declared",
-      "licenses": [
-        "MIT"
-      ],
-      "name": "@emnapi/runtime",
-      "scope": "optional",
-      "source": "package-lock.json",
-      "version": "1.11.1"
-    },
-    {
-      "ecosystem": "npm",
-      "license_status": "declared",
-      "licenses": [
-        "MIT"
-      ],
-      "name": "@emnapi/wasi-threads",
-      "scope": "optional",
-      "source": "package-lock.json",
-      "version": "1.2.2"
-    },
-    {
-      "ecosystem": "npm",
-      "license_status": "declared",
-      "licenses": [
-        "MIT"
-      ],
-      "name": "@napi-rs/wasm-runtime",
-      "scope": "optional",
-      "source": "package-lock.json",
-      "version": "1.1.6"
-    },
-    {
-      "ecosystem": "npm",
-      "license_status": "declared",
-      "licenses": [
-        "MIT"
-      ],
       "name": "@oxc-project/types",
       "scope": "development",
       "source": "package-lock.json",
-      "version": "0.139.0"
+      "version": "0.149.0"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "@rolldown/binding-android-arm-eabi",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.2.8"
     },
     {
       "ecosystem": "npm",
@@ -713,7 +680,7 @@
       "name": "@rolldown/binding-android-arm64",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.1.5"
+      "version": "1.2.8"
     },
     {
       "ecosystem": "npm",
@@ -724,7 +691,7 @@
       "name": "@rolldown/binding-darwin-arm64",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.1.5"
+      "version": "1.2.8"
     },
     {
       "ecosystem": "npm",
@@ -735,7 +702,7 @@
       "name": "@rolldown/binding-darwin-x64",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.1.5"
+      "version": "1.2.8"
     },
     {
       "ecosystem": "npm",
@@ -746,7 +713,7 @@
       "name": "@rolldown/binding-freebsd-x64",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.1.5"
+      "version": "1.2.8"
     },
     {
       "ecosystem": "npm",
@@ -757,7 +724,7 @@
       "name": "@rolldown/binding-linux-arm-gnueabihf",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.1.5"
+      "version": "1.2.8"
     },
     {
       "ecosystem": "npm",
@@ -768,7 +735,7 @@
       "name": "@rolldown/binding-linux-arm64-gnu",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.1.5"
+      "version": "1.2.8"
     },
     {
       "ecosystem": "npm",
@@ -779,7 +746,7 @@
       "name": "@rolldown/binding-linux-arm64-musl",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.1.5"
+      "version": "1.2.8"
     },
     {
       "ecosystem": "npm",
@@ -790,7 +757,7 @@
       "name": "@rolldown/binding-linux-ppc64-gnu",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.1.5"
+      "version": "1.2.8"
     },
     {
       "ecosystem": "npm",
@@ -801,7 +768,7 @@
       "name": "@rolldown/binding-linux-s390x-gnu",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.1.5"
+      "version": "1.2.8"
     },
     {
       "ecosystem": "npm",
@@ -812,7 +779,7 @@
       "name": "@rolldown/binding-linux-x64-gnu",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.1.5"
+      "version": "1.2.8"
     },
     {
       "ecosystem": "npm",
@@ -823,7 +790,7 @@
       "name": "@rolldown/binding-linux-x64-musl",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.1.5"
+      "version": "1.2.8"
     },
     {
       "ecosystem": "npm",
@@ -834,18 +801,7 @@
       "name": "@rolldown/binding-openharmony-arm64",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.1.5"
-    },
-    {
-      "ecosystem": "npm",
-      "license_status": "declared",
-      "licenses": [
-        "MIT"
-      ],
-      "name": "@rolldown/binding-wasm32-wasi",
-      "scope": "optional",
-      "source": "package-lock.json",
-      "version": "1.1.5"
+      "version": "1.2.8"
     },
     {
       "ecosystem": "npm",
@@ -856,7 +812,7 @@
       "name": "@rolldown/binding-win32-arm64-msvc",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.1.5"
+      "version": "1.2.8"
     },
     {
       "ecosystem": "npm",
@@ -867,7 +823,7 @@
       "name": "@rolldown/binding-win32-x64-msvc",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.1.5"
+      "version": "1.2.8"
     },
     {
       "ecosystem": "npm",
@@ -879,17 +835,6 @@
       "scope": "development",
       "source": "package-lock.json",
       "version": "1.0.1"
-    },
-    {
-      "ecosystem": "npm",
-      "license_status": "declared",
-      "licenses": [
-        "MIT"
-      ],
-      "name": "@tybys/wasm-util",
-      "scope": "optional",
-      "source": "package-lock.json",
-      "version": "0.10.3"
     },
     {
       "ecosystem": "npm",
@@ -922,7 +867,7 @@
       "name": "lightningcss",
       "scope": "development",
       "source": "package-lock.json",
-      "version": "1.32.0"
+      "version": "1.33.0"
     },
     {
       "ecosystem": "npm",
@@ -933,7 +878,7 @@
       "name": "lightningcss-android-arm64",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.32.0"
+      "version": "1.33.0"
     },
     {
       "ecosystem": "npm",
@@ -944,7 +889,7 @@
       "name": "lightningcss-darwin-arm64",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.32.0"
+      "version": "1.33.0"
     },
     {
       "ecosystem": "npm",
@@ -955,7 +900,7 @@
       "name": "lightningcss-darwin-x64",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.32.0"
+      "version": "1.33.0"
     },
     {
       "ecosystem": "npm",
@@ -966,7 +911,7 @@
       "name": "lightningcss-freebsd-x64",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.32.0"
+      "version": "1.33.0"
     },
     {
       "ecosystem": "npm",
@@ -977,7 +922,7 @@
       "name": "lightningcss-linux-arm-gnueabihf",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.32.0"
+      "version": "1.33.0"
     },
     {
       "ecosystem": "npm",
@@ -988,7 +933,7 @@
       "name": "lightningcss-linux-arm64-gnu",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.32.0"
+      "version": "1.33.0"
     },
     {
       "ecosystem": "npm",
@@ -999,7 +944,7 @@
       "name": "lightningcss-linux-arm64-musl",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.32.0"
+      "version": "1.33.0"
     },
     {
       "ecosystem": "npm",
@@ -1010,7 +955,7 @@
       "name": "lightningcss-linux-x64-gnu",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.32.0"
+      "version": "1.33.0"
     },
     {
       "ecosystem": "npm",
@@ -1021,7 +966,7 @@
       "name": "lightningcss-linux-x64-musl",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.32.0"
+      "version": "1.33.0"
     },
     {
       "ecosystem": "npm",
@@ -1032,7 +977,7 @@
       "name": "lightningcss-win32-arm64-msvc",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.32.0"
+      "version": "1.33.0"
     },
     {
       "ecosystem": "npm",
@@ -1043,7 +988,7 @@
       "name": "lightningcss-win32-x64-msvc",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.32.0"
+      "version": "1.33.0"
     },
     {
       "ecosystem": "npm",
@@ -1076,7 +1021,7 @@
       "name": "picomatch",
       "scope": "development",
       "source": "package-lock.json",
-      "version": "4.0.5"
+      "version": "4.0.7"
     },
     {
       "ecosystem": "npm",
@@ -1120,7 +1065,7 @@
       "name": "rolldown",
       "scope": "development",
       "source": "package-lock.json",
-      "version": "1.1.5"
+      "version": "1.2.8"
     },
     {
       "ecosystem": "npm",
@@ -1148,17 +1093,6 @@
       "ecosystem": "npm",
       "license_status": "declared",
       "licenses": [
-        "0BSD"
-      ],
-      "name": "tslib",
-      "scope": "optional",
-      "source": "package-lock.json",
-      "version": "2.8.1"
-    },
-    {
-      "ecosystem": "npm",
-      "license_status": "declared",
-      "licenses": [
         "MIT"
       ],
       "name": "vite",
@@ -1175,7 +1109,7 @@
       "name": "vite",
       "scope": "development",
       "source": "package-lock.json",
-      "version": "8.1.5"
+      "version": "8.3.0"
     },
     {
       "ecosystem": "python",
@@ -1854,7 +1788,7 @@
     }
   ],
   "evidence_basis": "Only licenses declared in checked-in package manifests/locks are reported. Unknown does not imply unlicensed.",
-  "known_license_count": 48,
+  "known_license_count": 42,
   "schema_version": 1,
   "unknown_license_count": 147
 }
