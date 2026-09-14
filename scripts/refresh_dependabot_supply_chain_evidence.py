@@ -257,6 +257,14 @@ def refresh(
     return commit_sha
 
 
+def _dispatch_ci(api: GitHubApi, head_branch: str) -> None:
+    api.request(
+        "POST",
+        f"/repos/{api.repository}/actions/workflows/ci.yml/dispatches",
+        payload={"ref": head_branch},
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repository", required=True)
@@ -273,12 +281,14 @@ def main(argv: list[str] | None = None) -> int:
     if not token:
         raise SystemExit("GitHub token stdin is empty")
     api = GitHubApi(token, args.repository, args.api_url)
-    refresh(
+    commit_sha = refresh(
         api,
         repository=args.repository,
         head_branch=args.head_branch,
         head_sha=args.head_sha,
     )
+    if commit_sha is not None:
+        _dispatch_ci(api, args.head_branch)
     return 0
 
 
