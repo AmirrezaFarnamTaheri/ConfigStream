@@ -37,7 +37,7 @@ jobs:
           CS_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
           CS_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
-          printf '%s' "$GH_TOKEN" | python scripts/refresh_dependabot_supply_chain_evidence.py \
+          printf '%s' "$GH_TOKEN" | python -m scripts.refresh_dependabot_supply_chain_evidence \
             --repository "$CS_REPOSITORY" \
             --head-branch "$CS_HEAD_BRANCH" \
             --head-sha "$CS_HEAD_SHA" \
