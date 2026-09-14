@@ -30,6 +30,8 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: '3.11'
+      - name: Install trusted evidence generator dependencies
+        run: python -m pip install --disable-pip-version-check --no-deps PyYAML==6.0.3
       - name: Refresh evidence on the Dependabot head branch
         env:
           GH_TOKEN: ${{ github.token }}

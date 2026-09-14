@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Refresh tracked supply-chain evidence on a same-repo Dependabot branch.
+"""Refresh tracked dependency evidence on a same-repo Dependabot branch.
 
 This is designed for a ``workflow_run`` job that executes trusted code from the
 default branch. It never executes files from the dependency-update branch: only
-manifest/lock data is copied into a temporary tree and fed to the trusted
-evidence generator. The resulting generated files are committed atomically via
-the Git data API if the Dependabot ref still points at the expected head SHA.
+manifest/lock data is copied into a temporary tree and fed to trusted evidence
+generators. The resulting generated files are committed atomically via the Git
+data API if the Dependabot ref still points at the expected head SHA.
 """
 
 from __future__ import annotations
@@ -25,17 +25,24 @@ from urllib.request import Request, urlopen
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from scripts.generate_supply_chain_evidence import generate
+from scripts.generate_dependency_inventory import generate as generate_dependency_inventory
+from scripts.generate_supply_chain_evidence import generate as generate_supply_chain_evidence
 
 OUTPUT_PATHS = (
     "docs/generated/sbom.cdx.json",
     "docs/generated/dependency-licenses.json",
     "docs/generated/dependency-licenses.md",
+    "docs/generated/dependency-inventory.json",
+    "docs/generated/dependency-inventory.md",
 )
 FIXED_INPUT_PATHS = (
+    ".github/dependabot.yml",
+    "config/container-images.json",
+    "package-lock.json",
+    "package.json",
     "pyproject.toml",
     "requirements-prod.txt",
-    "package-lock.json",
+    "requirements-publish.txt",
     "src/rust/ss_checker/Cargo.toml",
 )
 FOLLOWUP_WORKFLOWS = (
@@ -171,7 +178,12 @@ def _render_evidence(
             target = root / relative
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(api.raw_file(relative, head_sha))
-        generate(root, check=False)
+        generate_supply_chain_evidence(root, check=False)
+        inventory_errors = generate_dependency_inventory(root, check=False)
+        if inventory_errors:
+            raise RuntimeError(
+                "dependency inventory generation failed: " + "; ".join(inventory_errors)
+            )
         return {
             relative: (root / relative).read_text(encoding="utf-8")
             for relative in OUTPUT_PATHS
@@ -223,7 +235,7 @@ def _create_commit(
         "POST",
         f"/repos/{api.repository}/git/commits",
         payload={
-            "message": "chore(deps): refresh supply-chain evidence",
+            "message": "chore(deps): refresh generated dependency evidence",
             "tree": new_tree_sha,
             "parents": [head_sha],
         },
@@ -250,7 +262,7 @@ def refresh(
     base_tree_sha, tree_paths = _tree_paths(api, head_sha)
     rendered = _render_evidence(api, head_sha, tree_paths)
     if _outputs_are_current(api, head_sha, rendered):
-        print("Supply-chain evidence is already current; nothing to commit.")
+        print("Generated dependency evidence is already current; nothing to commit.")
         return None
     commit_sha = _create_commit(
         api, head_sha=head_sha, base_tree_sha=base_tree_sha, rendered=rendered
@@ -272,7 +284,7 @@ def refresh(
             )
             return None
         raise
-    print(f"Updated {head_branch} with supply-chain evidence commit {commit_sha}.")
+    print(f"Updated {head_branch} with dependency evidence commit {commit_sha}.")
     return commit_sha
 
 
