@@ -135,12 +135,12 @@ Unknown licenses requiring external resolution: **147**
 | python | `aiohttp-proxy` | `0.1.2` | required | unknown |
 | python | `aiohttp_socks` | `0.11.0` | required | unknown |
 | python | `aiosignal` | `1.4.0` | required | unknown |
-| python | `anyio` | `4.12.0` | required | unknown |
+| python | `anyio` | `4.15.1` | required | unknown |
 | python | `async-timeout` | `5.0.1` | required | unknown |
 | python | `attrs` | `25.4.0` | required | unknown |
 | python | `beautifulsoup4` | `4.15.0` | required | unknown |
 | python | `cachetools` | `7.1.8` | required | unknown |
-| python | `certifi` | `2025.11.12` | required | unknown |
+| python | `certifi` | `2026.7.22` | required | unknown |
 | python | `charset-normalizer` | `3.4.4` | required | unknown |
 | python | `click` | `8.3.3` | required | unknown |
 | python | `cryptography` | `50.0.0` | required | unknown |
@@ -180,7 +180,7 @@ Unknown licenses requiring external resolution: **147**
 | python | `pydantic_core` | `2.46.5` | required | unknown |
 | python | `Pygments` | `2.20.0` | required | unknown |
 | python | `pyparsing` | `3.3.2` | required | unknown |
-| python | `python-dotenv` | `1.2.2` | required | unknown |
+| python | `python-dotenv` | `1.2.3` | required | unknown |
 | python | `python-slugify` | `8.0.4` | required | unknown |
 | python | `python-socks` | `2.8.2` | required | unknown |
 | python | `python-telegram-bot` | `22.5` | required | unknown |
@@ -197,7 +197,7 @@ Unknown licenses requiring external resolution: **147**
 | python | `tomli` | `2.4.1` | required | unknown |
 | python | `typing_extensions` | `4.16.0` | required | unknown |
 | python | `urllib3` | `2.7.0` | required | unknown |
-| python | `uvicorn` | `0.40.0` | required | unknown |
+| python | `uvicorn` | `0.52.4` | required | unknown |
 | python | `uvloop` | `0.22.1` | required | unknown |
 | python | `wasmtime` | `45.0.0` | required | unknown |
 | python | `watchfiles` | `1.2.0` | required | unknown |
