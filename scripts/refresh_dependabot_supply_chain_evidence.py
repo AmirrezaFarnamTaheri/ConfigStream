@@ -35,6 +35,11 @@ FIXED_INPUT_PATHS = (
     "package-lock.json",
     "src/rust/ss_checker/Cargo.toml",
 )
+FOLLOWUP_WORKFLOWS = (
+    "ci.yml",
+    "main.yml",
+    "dependency-security.yml",
+)
 _SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 _REPO_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 
@@ -257,12 +262,13 @@ def refresh(
     return commit_sha
 
 
-def _dispatch_ci(api: GitHubApi, head_branch: str) -> None:
-    api.request(
-        "POST",
-        f"/repos/{api.repository}/actions/workflows/ci.yml/dispatches",
-        payload={"ref": head_branch},
-    )
+def _dispatch_followup_checks(api: GitHubApi, head_branch: str) -> None:
+    for workflow in FOLLOWUP_WORKFLOWS:
+        api.request(
+            "POST",
+            f"/repos/{api.repository}/actions/workflows/{workflow}/dispatches",
+            payload={"ref": head_branch},
+        )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -288,7 +294,7 @@ def main(argv: list[str] | None = None) -> int:
         head_sha=args.head_sha,
     )
     if commit_sha is not None:
-        _dispatch_ci(api, args.head_branch)
+        _dispatch_followup_checks(api, args.head_branch)
     return 0
 
 
