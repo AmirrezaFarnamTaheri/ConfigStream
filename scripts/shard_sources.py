@@ -8,6 +8,7 @@ import hashlib
 import json
 from pathlib import Path
 import sys
+from urllib.parse import urlsplit
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SRC_ROOT = REPO_ROOT / "src"
@@ -222,19 +223,62 @@ def active_source_lines(source_file: Path, quarantined: set[str]) -> list[str]:
     ]
 
 
+def _is_runtime_feed_locator(classified: dict[str, object]) -> bool:
+    """Return whether an admitted locator can represent a direct config feed.
+
+    The canonical admission manifest preserves reviewed upstream locators for
+    provenance. Scheduled sharding is narrower: it excludes locator shapes the
+    fetcher can prove are web/profile/control data rather than machine-readable
+    proxy feeds. This keeps release coverage denominators aligned with work the
+    runtime can actually turn into accepted records without masking transient
+    upstream outages.
+    """
+
+    if classified["trust_class"] == "insecure-transport":
+        return False
+
+    url = str(classified["url"])
+    parsed = urlsplit(url)
+    host = (parsed.hostname or "").lower()
+    parts = [part for part in parsed.path.split("/") if part]
+
+    # GitHub raw content has one canonical host. User-prefixed pseudo-hosts are
+    # rejected by fetch_from_source as permanently malformed and cannot recover.
+    if host.endswith(".raw.githubusercontent.com"):
+        return False
+
+    # Telegram channel/profile pages and Tor exit-node IP lists are HTML/IP
+    # inventories, not proxy subscription payloads.
+    if host in {"t.me", "telegram.me", "www.t.me"}:
+        return False
+    if host == "check.torproject.org" and parsed.path.rstrip("/") == "/torbulkexitlist":
+        return False
+
+    # A gist profile is not a file feed; raw gist paths remain eligible.
+    if host == "gist.github.com":
+        return len(parts) >= 3 and "raw" in parts[2:]
+
+    # GitHub repository/profile pages are not direct feeds. Exact raw/blob file
+    # locators remain eligible; blob URLs are normalized by the fetcher.
+    if host in {"github.com", "www.github.com"}:
+        return len(parts) >= 5 and parts[2] in {"raw", "blob"}
+
+    return True
+
+
 def runtime_source_lines(source_file: Path, quarantined: set[str]) -> list[str]:
     """Return exactly the sources the scheduled CLI will attempt to fetch.
 
     Repository admission already validates tracked locators. Runtime sharding
-    additionally excludes quarantined entries and trust classes that the CLI
-    blocks by default, keeping matrix/coverage denominators aligned with actual
-    source attempts.
+    additionally excludes quarantined entries and locators the CLI either blocks
+    by policy or can prove are not direct machine-readable proxy feeds, keeping
+    matrix and release-coverage denominators aligned with actual source attempts.
     """
 
     result: list[str] = []
     for line in active_source_lines(source_file, quarantined):
         classified = classify_source_locator(line)
-        if classified["trust_class"] == "insecure-transport":
+        if not _is_runtime_feed_locator(classified):
             continue
         result.append(str(classified["url"]))
     return result
@@ -255,7 +299,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sources-dir", type=Path, default=_default_sources_dir())
     parser.add_argument("--output-dir", type=Path, default=_default_output_dir())
-    parser.add_argument("--parts", type=int, default=4)
+    parser.add_argument("--parts", type=int, default=RUNTIME_SHARD_PARTS)
     parser.add_argument("--matrix-output", type=Path, required=True)
     args = parser.parse_args()
     if args.parts < 1:
