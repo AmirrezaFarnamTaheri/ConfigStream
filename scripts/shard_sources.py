@@ -78,6 +78,15 @@ def partition(
 
     normalized_weights = weights or {}
     unique_lines = sorted(dict.fromkeys(lines))
+    effective_parts = parts
+    if unique_lines and all(
+        line.startswith(("http://", "https://")) for line in unique_lines
+    ):
+        # Canonical source lists use the governed runtime floor even when an
+        # older caller still supplies a smaller requested part count. This keeps
+        # matrix generation, timing reconstruction, and health aggregation on
+        # one shared scheduling contract.
+        effective_parts = max(parts, RUNTIME_SHARD_PARTS)
     if normalized_weights:
         weighted = [
             (
@@ -98,10 +107,12 @@ def partition(
         weighted = [(line, default_weight) for line in unique_lines]
     weighted.sort(key=lambda item: (-item[1], item[0]))
 
-    buckets: list[list[str]] = [[] for _ in range(parts)]
-    loads = [0] * parts
+    buckets: list[list[str]] = [[] for _ in range(effective_parts)]
+    loads = [0] * effective_parts
     for line, weight in weighted:
-        index = min(range(parts), key=lambda i: (loads[i], len(buckets[i]), i))
+        index = min(
+            range(effective_parts), key=lambda i: (loads[i], len(buckets[i]), i)
+        )
         buckets[index].append(line)
         loads[index] += weight
     return buckets
