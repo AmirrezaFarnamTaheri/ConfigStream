@@ -63,7 +63,9 @@ def test_runtime_timing_weights_accept_compact_vector_schema(tmp_path: Path) -> 
     assert default_weight == 130
 
 
-def test_runtime_sources_exclude_provably_non_feed_locator_shapes(tmp_path: Path) -> None:
+def test_runtime_sources_exclude_provably_non_feed_locator_shapes(
+    tmp_path: Path,
+) -> None:
     sources = tmp_path / "sources"
     sources.mkdir()
     eligible = [
