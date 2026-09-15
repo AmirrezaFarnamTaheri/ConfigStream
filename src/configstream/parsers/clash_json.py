@@ -13,42 +13,145 @@ logger = logging.getLogger(__name__)
 
 
 _DETAILS_KEYS = {
-    "vmess": frozenset({
-        "uuid", "aid", "alterId", "security", "sni", "path", "host", "type",
-        "net", "serviceName", "grpc_service_name", "http_host", "ws_host",
-        "http_path", "ws_path", "fp", "fingerprint", "server_name", "alpn",
-        "tls", "allowInsecure", "skip_cert_verify", "detour", "tag",
-        "has_utls", "has_alpn_rotation", "has_multiplexing",
-    }),
-    "vless": frozenset({
-        "uuid", "security", "encryption", "flow", "sni", "path", "host",
-        "type", "net", "serviceName", "grpc_service_name", "http_host",
-        "ws_host", "http_path", "ws_path", "fp", "fingerprint", "server_name",
-        "alpn", "tls", "allowInsecure", "skip_cert_verify", "pbk", "publicKey",
-        "shortId", "short_id", "sid", "original_host", "resolved_ip", "detour",
-        "tag", "has_utls", "has_alpn_rotation", "has_multiplexing",
-    }),
-    "trojan": frozenset({
-        "password", "uuid", "security", "sni", "path", "host", "type", "net",
-        "serviceName", "grpc_service_name", "alpn", "tls", "allowInsecure",
-        "skip_cert_verify", "detour", "tag", "has_utls",
-        "has_alpn_rotation", "has_multiplexing",
-    }),
-    "shadowsocks": frozenset({
-        "method", "password", "plugin", "plugin_opts", "obfs", "obfs_param",
-        "protocol", "protocol_param", "server", "port", "udp_over_tcp", "detour",
-        "tag", "has_utls", "has_alpn_rotation", "has_multiplexing",
-    }),
-    "wireguard": frozenset({
-        "private_key", "peer_public_key", "public_key", "pre_shared_key",
-        "presharedKey", "reserved", "mtu", "local_address", "private_ipv4",
-        "private_ipv6", "server", "server_port", "detour", "tag", "has_utls",
-        "has_alpn_rotation", "has_multiplexing",
-    }),
+    "vmess": frozenset(
+        {
+            "uuid",
+            "aid",
+            "alterId",
+            "security",
+            "sni",
+            "path",
+            "host",
+            "type",
+            "net",
+            "serviceName",
+            "grpc_service_name",
+            "http_host",
+            "ws_host",
+            "http_path",
+            "ws_path",
+            "fp",
+            "fingerprint",
+            "server_name",
+            "alpn",
+            "tls",
+            "allowInsecure",
+            "skip_cert_verify",
+            "detour",
+            "tag",
+            "has_utls",
+            "has_alpn_rotation",
+            "has_multiplexing",
+        }
+    ),
+    "vless": frozenset(
+        {
+            "uuid",
+            "security",
+            "encryption",
+            "flow",
+            "sni",
+            "path",
+            "host",
+            "type",
+            "net",
+            "serviceName",
+            "grpc_service_name",
+            "http_host",
+            "ws_host",
+            "http_path",
+            "ws_path",
+            "fp",
+            "fingerprint",
+            "server_name",
+            "alpn",
+            "tls",
+            "allowInsecure",
+            "skip_cert_verify",
+            "pbk",
+            "publicKey",
+            "shortId",
+            "short_id",
+            "sid",
+            "original_host",
+            "resolved_ip",
+            "detour",
+            "tag",
+            "has_utls",
+            "has_alpn_rotation",
+            "has_multiplexing",
+        }
+    ),
+    "trojan": frozenset(
+        {
+            "password",
+            "uuid",
+            "security",
+            "sni",
+            "path",
+            "host",
+            "type",
+            "net",
+            "serviceName",
+            "grpc_service_name",
+            "alpn",
+            "tls",
+            "allowInsecure",
+            "skip_cert_verify",
+            "detour",
+            "tag",
+            "has_utls",
+            "has_alpn_rotation",
+            "has_multiplexing",
+        }
+    ),
+    "shadowsocks": frozenset(
+        {
+            "method",
+            "password",
+            "plugin",
+            "plugin_opts",
+            "obfs",
+            "obfs_param",
+            "protocol",
+            "protocol_param",
+            "server",
+            "port",
+            "udp_over_tcp",
+            "detour",
+            "tag",
+            "has_utls",
+            "has_alpn_rotation",
+            "has_multiplexing",
+        }
+    ),
+    "wireguard": frozenset(
+        {
+            "private_key",
+            "peer_public_key",
+            "public_key",
+            "pre_shared_key",
+            "presharedKey",
+            "reserved",
+            "mtu",
+            "local_address",
+            "private_ipv4",
+            "private_ipv6",
+            "server",
+            "server_port",
+            "detour",
+            "tag",
+            "has_utls",
+            "has_alpn_rotation",
+            "has_multiplexing",
+        }
+    ),
 }
 
 
-def _canonical_clash_details(data: dict, protocol: str, address: str, port: int) -> dict:
+def _canonical_clash_details(
+    data: dict, protocol: str, address: str, port: int
+) -> dict:
     """Map Clash-only field names into the closed canonical details schema."""
 
     details = dict(data)
@@ -68,12 +171,18 @@ def _canonical_clash_details(data: dict, protocol: str, address: str, port: int)
         if ws_opts.get("path") and not details.get("path"):
             details["path"] = ws_opts["path"]
         headers = ws_opts.get("headers")
-        if isinstance(headers, dict) and headers.get("Host") and not details.get("host"):
+        if (
+            isinstance(headers, dict)
+            and headers.get("Host")
+            and not details.get("host")
+        ):
             details["host"] = headers["Host"]
 
     grpc_opts = details.get("grpc-opts")
     if isinstance(grpc_opts, dict):
-        service_name = grpc_opts.get("grpc-service-name") or grpc_opts.get("service-name")
+        service_name = grpc_opts.get("grpc-service-name") or grpc_opts.get(
+            "service-name"
+        )
         if service_name and not details.get("serviceName"):
             details["serviceName"] = service_name
 
