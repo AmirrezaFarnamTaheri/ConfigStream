@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from scripts import refresh_dependabot_supply_chain_evidence as refresh
 
@@ -34,7 +34,7 @@ def test_generated_evidence_commit_skips_duplicate_automatic_pr_runs() -> None:
     api = CommitApi()
 
     commit = refresh._create_commit(
-        api,
+        cast(refresh.GitHubApi, api),
         head_sha="d" * 40,
         base_tree_sha="e" * 40,
         rendered={"docs/generated/sbom.cdx.json": "{}\n"},
