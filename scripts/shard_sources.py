@@ -30,6 +30,14 @@ except ModuleNotFoundError:
     from scripts.source_shard_policy import RUNTIME_SHARD_PARTS
 
 
+def runtime_shard_parts(requested_parts: int) -> int:
+    """Apply the governed shard floor only to current runtime source work."""
+
+    if requested_parts < 1:
+        raise ValueError("requested_parts must be >= 1")
+    return max(requested_parts, RUNTIME_SHARD_PARTS)
+
+
 def source_timing_id(url: str) -> str:
     """Return the stable canonical source identity used by timing evidence."""
 
@@ -78,15 +86,6 @@ def partition(
 
     normalized_weights = weights or {}
     unique_lines = sorted(dict.fromkeys(lines))
-    effective_parts = parts
-    if unique_lines and all(
-        line.startswith(("http://", "https://")) for line in unique_lines
-    ):
-        # Canonical source lists use the governed runtime floor even when an
-        # older caller still supplies a smaller requested part count. This keeps
-        # matrix generation, timing reconstruction, and health aggregation on
-        # one shared scheduling contract.
-        effective_parts = max(parts, RUNTIME_SHARD_PARTS)
     if normalized_weights:
         weighted = [
             (
@@ -107,12 +106,10 @@ def partition(
         weighted = [(line, default_weight) for line in unique_lines]
     weighted.sort(key=lambda item: (-item[1], item[0]))
 
-    buckets: list[list[str]] = [[] for _ in range(effective_parts)]
-    loads = [0] * effective_parts
+    buckets: list[list[str]] = [[] for _ in range(parts)]
+    loads = [0] * parts
     for line, weight in weighted:
-        index = min(
-            range(effective_parts), key=lambda i: (loads[i], len(buckets[i]), i)
-        )
+        index = min(range(parts), key=lambda i: (loads[i], len(buckets[i]), i))
         buckets[index].append(line)
         loads[index] += weight
     return buckets
@@ -315,7 +312,7 @@ def main() -> int:
     args = parser.parse_args()
     if args.parts < 1:
         raise SystemExit("--parts must be >= 1")
-    runtime_parts = max(args.parts, RUNTIME_SHARD_PARTS)
+    runtime_parts = runtime_shard_parts(args.parts)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     quarantined = load_quarantined_sources(args.sources_dir)
     timing_weights, default_weight = load_timing_weights(args.sources_dir)
