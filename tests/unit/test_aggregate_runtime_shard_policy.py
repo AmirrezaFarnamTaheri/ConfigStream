@@ -11,11 +11,11 @@ def test_aggregate_uses_same_runtime_shard_floor_as_matrix(tmp_path: Path) -> No
     sources = tmp_path / "sources"
     sources.mkdir()
     urls = [f"https://source-{index}.example/sub" for index in range(12)]
-    (sources / "batch_1.txt").write_text(
-        "\n".join(urls) + "\n", encoding="utf-8"
-    )
+    (sources / "batch_1.txt").write_text("\n".join(urls) + "\n", encoding="utf-8")
 
-    assert expected_from_sources(sources, RUNTIME_SHARD_PARTS - 3) == RUNTIME_SHARD_PARTS
+    assert (
+        expected_from_sources(sources, RUNTIME_SHARD_PARTS - 3) == RUNTIME_SHARD_PARTS
+    )
     assert expected_from_sources(sources, RUNTIME_SHARD_PARTS + 1) == (
         RUNTIME_SHARD_PARTS + 1
     )
