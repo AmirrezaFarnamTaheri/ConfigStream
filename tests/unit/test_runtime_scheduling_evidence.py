@@ -11,6 +11,7 @@ from scripts.shard_sources import (
     load_quarantined_sources,
     load_timing_weights,
     partition,
+    runtime_shard_parts,
     runtime_source_lines,
     source_timing_id,
 )
@@ -86,10 +87,15 @@ def test_runtime_sources_exclude_provably_non_feed_locator_shapes(tmp_path: Path
     assert runtime_source_lines(batch, set()) == eligible
 
 
-def test_runtime_source_partition_enforces_shared_policy_floor() -> None:
+def test_runtime_shard_parts_enforces_shared_policy_floor() -> None:
+    assert runtime_shard_parts(RUNTIME_SHARD_PARTS - 3) == RUNTIME_SHARD_PARTS
+    assert runtime_shard_parts(RUNTIME_SHARD_PARTS + 2) == RUNTIME_SHARD_PARTS + 2
+
+
+def test_partition_keeps_explicit_historical_part_counts() -> None:
     urls = [f"https://source-{index}.example/sub" for index in range(12)]
 
     buckets = partition(urls, RUNTIME_SHARD_PARTS - 3)
 
-    assert len(buckets) == RUNTIME_SHARD_PARTS
+    assert len(buckets) == RUNTIME_SHARD_PARTS - 3
     assert sorted(item for bucket in buckets for item in bucket) == sorted(urls)
