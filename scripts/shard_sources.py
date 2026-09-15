@@ -35,7 +35,7 @@ def runtime_shard_parts(requested_parts: int) -> int:
 
     if requested_parts < 1:
         raise ValueError("requested_parts must be >= 1")
-    return max(requested_parts, RUNTIME_SHARD_PARTS)
+    return int(max(requested_parts, RUNTIME_SHARD_PARTS))
 
 
 def source_timing_id(url: str) -> str:
