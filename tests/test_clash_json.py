@@ -109,3 +109,57 @@ def test_parse_clash_json_wireguard_missing_key():
         }
     )
     assert parse_clash_json(config) is None
+
+
+def test_parse_clash_json_strips_clash_only_details_keys():
+    config = json.dumps(
+        {
+            "name": "Production-shaped SS",
+            "type": "ss",
+            "server": "167.150.100.115",
+            "port": 27755,
+            "cipher": "2022-blake3-aes-256-gcm",
+            "password": "secret",
+            "skip-cert-verify": False,
+            "udp": False,
+        }
+    )
+
+    proxy = parse_clash_json(config)
+
+    assert proxy is not None
+    assert proxy.details == {
+        "server": "167.150.100.115",
+        "port": 27755,
+        "password": "secret",
+        "method": "2022-blake3-aes-256-gcm",
+    }
+    assert not {"name", "type", "cipher", "skip-cert-verify", "udp"} & set(
+        proxy.details
+    )
+
+
+def test_parse_clash_json_maps_supported_transport_aliases():
+    config = json.dumps(
+        {
+            "name": "VMess WS",
+            "type": "vmess",
+            "server": "example.com",
+            "port": 443,
+            "uuid": "1234-5678",
+            "network": "ws",
+            "skip-cert-verify": True,
+            "client-fingerprint": "chrome",
+            "ws-opts": {"path": "/ws", "headers": {"Host": "cdn.example.com"}},
+        }
+    )
+
+    proxy = parse_clash_json(config)
+
+    assert proxy is not None
+    assert proxy.details["net"] == "ws"
+    assert proxy.details["skip_cert_verify"] is True
+    assert proxy.details["fp"] == "chrome"
+    assert proxy.details["path"] == "/ws"
+    assert proxy.details["host"] == "cdn.example.com"
+    assert "ws-opts" not in proxy.details
