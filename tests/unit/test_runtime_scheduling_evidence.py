@@ -4,14 +4,13 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import yaml
-
 from scripts.shard_sources import (
     RUNTIME_QUARANTINE_FILENAME,
     TIMING_WEIGHTS_FILENAME,
     _source_set_sha256,
     load_quarantined_sources,
     load_timing_weights,
+    partition,
     runtime_source_lines,
     source_timing_id,
 )
@@ -87,11 +86,10 @@ def test_runtime_sources_exclude_provably_non_feed_locator_shapes(tmp_path: Path
     assert runtime_source_lines(batch, set()) == eligible
 
 
-def test_workflow_shard_parts_cannot_drift_below_runtime_policy() -> None:
-    repo_root = Path(__file__).resolve().parents[2]
-    workflow = yaml.safe_load(
-        (repo_root / ".github/workflows/main.yml").read_text(encoding="utf-8")
-    )
+def test_runtime_source_partition_enforces_shared_policy_floor() -> None:
+    urls = [f"https://source-{index}.example/sub" for index in range(12)]
 
-    configured = int(workflow["env"]["SOURCE_SHARD_PARTS"])
-    assert configured >= RUNTIME_SHARD_PARTS
+    buckets = partition(urls, RUNTIME_SHARD_PARTS - 3)
+
+    assert len(buckets) == RUNTIME_SHARD_PARTS
+    assert sorted(item for bucket in buckets for item in bucket) == sorted(urls)
