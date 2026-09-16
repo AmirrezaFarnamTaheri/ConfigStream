@@ -149,10 +149,10 @@ Variables: **161**
 | `TEST_TIMEOUT` | yes | `int` | `15` | no | no | `src/configstream/config.py:27` |
 | `TEST_URLS` | yes | `dict[str, str]` | `"<structured default>"` | no | no | `src/configstream/config.py:16` |
 | `TLS_TESTS_ENABLED` | yes | `bool` | `true` | no | no | `src/configstream/config.py:118` |
-| `TMPDIR` | no | `direct-only` |  | no | no | `src/configstream/security/utls_wrapper.py:143`<br>`src/configstream/testers/go_tester/binary_security.py:157`<br>`src/configstream/testers/go_tester/manager.py:323`<br>`src/configstream/tools/dns_scanner/python/dnsscanner_tui.py:97`<br>`src/configstream/tools/vwarp/binary.py:141` |
+| `TMPDIR` | no | `direct-only` |  | no | no | `src/configstream/security/utls_wrapper.py:145`<br>`src/configstream/testers/go_tester/binary_security.py:157`<br>`src/configstream/testers/go_tester/manager.py:323`<br>`src/configstream/tools/dns_scanner/python/dnsscanner_tui.py:97`<br>`src/configstream/tools/vwarp/binary.py:141` |
 | `UPDATE_INTERVAL_HOURS` | yes | `int` | `4` | no | no | `src/configstream/config.py:126` |
 | `USE_VWARP_TUNNEL` | yes | `bool` | `true` | no | no | `src/configstream/config.py:144`<br>`src/configstream/intelligence/washer/core.py:515`<br>`src/configstream/pipeline/core.py:150`<br>`src/configstream/pipeline/core.py:171`<br>`src/configstream/pipeline/core.py:176`<br>`src/configstream/pipeline/core.py:181`<br>`src/configstream/pipeline/core.py:41`<br>`src/configstream/pipeline/core.py:47`<br>`src/configstream/testers/go_tester/manager.py:331`<br>`src/configstream/testers/go_tester/secure_manager.py:72` |
-| `UTLS_CLIENT_SHA256` | no | `direct-only` |  | no | no | `src/configstream/security/utls_wrapper.py:94` |
+| `UTLS_CLIENT_SHA256` | no | `direct-only` |  | no | no | `src/configstream/security/utls_wrapper.py:90` |
 | `VERSION_TAG` | no | `direct-only` |  | no | no | `scripts/upload_telegram.py:46` |
 | `VT_API_KEY` | yes | `Optional[str]` | `<redacted>` | no | yes | `src/configstream/config.py:135` |
 | `VWARP_BIND_ADDRESS` | yes | `str` | `"127.0.0.1"` | no | no | `src/configstream/config.py:146` |
@@ -160,7 +160,7 @@ Variables: **161**
 | `VWARP_MASQUE_ENABLED` | yes | `bool` | `true` | no | no | `src/configstream/config.py:147` |
 | `VWARP_SHA256` | no | `direct-only` |  | no | no | `src/configstream/tools/vwarp/binary.py:83` |
 | `VWARP_SOCKS5_PORT` | yes | `int` | `10808` | no | no | `src/configstream/config.py:145` |
-| `VWARP_TUNNEL_ARGS` | no | `direct-only` |  | no | no | `src/configstream/tools/vwarp/tunnel.py:190` |
+| `VWARP_TUNNEL_ARGS` | no | `direct-only` |  | no | no | `src/configstream/tools/vwarp/tunnel.py:207` |
 | `VWARP_URL` | no | `direct-only` |  | no | no | `src/configstream/tools/vwarp/binary.py:82` |
 | `VWARP_VERSION` | no | `direct-only` |  | no | no | `src/configstream/tools/vwarp/binary.py:81`<br>`src/configstream/tools/vwarp/config.py:139` |
 | `WARP_KEY_POOL` | yes | `str` | `"[]"` | no | no | `src/configstream/config.py:60` |

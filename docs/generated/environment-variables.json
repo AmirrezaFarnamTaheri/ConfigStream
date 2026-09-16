@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "5d7b47142838d6a44f4cb08345ba5a6f3ee42cef50eba87e25c80b8ce642d746",
+  "source_digest": "cd397fec80b8c68918ac70da7e4096c1d74343ef9e245523a767c67dc4daa6c2",
   "variable_count": 161,
   "variables": [
     {
@@ -1646,7 +1646,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/security/utls_wrapper.py:143",
+        "src/configstream/security/utls_wrapper.py:145",
         "src/configstream/testers/go_tester/binary_security.py:157",
         "src/configstream/testers/go_tester/manager.py:323",
         "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py:97",
@@ -1692,7 +1692,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/security/utls_wrapper.py:94"
+        "src/configstream/security/utls_wrapper.py:90"
       ],
       "type": null
     },
@@ -1780,7 +1780,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/tools/vwarp/tunnel.py:190"
+        "src/configstream/tools/vwarp/tunnel.py:207"
       ],
       "type": null
     },
