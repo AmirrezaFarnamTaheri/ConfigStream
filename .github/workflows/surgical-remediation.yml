@@ -1,0 +1,163 @@
+name: Surgical Audit Remediation
+
+on:
+  push:
+    branches: [agent/fix-active-audit-items]
+    paths:
+      - '.github/workflows/surgical-remediation.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: surgical-audit-remediation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  remediate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          ref: ${{ github.ref_name }}
+      - name: Apply narrowly scoped release and CI fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              text = target.read_text(encoding="utf-8")
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"expected one match in {path}, found {count}: {old!r}")
+              target.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          replace_once(
+              ".github/workflows/main.yml",
+              '  SOURCE_SHARD_PARTS: "6"',
+              '  SOURCE_SHARD_PARTS: "9"',
+          )
+
+          public_key_expression = "$" + "{{ secrets.CS_PUBLIC_KEY }}"
+          replace_once(
+              ".github/workflows/main.yml",
+              "      - name: Run every mandatory release gate\n        run: |\n",
+              "      - name: Run every mandatory release gate\n"
+              "        env:\n"
+              f"          CS_PUBLIC_KEY: {public_key_expression}\n"
+              "        run: |\n",
+          )
+          replace_once(
+              ".github/workflows/main.yml",
+              "            tests/unit/test_resilient_stage.py \\\n            --disable-warnings --maxfail=1",
+              "            tests/unit/test_resilient_stage.py \\\n            tests/unit/test_active_audit_remediation.py \\\n            --disable-warnings --maxfail=1",
+          )
+
+          replace_once(
+              "tests/unit/test_validate_workflows_resilient.py",
+              "from scripts import validate_workflows\n",
+              "from scripts import validate_workflows\n"
+              "from scripts.source_shard_policy import RUNTIME_SHARD_PARTS\n",
+          )
+          replace_once(
+              "tests/unit/test_validate_workflows_resilient.py",
+              '    assert str(data["env"]["SOURCE_SHARD_PARTS"]) == "6"',
+              '    assert str(data["env"]["SOURCE_SHARD_PARTS"]) == str(RUNTIME_SHARD_PARTS)',
+          )
+          replace_once(
+              "tests/unit/test_validate_workflows_resilient.py",
+              '    step = _step_by_name(merge, "Run every mandatory release gate")\n    command = step["run"]\n',
+              '    step = _step_by_name(merge, "Run every mandatory release gate")\n'
+              '    assert "CS_PUBLIC_KEY" in step.get("env", {})\n'
+              '    command = step["run"]\n',
+          )
+          anchor = "\ndef test_main_contract_rejects_authoritative_native_report_overwrite() -> None:\n"
+          new_test = '''\n\ndef test_main_contract_requires_public_key_for_final_manifest_verification() -> None:\n    \"\"\"Do not allow the final Pages contract to skip signature verification.\"\"\"\n\n    data = deepcopy(_load_local_workflow(\"main.yml\"))\n    merge = data[\"jobs\"][\"merge_validate_publish\"]\n    step = _step_by_name(merge, \"Run every mandatory release gate\")\n    step.pop(\"env\", None)\n\n    assert (\n        \"final release contract must receive CS_PUBLIC_KEY for manifest signature verification\"\n        in validate_workflows._main_safe(data)\n    )\n'''
+          replace_once(
+              "tests/unit/test_validate_workflows_resilient.py",
+              anchor,
+              new_test + anchor,
+          )
+
+          validator_anchor = "    if not _main_wasm_download_has_dependency(data):\n        errors.append(\"WASM artifact consumers must depend on build_wasm\")\n    errors.extend(_main_resilient_contract(data))\n"
+          validator_replacement = "    if not _main_wasm_download_has_dependency(data):\n        errors.append(\"WASM artifact consumers must depend on build_wasm\")\n    gate = _find_step(data, \"Run every mandatory release gate\")\n    gate_env = gate.get(\"env\") if isinstance(gate, dict) else None\n    if not isinstance(gate_env, dict) or not str(gate_env.get(\"CS_PUBLIC_KEY\", \"\")).strip():\n        errors.append(\n            \"final release contract must receive CS_PUBLIC_KEY for manifest signature verification\"\n        )\n    errors.extend(_main_resilient_contract(data))\n"
+          replace_once(
+              "scripts/validate_workflows.py",
+              validator_anchor,
+              validator_replacement,
+          )
+
+          release_anchor = "\ndef promote(root: Path, native_report: Path, min_coverage: float) -> None:\n"
+          signing_helper = '''\n\ndef _sign_promoted_manifest(\n    manifest: dict[str, Any], signing_key: str\n) -> None:\n    \"\"\"Sign a promoted manifest and immediately verify its trust binding.\"\"\"\n    from configstream.signer import Signer, normalize_public_key_hex\n\n    signer = Signer(signing_key)\n    manifest[\"manifest_signature\"] = signer.sign_manifest(manifest)\n    signer_public_key = signer.get_public_key_hex()\n    if not Signer.verify_manifest_signature(manifest, signer_public_key):\n        raise ValueError(\"promotion produced an unverifiable manifest signature\")\n\n    configured_value = (os.environ.get(\"CS_PUBLIC_KEY\") or \"\").strip()\n    if not configured_value:\n        return\n    configured_public_key = normalize_public_key_hex(configured_value)\n    if not configured_public_key:\n        raise ValueError(\"CS_PUBLIC_KEY is not a valid Ed25519 public key\")\n    if not Signer.verify_manifest_signature(manifest, configured_public_key):\n        raise ValueError(\n            \"promotion manifest signature does not match configured CS_PUBLIC_KEY\"\n        )\n'''
+          replace_once(
+              "scripts/release_gate.py",
+              release_anchor,
+              signing_helper + release_anchor,
+          )
+          replace_once(
+              "scripts/release_gate.py",
+              '''        if signing_key:\n            from configstream.signer import Signer\n\n            staged_manifest[\"manifest_signature\"] = Signer(signing_key).sign_manifest(\n                staged_manifest\n            )\n''',
+              '''        if signing_key:\n            _sign_promoted_manifest(staged_manifest, signing_key)\n''',
+          )
+
+          replace_once(
+              "tests/unit/test_release_remediation.py",
+              "import json\nfrom pathlib import Path\n\n",
+              "import json\nfrom pathlib import Path\n\nimport pytest\n\nfrom configstream.signer import Signer\n",
+          )
+          replace_once(
+              "tests/unit/test_release_remediation.py",
+              "from scripts.release_gate import manifest_entries, validate\n",
+              "from scripts.release_gate import _sign_promoted_manifest, manifest_entries, validate\n",
+          )
+          release_test_anchor = "\ndef test_release_manifest_entries_keep_pages_contract_categories(\n"
+          release_tests = '''\n\ndef test_promoted_manifest_signature_matches_configured_public_key(\n    monkeypatch: pytest.MonkeyPatch,\n) -> None:\n    private_key = \"11\" * 32\n    signer = Signer(private_key)\n    monkeypatch.setenv(\"CS_PUBLIC_KEY\", signer.get_public_key_hex())\n    manifest: dict[str, object] = {\n        \"schema_version\": \"2.0\",\n        \"files\": [],\n        \"file_count\": 0,\n        \"total_size_bytes\": 0,\n    }\n\n    _sign_promoted_manifest(manifest, private_key)\n\n    assert Signer.verify_manifest_signature(manifest, signer.get_public_key_hex())\n\n\ndef test_promoted_manifest_signature_rejects_configured_key_mismatch(\n    monkeypatch: pytest.MonkeyPatch,\n) -> None:\n    monkeypatch.setenv(\"CS_PUBLIC_KEY\", Signer(\"22\" * 32).get_public_key_hex())\n    manifest: dict[str, object] = {\n        \"schema_version\": \"2.0\",\n        \"files\": [],\n        \"file_count\": 0,\n        \"total_size_bytes\": 0,\n    }\n\n    with pytest.raises(ValueError, match=\"configured CS_PUBLIC_KEY\"):\n        _sign_promoted_manifest(manifest, \"11\" * 32)\n'''
+          replace_once(
+              "tests/unit/test_release_remediation.py",
+              release_test_anchor,
+              release_tests + release_test_anchor,
+          )
+          PY
+
+          python -m py_compile scripts/release_gate.py scripts/validate_workflows.py \
+            tests/unit/test_release_remediation.py tests/unit/test_validate_workflows_resilient.py
+
+          rm -f .github/workflows/surgical-remediation.yml
+          python scripts/generate_environment_catalog.py
+          python scripts/generate_debt_matrix.py
+      - name: Publish only the reviewed file set to the PR branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          allowed=(
+            .github/workflows/main.yml
+            scripts/release_gate.py
+            scripts/validate_workflows.py
+            tests/unit/test_release_remediation.py
+            tests/unit/test_validate_workflows_resilient.py
+            docs/generated/environment-variables.md
+            docs/generated/environment-variables.json
+            docs/DEBT_MATRIX.md
+            docs/debt_matrix.json
+          )
+          for path in "${allowed[@]}"; do
+            if git diff --quiet -- "$path"; then
+              continue
+            fi
+            sha="$(gh api "/repos/${GITHUB_REPOSITORY}/contents/${path}?ref=${GITHUB_REF_NAME}" --jq '.sha')"
+            encoded="$(base64 -w0 "$path")"
+            gh api --method PUT \
+              -H 'Accept: application/vnd.github+json' \
+              "/repos/${GITHUB_REPOSITORY}/contents/${path}" \
+              -f message='fix: close release integrity and CI audit gaps' \
+              -f content="$encoded" \
+              -f sha="$sha" \
+              -f branch="$GITHUB_REF_NAME" \
+              >/dev/null
+          done
