@@ -70,7 +70,7 @@ def test_runtime_sources_exclude_provably_non_feed_locator_shapes(
     sources.mkdir()
     eligible = [
         "https://raw.githubusercontent.com/example/repo/main/sub.txt",
-        "https://github.com/example/repo/blob/main/sub.txt",
+        "https://github.com/example/repo/raw/main/sub.txt",
         "https://example.com/subscription",
         "https://gist.github.com/example/0123456789abcdef/raw/config.txt",
     ]
@@ -82,6 +82,7 @@ def test_runtime_sources_exclude_provably_non_feed_locator_shapes(
         "https://gist.github.com/example",
         "https://github.com/example/repo",
         "https://github.com/example",
+        "https://github.com/example/repo/blob/main/sub.txt",
     ]
     batch = sources / "batch_1.txt"
     batch.write_text("\n".join([*eligible, *ineligible]) + "\n", encoding="utf-8")
