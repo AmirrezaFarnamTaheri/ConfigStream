@@ -3,7 +3,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from configstream.security.utls_wrapper import test_tls_fingerprint
+from configstream.security.utls_wrapper import (
+    test_tls_fingerprint as verify_tls_fingerprint,
+)
 
 
 @pytest.mark.asyncio
@@ -27,7 +29,7 @@ async def test_tls_fingerprint_forwards_proxy_as_explicit_argv() -> None:
             return_value=process,
         ) as execute,
     ):
-        assert await test_tls_fingerprint(
+        assert await verify_tls_fingerprint(
             "https://example.com/probe",
             "http://127.0.0.1:8080",
             "firefox",
