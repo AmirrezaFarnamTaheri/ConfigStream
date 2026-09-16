@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
 from types import SimpleNamespace
+from typing import Any
 from unittest.mock import AsyncMock
 
 import pytest
@@ -60,7 +61,7 @@ async def test_scan_timeout_kills_and_reaps_child(monkeypatch: pytest.MonkeyPatc
         AsyncMock(return_value=process),
     )
 
-    async def fake_wait_for(awaitable, timeout: float):
+    async def fake_wait_for(awaitable: Any, timeout: float) -> Any:
         if timeout == 60:
             close = getattr(awaitable, "close", None)
             if close is not None:
@@ -87,7 +88,7 @@ async def test_scan_cancellation_kills_and_reaps_child(
         AsyncMock(return_value=process),
     )
 
-    async def fake_wait_for(awaitable, timeout: float):
+    async def fake_wait_for(awaitable: Any, timeout: float) -> Any:
         if timeout == 60:
             close = getattr(awaitable, "close", None)
             if close is not None:
