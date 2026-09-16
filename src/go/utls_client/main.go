@@ -79,7 +79,7 @@ func parseProxy(raw string) (*url.URL, error) {
 func dialHTTPConnect(dialer *net.Dialer, proxyURL *url.URL, target string) (net.Conn, error) {
 	proxyPort := proxyURL.Port()
 	if proxyPort == "" {
-		proxyPort = "8080"
+		proxyPort = "80"
 	}
 	proxyAddress := net.JoinHostPort(proxyURL.Hostname(), proxyPort)
 	conn, err := dialer.Dial("tcp", proxyAddress)
