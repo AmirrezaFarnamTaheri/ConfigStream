@@ -27,6 +27,24 @@ router = APIRouter(prefix="/api/lab", tags=["lab"])
 # leaves room for JSON syntax, whitespace, and the production payload API key.
 _LAB_REQUEST_MIN_BYTES = 16 * 1024
 _LAB_REQUEST_OVERHEAD_BYTES = 8 * 1024
+_LAB_REQUEST_BODY_OPENAPI = {
+    "requestBody": {
+        "required": True,
+        "content": {
+            "application/json": {
+                "schema": {
+                    "type": "object",
+                    "required": ["config"],
+                    "properties": {
+                        "config": {"type": "object", "additionalProperties": True},
+                        "api_key": {"type": "string", "writeOnly": True},
+                    },
+                    "additionalProperties": False,
+                }
+            }
+        },
+    }
+}
 
 
 def _require_payload_api_key(payload: dict, api_key: Optional[str]) -> None:
@@ -89,7 +107,7 @@ async def _read_bounded_json_payload(request: Request) -> dict:
     return payload
 
 
-@router.post("/test-chain")
+@router.post("/test-chain", openapi_extra=_LAB_REQUEST_BODY_OPENAPI)
 @limiter.limit("30/minute")
 async def lab_test_chain(request: Request):
     """Validate and test a bounded, server-owned sing-box chain configuration."""
