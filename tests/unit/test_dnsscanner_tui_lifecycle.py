@@ -165,3 +165,40 @@ def test_tui_does_not_require_undeclared_loguru_dependency() -> None:
         and node.value.func.attr == "getLogger"
         for node in tree.body
     )
+
+
+def test_slipstream_spawn_uses_minimal_child_environment() -> None:
+    """The verified Slipstream binary must not inherit pipeline secrets."""
+    tree = _tui_source_tree()
+    tui_class = next(
+        node
+        for node in tree.body
+        if isinstance(node, ast.ClassDef) and node.name == "DNSScannerTUI"
+    )
+    test_proxy = next(
+        node
+        for node in tui_class.body
+        if isinstance(node, ast.AsyncFunctionDef)
+        and node.name == "_test_slipstream_proxy"
+    )
+    spawn = next(
+        node
+        for node in ast.walk(test_proxy)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "create_subprocess_exec"
+    )
+    env_keyword = next(keyword for keyword in spawn.keywords if keyword.arg == "env")
+    assert isinstance(env_keyword.value, ast.Call)
+    assert isinstance(env_keyword.value.func, ast.Name)
+    assert env_keyword.value.func.id == "_minimal_child_environment"
+
+    source = TUI_SOURCE.read_text(encoding="utf-8")
+    for secret_name in (
+        "CS_PUBLIC_KEY",
+        "CS_IPNS_KEY",
+        "VT_API_KEY",
+        "WARP_KEY_POOL",
+        "CS_SIGNING_PRIVATE_KEY_HEX",
+    ):
+        assert secret_name not in source[source.index("_SUBPROCESS_ENV_ALLOWLIST"):source.index("class SlipstreamManager")]
