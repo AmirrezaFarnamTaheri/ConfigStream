@@ -497,6 +497,10 @@ jobs:
             --native-client-check \
             --native-report-file pipeline-evidence/native_client_check_report.json \
             output
+      - name: Run every mandatory release gate
+        env:
+          CS_PUBLIC_KEY: test-public-key
+        run: echo final-contract
 """.lstrip(),
         encoding="utf-8",
     )
