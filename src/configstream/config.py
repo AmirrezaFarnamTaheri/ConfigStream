@@ -30,7 +30,7 @@ class AppSettings(BaseSettings):
     RETEST_TIMEOUT: int = 6
     GEOIP_TIMEOUT: int = 5
     BATCH_TIME_LIMIT_SECONDS: int = 14400
-    BATCH_TIME_LIMIT_GRACE_SECONDS: int = 2700
+    BATCH_TIME_LIMIT_GRACE_SECONDS: int = 900
     SHUTDOWN_GRACE_SECONDS: float = 5.0
     EVENT_STREAM_FLUSH_TIMEOUT_SECONDS: float = 2.0
     GEOIP_CITY_DB_PATH: str = "data/GeoLite2-City.mmdb"
@@ -55,6 +55,7 @@ class AppSettings(BaseSettings):
     # Finite defaults are mandatory in production. Operators can tune these
     # values, but zero no longer silently means unbounded.
     GO_TESTER_BATCH_SIZE: int = 500
+    GO_TESTER_MAX_CONSECUTIVE_TIMEOUTS: int = 2
     PY_TESTER_BATCH_SIZE: int = 100
 
     WARP_KEY_POOL: str = "[]"
@@ -72,6 +73,7 @@ class AppSettings(BaseSettings):
     MAX_B64_OUTPUT_SIZE: int = 32 * 1024 * 1024
     MAX_CONFIG_LINE_LENGTH: int = 256 * 1024
     MAX_LINES_PER_SOURCE: int = 250_000
+    MAX_REMOTE_TEST_CANDIDATES_PER_SOURCE: int = 5_000
     MAX_OPENVPN_CONFIG_SIZE: int = 2 * 1024 * 1024
 
     SCORE_WEIGHTS: dict[str, float] = {
@@ -198,6 +200,7 @@ class AppSettings(BaseSettings):
             "RATE_LIMIT_REQUESTS",
             "PRODUCER_MAX_CONCURRENCY",
             "GO_TESTER_BATCH_SIZE",
+            "GO_TESTER_MAX_CONSECUTIVE_TIMEOUTS",
             "PY_TESTER_BATCH_SIZE",
             "MAX_SEEN_KEYS",
             "SEEN_BLOOM_EXPECTED_ITEMS",
@@ -206,6 +209,7 @@ class AppSettings(BaseSettings):
             "MAX_B64_OUTPUT_SIZE",
             "MAX_CONFIG_LINE_LENGTH",
             "MAX_LINES_PER_SOURCE",
+            "MAX_REMOTE_TEST_CANDIDATES_PER_SOURCE",
             "MAX_OPENVPN_CONFIG_SIZE",
             "DNS_SAFE_RESOLVE_BATCH",
             "DNS_SAFE_RESOLVE_LIMIT",

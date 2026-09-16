@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 
 from configstream.models import Proxy
 from configstream.config import AppSettings
+from configstream.candidate_budget import select_source_candidates
 from configstream.backpressure import (
     BackpressurePolicy,
     enqueue as enqueue_with_policy,
@@ -546,6 +547,42 @@ async def source_producer(
                                         logger.debug(
                                             f"Anomaly record failed for {safe_source}: {safe_rec_err}"
                                         )
+                                lines, exact_duplicate_drops, budget_drops = (
+                                    select_source_candidates(
+                                        lines,
+                                        source=source,
+                                        limit=int(
+                                            settings.MAX_REMOTE_TEST_CANDIDATES_PER_SOURCE
+                                        ),
+                                    )
+                                )
+                                if exact_duplicate_drops:
+                                    drop_stats["source_exact_duplicate"] = (
+                                        int(
+                                            drop_stats.get(
+                                                "source_exact_duplicate", 0
+                                            )
+                                        )
+                                        + exact_duplicate_drops
+                                    )
+                                if budget_drops:
+                                    drop_stats["source_candidate_budget"] = (
+                                        int(
+                                            drop_stats.get(
+                                                "source_candidate_budget", 0
+                                            )
+                                        )
+                                        + budget_drops
+                                    )
+                                    logger.warning(
+                                        "Source candidate budget applied: "
+                                        "source=%s parsed=%d retained=%d dropped=%d",
+                                        safe_source,
+                                        count,
+                                        len(lines),
+                                        budget_drops,
+                                    )
+
                                 # Prepare metadata and fetch time
                                 resp_time = getattr(res, "response_time", None)
                                 fetch_time = (
@@ -574,7 +611,8 @@ async def source_producer(
                                 if event_stream:
                                     event_stream.emit(
                                         "fetch_success",
-                                        f"Fetched {count} proxies from {safe_source} (Fetch: {fetch_time})",
+                                        f"Fetched {count} proxies from {safe_source}; "
+                                        f"retained {len(lines)} for testing (Fetch: {fetch_time})",
                                     )
                         else:
                             logger.warning(

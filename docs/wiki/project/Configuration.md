@@ -7,19 +7,22 @@ ConfigStream is configured via Environment Variables.
 | Variable | Default | Description |
 | :--- | :--- | :--- |
 | `MAX_WORKERS` | `128` | Maximum proxy-test worker concurrency. |
-| `TEST_TIMEOUT` | `10` | Timeout in seconds for proxy testing. |
+| `TEST_TIMEOUT` | `15` | Timeout in seconds for proxy testing. |
 | `FETCH_TIMEOUT` | `15` | Timeout in seconds for source fetching. |
+| `BATCH_TIME_LIMIT_SECONDS` | `14400` | Soft per-run intake limit in seconds. |
+| `BATCH_TIME_LIMIT_GRACE_SECONDS` | `900` | Hard-stop grace for draining in-flight work after intake stops. |
 | `CANARY_URL` | `""` | Optional override target used during strict security checks. |
-| `MAX_LINES_PER_SOURCE` | `250000` | Maximum lines processed per source payload. |
+| `MAX_LINES_PER_SOURCE` | `250000` | Maximum lines parsed from one source payload as a memory/parser safety bound. |
+| `MAX_REMOTE_TEST_CANDIDATES_PER_SOURCE` | `5000` | Deterministic per-remote-source cap before expensive network testing; full parsed volume still feeds anomaly evidence. |
 | `MAX_CONFIG_LINE_LENGTH` | `262144` | Maximum length in bytes of a single config line. |
 | `MAX_B64_INPUT_SIZE` | `8388608` | Maximum Base64 input size in bytes before decoding. |
 | `MAX_B64_OUTPUT_SIZE` | `33554432` | Maximum decoded Base64 size in bytes before parsing. |
-| `MAX_SOURCE_URL_LENGTH` | `2048` | Max source URL length. |
 | `MAX_SEEN_KEYS` | `2000000` | Maximum deduplication keys retained in memory. |
 | `MAX_OPENVPN_CONFIG_SIZE` | `2097152` | Maximum OpenVPN config size in bytes. |
 | `MAX_RESPONSE_SIZE` | `16777216` | Maximum remote fetch response size in bytes. |
-| `GO_TESTER_BATCH_SIZE` | `0` | Go tester batch size (0 = no chunking). |
-| `PY_TESTER_BATCH_SIZE` | `0` | Python tester batch size (0 = no chunking). |
+| `GO_TESTER_BATCH_SIZE` | `500` | Maximum Go tester batch size. |
+| `GO_TESTER_MAX_CONSECUTIVE_TIMEOUTS` | `2` | Consecutive systemic Go tester batch timeouts before disabling the daemon and falling back. |
+| `PY_TESTER_BATCH_SIZE` | `100` | Maximum Python fallback tester batch size. |
 | `SOURCE_PROBATION_FAILURES` | `3` | Consecutive failures before a source enters probation (cooldown) status. |
 | `SOURCE_DEAD_FAILURES` | `10` | Consecutive failures before a source is marked dead (skipped). |
 
@@ -39,13 +42,13 @@ ConfigStream is configured via Environment Variables.
 | `ENABLE_CACHE_WARMING` | `true` | Prioritize testing of historically reliable proxies. |
 | `EVASION_MODE` | `aggressive` | Evasion feature level: `standard` (none), `stealth` (uTLS + frag), `aggressive` (all). |
 | `VWARP_VERSION` | `v2.2.2` | Pin a specific Vwarp binary version (e.g., `v2.2.2`; use `v2.1.0` for older binaries). |
-| `UPDATE_INTERVAL_HOURS` | `6` | Publish interval reported in `metadata.json` for frontend freshness display. |
+| `UPDATE_INTERVAL_HOURS` | `4` | Publish interval reported in `metadata.json` for frontend freshness display. |
 
 ## Security Controls
 
 | Variable | Default | Description |
 | :--- | :--- | :--- |
-| `STRICT_SECURITY` | `false` | Enable honeypot probing + stricter tester checks. |
+| `STRICT_SECURITY` | `true` | Enable stricter tester/security checks by default. |
 | `STEGO_KEY` | *None* | Fernet key used for stego asset generation and frontend injection. |
 | `ALLOW_PRIVATE_IPS` | `false` | Allow private/loopback IPs through validation. |
 | `TLS_TESTS_ENABLED` | `true` | Require TLS-capable configs when TLS validation is enabled. |
