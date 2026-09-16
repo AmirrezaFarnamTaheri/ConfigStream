@@ -106,6 +106,17 @@ class Proxy(BaseModel):
     history: Optional[List[float]] = None
     process: str = "native"
 
+    def model_post_init(self, __context: Any) -> None:
+        """Enforce evidence-backed health semantics for revival candidates.
+
+        Revived WARP/Vwarp objects are construction candidates until a tester
+        explicitly records a timestamped success.  A nested chain component must
+        not become healthy merely because its local tunnel process exists.
+        """
+        del __context
+        if self.process in {"revived-warp", "revived-vwarp"} and not self.tested_at:
+            self.is_working = False
+
     @field_validator("protocol", mode="before")
     @classmethod
     def _validate_protocol(cls, value: Any) -> str:
