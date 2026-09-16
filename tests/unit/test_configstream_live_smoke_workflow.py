@@ -79,7 +79,8 @@ def test_live_smoke_falls_back_to_second_candidate(tmp_path: Path, monkeypatch) 
         target.mkdir(parents=True, exist_ok=True)
         if source.endswith("/one"):
             (target / "proxies.json").write_text(
-                json.dumps([{"protocol": "socks4", "is_working": False}]) + "\n",
+                json.dumps([{"protocol": "socks4", "is_working": False}])
+                + "\n",
                 encoding="utf-8",
             )
             (target / "metadata.json").write_text(
@@ -154,12 +155,16 @@ def test_live_smoke_workflow_is_read_only_bounded_and_full_path() -> None:
     assert live_step["continue-on-error"] is True
 
     public_step = next(
-        step for step in steps if step.get("name") == "Exercise production public-output path"
+        step
+        for step in steps
+        if step.get("name") == "Exercise production public-output path"
     )
     assert public_step["if"] == "steps.live_merge.outcome == 'success'"
 
     report_step = next(
-        step for step in steps if step.get("name") == "Report live smoke result"
+        step
+        for step in steps
+        if step.get("name") == "Report live smoke result"
     )
     assert "LIVE_PROBE_OUTCOME" in report_step.get("env", {})
     assert "live-smoke-status.json" in str(report_step.get("run", ""))
