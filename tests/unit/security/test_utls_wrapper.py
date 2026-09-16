@@ -46,7 +46,13 @@ async def test_ensure_binary_async_builds_committed_module_with_digest_sidecar(
     assert len(commands) == 1
     command, cwd = commands[0]
     assert cwd == source
-    assert command[:5] == ["go", "build", "-trimpath", "-mod=readonly", "-o"]
+    assert command[:5] == [
+        "/usr/bin/go",
+        "build",
+        "-trimpath",
+        "-mod=readonly",
+        "-o",
+    ]
     assert command[-1] == "."
     assert binary.read_bytes() == b"locally-built-utls"
     sidecar = binary.with_name(binary.name + ".sha256")
@@ -85,6 +91,13 @@ def test_utls_minimal_environment_excludes_pipeline_secrets(monkeypatch):
     for name in secrets:
         monkeypatch.setenv(name, "sensitive")
 
+    # These values must not be able to weaken the build isolation contract.
+    monkeypatch.setenv("GOENV", "/tmp/attacker-goenv")
+    monkeypatch.setenv("GOTOOLCHAIN", "auto")
+    monkeypatch.setenv("GOWORK", "/tmp/attacker.work")
+    monkeypatch.setenv("CGO_ENABLED", "1")
+    monkeypatch.setenv("GOFLAGS", "-toolexec=/tmp/attacker")
+
     probe_env = _minimal_subprocess_environment()
     build_env = _minimal_subprocess_environment(include_go=True)
 
@@ -92,6 +105,11 @@ def test_utls_minimal_environment_excludes_pipeline_secrets(monkeypatch):
     assert probe_env["TMPDIR"]
     assert all(name not in probe_env for name in secrets)
     assert all(name not in build_env for name in secrets)
+    assert "GOFLAGS" not in build_env
+    assert build_env["GOENV"] == "off"
+    assert build_env["GOTOOLCHAIN"] == "local"
+    assert build_env["GOWORK"] == "off"
+    assert build_env["CGO_ENABLED"] == "0"
 
 
 @pytest.mark.asyncio
