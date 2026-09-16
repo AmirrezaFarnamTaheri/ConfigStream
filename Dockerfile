@@ -50,8 +50,10 @@ COPY --from=ghcr.io/astral-sh/uv:0.11.32@sha256:2381d6aa60c326b71fd40023f921a0a3
 ARG RUNNER_UID=1001
 RUN useradd -m -u "${RUNNER_UID}" runner
 
-# Copy Go binary
+# Copy the Go tester and seal its build-time digest for strict production trust.
 COPY --from=builder /app/tester /usr/local/bin/configstream-tester
+RUN sha256sum /usr/local/bin/configstream-tester | awk '{print $1}' > /usr/local/bin/configstream-tester.sha256 && \
+    chmod 0444 /usr/local/bin/configstream-tester.sha256
 
 # Install the prebuilt Vwarp binary with architecture-specific checksum proof.
 ARG TARGETARCH
@@ -77,6 +79,8 @@ RUN set -eux; \
     VWARP_ENTRY="$(grep -E '^(|.*/)?vwarp$' /tmp/vwarp-filelist | head -n1)" && \
     unzip -j /tmp/vwarp.zip "$VWARP_ENTRY" -d /tmp/vwarp-extract && \
     install -m 0755 /tmp/vwarp-extract/vwarp /usr/local/bin/vwarp && \
+    sha256sum /usr/local/bin/vwarp | awk '{print $1}' > /usr/local/bin/vwarp.sha256 && \
+    chmod 0444 /usr/local/bin/vwarp.sha256 && \
     rm -rf /tmp/vwarp.zip /tmp/vwarp-extract /tmp/vwarp-filelist && \
     (vwarp version || (echo "Vwarp binary check failed" >&2; exit 1))
 

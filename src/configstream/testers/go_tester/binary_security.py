@@ -57,15 +57,35 @@ def _normalize_digest(value: str) -> Optional[str]:
     return candidate
 
 
+def _validate_trusted_file(path: Path, *, executable: bool) -> Path:
+    candidate = Path(path)
+    if candidate.is_symlink():
+        raise ValueError("trusted file must not be a symbolic link")
+    resolved = candidate.resolve(strict=True)
+    metadata = resolved.stat()
+    if not stat.S_ISREG(metadata.st_mode):
+        raise ValueError("trusted file is not a regular file")
+    if os.name != "nt":
+        if metadata.st_mode & (stat.S_IWGRP | stat.S_IWOTH):
+            raise ValueError("trusted file is group/world writable")
+        euid = getattr(os, "geteuid", lambda: 0)()
+        if metadata.st_uid not in {0, euid}:
+            raise ValueError("trusted file has an unexpected owner")
+    if executable and not os.access(resolved, os.X_OK):
+        raise ValueError("trusted executable is not executable")
+    return resolved
+
+
 def _sidecar_digest(path: Path) -> Optional[str]:
     candidates = (
         path.with_name(path.name + ".sha256"),
         path.with_suffix(path.suffix + ".sha256"),
     )
     for candidate in candidates:
-        if not candidate.is_file():
+        if not candidate.exists():
             continue
-        value = _normalize_digest(candidate.read_text(encoding="ascii"))
+        sidecar = _validate_trusted_file(candidate, executable=False)
+        value = _normalize_digest(sidecar.read_text(encoding="ascii"))
         if value is None:
             raise ValueError(f"Invalid tester checksum sidecar: {candidate}")
         return value
@@ -73,22 +93,7 @@ def _sidecar_digest(path: Path) -> Optional[str]:
 
 
 def _validate_file_metadata(path: Path) -> Path:
-    candidate = Path(path)
-    if candidate.is_symlink():
-        raise ValueError("tester binary must not be a symbolic link")
-    resolved = candidate.resolve(strict=True)
-    metadata = resolved.stat()
-    if not stat.S_ISREG(metadata.st_mode):
-        raise ValueError("tester binary is not a regular file")
-    if os.name != "nt":
-        if metadata.st_mode & (stat.S_IWGRP | stat.S_IWOTH):
-            raise ValueError("tester binary is group/world writable")
-        euid = getattr(os, "geteuid", lambda: 0)()
-        if metadata.st_uid not in {0, euid}:
-            raise ValueError("tester binary has an unexpected owner")
-    if not os.access(resolved, os.X_OK):
-        raise ValueError("tester binary is not executable")
-    return resolved
+    return _validate_trusted_file(path, executable=True)
 
 
 def initialize_binary_identity(path: Path | str) -> BinaryIdentity:
@@ -99,10 +104,15 @@ def initialize_binary_identity(path: Path | str) -> BinaryIdentity:
         raise ValueError(f"{_DIGEST_ENV} is not a valid SHA-256 digest")
     expected = expected or _sidecar_digest(resolved)
 
-    strict_mode = (
-        os.environ.get("CS_STRICT_BINARY_TRUST", "").strip() in ("1", "true", "yes")
-        or os.environ.get("ENVIRONMENT", "").strip().lower() == "production"
+    strict_requested = os.environ.get("CS_STRICT_BINARY_TRUST", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+    }
+    environment = (
+        (os.getenv("ENVIRONMENT", "") or _effective_environment()).strip().lower()
     )
+    strict_mode = strict_requested or environment == "production"
     if strict_mode and expected is None:
         raise ValueError(
             "Strict binary trust requires a pinned SHA-256 digest "
@@ -123,14 +133,9 @@ def verify_binary_identity(identity: BinaryIdentity) -> bool:
     if not identity or not identity.path:
         return False
     try:
-        path = identity.path
-        if path.is_symlink():
-            raise ValueError("tester binary became a symbolic link")
-        file_stat = path.stat()
-        if not stat.S_ISREG(file_stat.st_mode):
-            raise ValueError("tester binary is no longer a regular file")
-        if os.name != "nt" and (file_stat.st_mode & (stat.S_IWGRP | stat.S_IWOTH)):
-            raise ValueError("tester binary became group/world writable")
+        path = _validate_file_metadata(identity.path)
+        if path != identity.path:
+            raise ValueError("tester binary path changed after discovery")
         current = _sha256_file(path)
         if not hmac.compare_digest(current, identity.baseline_sha256):
             raise ValueError("tester binary changed after discovery")
@@ -145,6 +150,7 @@ def verify_binary_identity(identity: BinaryIdentity) -> bool:
 
 def minimal_subprocess_environment(settings: Any) -> dict[str, str]:
     """Build an explicit environment without propagating unrelated secrets."""
+    del settings
     environment = {
         key: value for key in _ENV_ALLOWLIST if (value := os.environ.get(key))
     }
@@ -152,3 +158,10 @@ def minimal_subprocess_environment(settings: Any) -> dict[str, str]:
     environment["TMPDIR"] = os.environ.get("TMPDIR") or tempfile.gettempdir()
     environment["GOLOG_LOG_LEVEL"] = "error"
     return environment
+
+
+def _effective_environment() -> str:
+    """Return the same environment mode used by the application settings model."""
+    from ...config import AppSettings
+
+    return str(AppSettings().ENVIRONMENT or "")

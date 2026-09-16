@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "7d2bab25d9d3b9419934e22a496bf9145e0735f1db726cb1e9d88b9edd5de179",
+  "source_digest": "29005d97a3040155c62d1a7ff98eaddfa34a2b60a3c8721b17c6ac5cc19dafc6",
   "variable_count": 161,
   "variables": [
     {
@@ -98,7 +98,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/server/utils.py:229"
+        "src/configstream/server/utils.py:219"
       ],
       "type": null
     },
@@ -210,8 +210,8 @@
       "sources": [
         "src/configstream/testers/go_tester/manager.py:306",
         "src/configstream/testers/go_tester/secure_manager.py:108",
-        "src/configstream/warp_scanner.py:41",
-        "src/configstream/warp_scanner.py:64"
+        "src/configstream/warp_scanner.py:59",
+        "src/configstream/warp_scanner.py:82"
       ],
       "type": null
     },
@@ -345,6 +345,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
+        "scripts/release_gate.py:365",
         "scripts/snapshot_pages_release.py:416",
         "scripts/validate_pages_artifact.py:202",
         "scripts/verify_pages_deployment.py:471"
@@ -359,7 +360,7 @@
       "sensitive": true,
       "sources": [
         "scripts/refresh_shard_contract.py:55",
-        "scripts/release_gate.py:358",
+        "scripts/release_gate.py:380",
         "src/configstream/output/metadata.py:518"
       ],
       "type": null
@@ -371,7 +372,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/testers/go_tester/binary_security.py:103"
+        "src/configstream/testers/go_tester/binary_security.py:107"
       ],
       "type": null
     },
@@ -504,7 +505,7 @@
       "sensitive": false,
       "sources": [
         "src/configstream/config.py:171",
-        "src/configstream/testers/go_tester/binary_security.py:104"
+        "src/configstream/testers/go_tester/binary_security.py:113"
       ],
       "type": "str"
     },
@@ -744,7 +745,7 @@
         "scripts/generate_evidence_bundle.py:20",
         "scripts/native_client_checks.py:232",
         "scripts/release_gate.py:191",
-        "scripts/release_gate.py:412",
+        "scripts/release_gate.py:434",
         "scripts/resilient_stage.py:491",
         "scripts/validate_pages_artifact.py:1203",
         "scripts/validate_pages_artifact.py:1236",
@@ -765,7 +766,7 @@
         "scripts/generate_evidence_bundle.py:19",
         "scripts/native_client_checks.py:231",
         "scripts/release_gate.py:190",
-        "scripts/release_gate.py:409",
+        "scripts/release_gate.py:431",
         "scripts/resilient_stage.py:490",
         "scripts/validate_pages_artifact.py:1202",
         "scripts/validate_pages_artifact.py:1235",
@@ -786,7 +787,7 @@
         "scripts/generate_evidence_bundle.py:21",
         "scripts/native_client_checks.py:230",
         "scripts/release_gate.py:189",
-        "scripts/release_gate.py:406",
+        "scripts/release_gate.py:428",
         "scripts/resilient_stage.py:492",
         "scripts/validate_pages_artifact.py:1201",
         "scripts/validate_pages_artifact.py:1234",
@@ -1176,7 +1177,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/server/utils.py:55"
+        "src/configstream/server/utils.py:56"
       ],
       "type": null
     },
@@ -1645,8 +1646,11 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/testers/go_tester/binary_security.py:152",
-        "src/configstream/testers/go_tester/manager.py:323"
+        "src/configstream/security/utls_wrapper.py:143",
+        "src/configstream/testers/go_tester/binary_security.py:158",
+        "src/configstream/testers/go_tester/manager.py:323",
+        "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py:100",
+        "src/configstream/tools/vwarp/binary.py:140"
       ],
       "type": null
     },
@@ -1688,7 +1692,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/security/utls_wrapper.py:47"
+        "src/configstream/security/utls_wrapper.py:90"
       ],
       "type": null
     },
@@ -1754,7 +1758,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/tools/vwarp/binary.py:66"
+        "src/configstream/tools/vwarp/binary.py:83"
       ],
       "type": null
     },
@@ -1776,7 +1780,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/tools/vwarp/tunnel.py:189"
+        "src/configstream/tools/vwarp/tunnel.py:207"
       ],
       "type": null
     },
@@ -1787,7 +1791,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/tools/vwarp/binary.py:65"
+        "src/configstream/tools/vwarp/binary.py:82"
       ],
       "type": null
     },
@@ -1798,7 +1802,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/tools/vwarp/binary.py:64",
+        "src/configstream/tools/vwarp/binary.py:81",
         "src/configstream/tools/vwarp/config.py:139"
       ],
       "type": null

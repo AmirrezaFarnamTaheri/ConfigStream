@@ -160,7 +160,7 @@ This architecture allows ConfigStream to scale linearly. To double capacity, we 
 *   **Objective:** Bypass DPI by disguising configs as images.
 *   **Implementation:** Encrypted JSON configurations are embedded inside the Least Significant Bits (LSB) of JPEG/PNG images (polyglot PNG+Zip files).
 *   **Usage:** Clients download `gallery.png`, which renders as a normal image but contains an encrypted Zip payload. A network administrator sees an image download, not a config file.
-*   **Frontend Integration:** The `STEGO_KEY` (Fernet) is injected into the frontend JS at build time so the browser can decrypt the latest steganography image.
+*   **Frontend Integration:** The symmetric `STEGO_KEY` is never published in frontend JavaScript. Output generation removes any legacy literal fail-closed; secret-assisted decryption must happen in a trusted/private client or authenticated channel rather than a public GitHub Pages bundle.
 
 ### Optional External Mirrors
 *   **Objective:** Censorship-resistant fallback distribution when an operator chooses to configure it.

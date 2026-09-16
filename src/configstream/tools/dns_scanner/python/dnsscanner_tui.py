@@ -8,6 +8,7 @@ from typing import Any
 
 import asyncio
 import ipaddress
+import os
 import mmap
 import platform
 import secrets
@@ -69,6 +70,36 @@ except ImportError:  # pragma: no cover - direct script execution compatibility
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 logger.propagate = False
+
+_SUBPROCESS_ENV_ALLOWLIST = (
+    "PATH",
+    "HOME",
+    "USERPROFILE",
+    "SYSTEMROOT",
+    "WINDIR",
+    "TMPDIR",
+    "TMP",
+    "TEMP",
+    "SSL_CERT_FILE",
+    "SSL_CERT_DIR",
+    "LANG",
+    "LC_ALL",
+    "TZ",
+)
+
+
+def _minimal_child_environment() -> dict[str, str]:
+    """Return only non-secret runtime context needed by Slipstream."""
+    environment = {
+        key: value
+        for key in _SUBPROCESS_ENV_ALLOWLIST
+        if (value := os.environ.get(key))
+    }
+    environment.setdefault("PATH", os.defpath)
+    environment["TMPDIR"] = (
+        os.environ.get("TMPDIR") or __import__("tempfile").gettempdir()
+    )
+    return environment
 
 
 class SlipstreamManager:
@@ -1450,6 +1481,7 @@ class DNSScannerTUI(App):
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.STDOUT,
+                env=_minimal_child_environment(),
                 creationflags=(
                     getattr(subprocess, "CREATE_NO_WINDOW", 0)
                     if sys.platform == "win32"

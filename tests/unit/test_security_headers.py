@@ -46,6 +46,7 @@ def test_output_compat_route_denies_private_runtime_state(
     data_dir.mkdir()
     (data_dir / "test_cache.json").write_text('{"internal":true}', encoding="utf-8")
     (data_dir / "source_quality.db").write_bytes(b"private-db")
+    (data_dir / "public.json").write_text('{"public":true}', encoding="utf-8")
     (tmp_path / "pipeline_events.jsonl").write_text(
         '{"event_type":"info","message":"safe"}\n', encoding="utf-8"
     )
@@ -55,3 +56,6 @@ def test_output_compat_route_denies_private_runtime_state(
     assert client.get("/output/pipeline_events.jsonl").status_code == 200
     assert client.get("/output/data/test_cache.json").status_code == 404
     assert client.get("/output/data/source_quality.db").status_code == 404
+    assert client.get("/data/test_cache.json").status_code == 404
+    assert client.get("/data/source_quality.db").status_code == 404
+    assert client.get("/data/public.json").status_code == 200

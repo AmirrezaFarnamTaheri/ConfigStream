@@ -7,6 +7,7 @@ from pathlib import Path
 import yaml
 
 from scripts import validate_workflows
+from scripts.source_shard_policy import RUNTIME_SHARD_PARTS
 
 
 def _load_local_workflow(name: str) -> dict:
@@ -126,6 +127,7 @@ def test_main_preserves_authoritative_native_report() -> None:
     data = _load_local_workflow("main.yml")
     merge = data["jobs"]["merge_validate_publish"]
     step = _step_by_name(merge, "Run every mandatory release gate")
+    assert "CS_PUBLIC_KEY" in step.get("env", {})
     command = step["run"]
     assert (
         "native_client_checks.py output --report pipeline-evidence/native_client_check_report.json"
@@ -148,6 +150,20 @@ def test_main_preserves_authoritative_native_report() -> None:
         marker_line = next(line for line in command.splitlines() if marker in line)
         assert "CS_SIGNING_PRIVATE_KEY_HEX" not in marker_line
     assert validate_workflows._main_native_output_contract(data) is True
+
+
+def test_main_contract_requires_public_key_for_final_manifest_verification() -> None:
+    """Do not allow the final Pages contract to skip signature verification."""
+
+    data = deepcopy(_load_local_workflow("main.yml"))
+    merge = data["jobs"]["merge_validate_publish"]
+    step = _step_by_name(merge, "Run every mandatory release gate")
+    step.pop("env", None)
+
+    assert (
+        "final release contract must receive CS_PUBLIC_KEY for manifest signature verification"
+        in validate_workflows._main_safe(data)
+    )
 
 
 def test_main_contract_rejects_authoritative_native_report_overwrite() -> None:
@@ -173,7 +189,7 @@ def test_main_requires_real_timing_and_reconciled_public_metadata() -> None:
     """Require timing evidence and reconciled metadata before release readiness."""
 
     data = _load_local_workflow("main.yml")
-    assert str(data["env"]["SOURCE_SHARD_PARTS"]) == "6"
+    assert str(data["env"]["SOURCE_SHARD_PARTS"]) == str(RUNTIME_SHARD_PARTS)
     merge = data["jobs"]["merge_validate_publish"]
     timing_step = _step_by_name(
         merge, "Merge and reconcile all available shard evidence"

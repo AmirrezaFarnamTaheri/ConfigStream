@@ -14,6 +14,9 @@ import { connect } from 'cloudflare:sockets';
 const DEFAULT_PROXY_PATH = '/my-secret-tunnel';
 const DEFAULT_FAKE_SITE_URL = 'https://www.kernel.org/';
 const MIN_TOKEN_LENGTH = 32;
+const MAX_WS_MESSAGE_SIZE = 1024 * 1024;
+const MAX_WS_BUFFERED_BYTES = 4 * 1024 * 1024;
+const MAX_WS_PENDING_MESSAGES = 64;
 const encoder = new TextEncoder();
 
 export default {
@@ -122,6 +125,21 @@ function constantTimeEqual(left, right) {
   return difference === 0;
 }
 
+function toBytes(data) {
+  if (typeof data === 'string') {
+    return encoder.encode(data);
+  }
+  if (data instanceof ArrayBuffer) {
+    return new Uint8Array(data.slice(0));
+  }
+  if (ArrayBuffer.isView(data)) {
+    return new Uint8Array(
+      data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength),
+    );
+  }
+  return null;
+}
+
 async function handleProxy(config) {
   let socket;
   try {
@@ -146,6 +164,9 @@ async function handleProxy(config) {
   server.accept({ allowHalfOpen: true });
   const writer = socket.writable.getWriter();
   let shuttingDown = false;
+  let queuedBytes = 0;
+  let pendingMessages = 0;
+  let messageChain = Promise.resolve();
 
   const shutdown = async (code = 1000, reason = 'Tunnel closed') => {
     if (shuttingDown) {
@@ -171,29 +192,47 @@ async function handleProxy(config) {
     }
   };
 
-  server.addEventListener('message', (event) => {
-    void (async () => {
-      let chunk;
-      if (typeof event.data === 'string') {
-        chunk = encoder.encode(event.data);
-      } else if (event.data instanceof ArrayBuffer) {
-        chunk = new Uint8Array(event.data);
-      } else if (ArrayBuffer.isView(event.data)) {
-        chunk = new Uint8Array(
-          event.data.buffer,
-          event.data.byteOffset,
-          event.data.byteLength,
-        );
-      } else {
-        await shutdown(1003, 'Unsupported WebSocket message type');
-        return;
-      }
-      try {
+  const writeChunk = async (chunk) => {
+    try {
+      if (!shuttingDown) {
         await writer.write(chunk);
-      } catch (_error) {
-        await shutdown(1011, 'Upstream write failed');
       }
-    })();
+    } catch (_error) {
+      await shutdown(1011, 'Upstream write failed');
+    } finally {
+      pendingMessages = Math.max(0, pendingMessages - 1);
+      queuedBytes = Math.max(0, queuedBytes - chunk.byteLength);
+    }
+  };
+
+  server.addEventListener('message', (event) => {
+    if (shuttingDown) {
+      return;
+    }
+    const chunk = toBytes(event.data);
+    if (!chunk) {
+      void shutdown(1003, 'Unsupported WebSocket message type');
+      return;
+    }
+    if (chunk.byteLength === 0 || chunk.byteLength > MAX_WS_MESSAGE_SIZE) {
+      void shutdown(1009, 'WebSocket message too large');
+      return;
+    }
+    if (
+      pendingMessages >= MAX_WS_PENDING_MESSAGES ||
+      queuedBytes + chunk.byteLength > MAX_WS_BUFFERED_BYTES
+    ) {
+      void shutdown(1013, 'WebSocket backpressure limit exceeded');
+      return;
+    }
+
+    pendingMessages += 1;
+    queuedBytes += chunk.byteLength;
+    // Preserve wire order while bounding both retained bytes and queued closures.
+    messageChain = messageChain
+      .catch(() => undefined)
+      .then(() => writeChunk(chunk));
+    void messageChain.catch(() => shutdown(1011, 'Tunnel processing failed'));
   });
 
   server.addEventListener('close', () => {

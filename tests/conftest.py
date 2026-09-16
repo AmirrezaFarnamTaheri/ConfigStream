@@ -20,6 +20,11 @@ from pathlib import Path
 # environment (they are now gated behind this var instead of running
 # unconditionally at import time — see P3 / __init__.py fix).
 os.environ.setdefault("CONFIGSTREAM_COMPAT_PATCHES", "1")
+# HTTP route tests intentionally exercise non-production endpoints without
+# credentials unless they are testing authentication itself. Make that bypass
+# explicit in the harness; runtime defaults remain fail-closed. Auth-boundary
+# tests delete this flag when verifying the secure default.
+os.environ.setdefault("ALLOW_UNAUTHENTICATED_ADMIN", "true")
 
 from configstream.config import AppSettings
 

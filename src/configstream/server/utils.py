@@ -18,6 +18,7 @@ from slowapi.util import get_remote_address
 
 from ..config import AppSettings
 from ..logging_config import setup_logging
+from ..publication import is_private_publication_path
 
 # Ensure WASM files are served with correct MIME type
 mimetypes.add_type("application/wasm", ".wasm")
@@ -189,8 +190,15 @@ def _resolve_output_path(rel_path: str) -> Path:
 
 
 def _serve_output_file(rel_path: str, media_type: Optional[str] = None) -> FileResponse:
+    if is_private_publication_path(rel_path):
+        raise HTTPException(404, "File not generated yet")
+
     target = _resolve_output_path(rel_path)
-    if not target.exists():
+    base = OUTPUT_DIR.resolve()
+    resolved_rel = target.relative_to(base).as_posix()
+    if is_private_publication_path(resolved_rel):
+        raise HTTPException(404, "File not generated yet")
+    if not target.is_file():
         raise HTTPException(404, "File not generated yet")
     return FileResponse(target, media_type=media_type)
 
@@ -199,14 +207,20 @@ def _serve_output_subpath(prefix: str, path: str) -> FileResponse:
     if not path or ".." in path:
         raise HTTPException(400, "Invalid path")
     rel = str(Path(prefix) / path)
-    target = _resolve_output_path(rel)
-    if not target.exists() or not target.is_file():
-        raise HTTPException(404, "File not generated yet")
-    return FileResponse(target)
+    return _serve_output_file(rel)
 
 
 def _is_nonproduction_environment(environment: str) -> bool:
     return environment.strip().lower() in {"development", "ci", "test"}
+
+
+def _allow_unauthenticated_admin() -> bool:
+    """Return whether the explicit non-production admin bypass is enabled."""
+    return os.environ.get("ALLOW_UNAUTHENTICATED_ADMIN", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+    }
 
 
 def _require_admin_auth(
@@ -219,19 +233,12 @@ def _require_admin_auth(
       ADMIN_API_KEY is not set (startup validation should have caught this).
     - Non-production: bypass auth ONLY when
       ``ALLOW_UNAUTHENTICATED_ADMIN=true`` is explicitly set in the
-      environment.  The previous behaviour unconditionally bypassed auth for
-      any non-production environment string, making it trivial to disable
-      admin auth by mis-labelling the environment.
+      environment. The environment name alone never disables authentication.
     """
     auth_header = request.headers.get("Authorization")
 
     if not api_key:
-        allow_unauthed = os.environ.get("ALLOW_UNAUTHENTICATED_ADMIN", "").lower() in (
-            "1",
-            "true",
-            "yes",
-        )
-        if is_nonproduction and allow_unauthed:
+        if is_nonproduction and _allow_unauthenticated_admin():
             logger.warning(
                 "Admin auth bypassed: ADMIN_API_KEY not configured and "
                 "ALLOW_UNAUTHENTICATED_ADMIN=true (non-production only)."
@@ -243,10 +250,18 @@ def _require_admin_auth(
             "Set ALLOW_UNAUTHENTICATED_ADMIN=true to bypass in non-production.",
         )
 
-    if not auth_header or not auth_header.startswith("Bearer "):
+    if not auth_header:
         raise HTTPException(401, "Unauthorized: Bearer token required.")
 
-    provided_key = auth_header.split(" ")[1]
+    scheme, separator, provided_key = auth_header.partition(" ")
+    if (
+        scheme.casefold() != "bearer"
+        or separator != " "
+        or not provided_key
+        or any(char.isspace() for char in provided_key)
+    ):
+        raise HTTPException(401, "Unauthorized: Bearer token required.")
+
     if not secrets.compare_digest(provided_key, api_key):
         raise HTTPException(403, "Forbidden: Invalid API key")
 
@@ -263,6 +278,7 @@ def _validate_admin_startup_security(current_settings: AppSettings) -> None:
     if (
         _is_nonproduction_environment(current_settings.ENVIRONMENT)
         and not current_settings.ADMIN_API_KEY
+        and _allow_unauthenticated_admin()
     ):
         import sys
 
@@ -281,11 +297,12 @@ def _validate_admin_startup_security(current_settings: AppSettings) -> None:
                 logger.warning(
                     "\n"
                     "========================================================================\n"
-                    "⚠️  SECURITY WARNING: ADMIN AUTHENTICATION IS BYPASSED ⚠️\n"
+                    "WARNING: ADMIN AUTHENTICATION BYPASS IS ENABLED\n"
                     f"The server is running in a non-production environment ({current_settings.ENVIRONMENT})\n"
-                    "without ADMIN_API_KEY set, and is bound to a non-loopback interface:\n"
+                    "without ADMIN_API_KEY and with ALLOW_UNAUTHENTICATED_ADMIN=true,\n"
+                    "while bound to a non-loopback interface:\n"
                     f"  Host: {host}\n"
-                    "This exposes administrative and Lab endpoints to the network!\n"
+                    "Administrative and live Lab endpoints are exposed to the network.\n"
                     "========================================================================"
                 )
 

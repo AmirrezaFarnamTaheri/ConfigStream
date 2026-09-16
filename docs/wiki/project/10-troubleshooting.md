@@ -96,7 +96,7 @@ Run `python tools/lab-scanner.py --auto-chain` to automatically test all 6 strat
 
 ### "Go Binary Not Found"
 If you see `WarpScannerWorker: Go binary not found`, the pipeline cannot find the compiled Go tester.
-*   **Fix:** Compile it: `cd src/go/tester && go build -o configstream-tester .`
+*   **Fix:** Build the tester and create its strict-trust digest sidecar: `cd src/go/tester && go build -trimpath -mod=readonly -o ../../../configstream-tester . && cd ../../.. && sha256sum configstream-tester | awk '{print $1}' > configstream-tester.sha256 && chmod 0444 configstream-tester.sha256`. Production-mode startup intentionally rejects an unpinned tester.
 *   **CI:** Check `.github/workflows/main.yml` to ensure the `build_go` step ran successfully.
 
 ### Future Go Toolchain Upgrade Compatibility

@@ -141,7 +141,7 @@
 **Known Considerations**:
 - ⚠️ console.log in production: Stripped via build process (.build-config.json)
 - ⚠️ localStorage: Contains only non-sensitive data (preferences, cache)
-- ⚠️ Stego encryption: Obfuscation only (client-side visible key)
+- ⚠️ Stego encryption: Optional confidentiality/obfuscation layer only; public static builds never publish the symmetric key. Private browser-side decryption requires authenticated out-of-band key delivery.
 
 ### Threat Model
 
@@ -184,7 +184,7 @@ ConfigStream uses the `vwarp` binary (enhanced Cloudflare WARP client) to revive
 export ADMIN_API_KEY="your-secret-admin-key"
 export ALLOWED_ORIGINS="https://yourdomain.com"
 export CORS_ALLOW_CREDENTIALS="false"
-export STEGO_KEY="your-base64-fernet-key"
+export STEGO_KEY="your-base64-fernet-key"  # Private/server-side stego only; never publish in runtime-config.js
 
 # Optional security enhancements:
 export WARP_KEY_POOL="key1,key2,key3"  # For proxy washing
@@ -196,7 +196,7 @@ export ALLOW_PRIVATE_IPS="false"       # Default: false
 - [ ] All secrets in environment variables (not files)
 - [ ] ADMIN_API_KEY configured for admin endpoints
 - [ ] ALLOWED_ORIGINS restricted to your domain
-- [ ] STEGO_KEY rotated regularly (recommend: every 6 hours)
+- [ ] If private stego is enabled, STEGO_KEY is rotated regularly and never included in public runtime config or static artifacts
 - [ ] Container running as non-root user
 - [ ] Health checks enabled in orchestrator
 - [ ] Logs monitored for suspicious activity without exposing raw proxy, token, credential, UUID, or key material

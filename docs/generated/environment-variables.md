@@ -15,7 +15,7 @@ Variables: **161**
 | `ALLOWED_ORIGIN_REGEX` | yes | `str` | `""` | no | no | `src/configstream/config.py:163` |
 | `ALLOW_ACTIVE_SCANNING` | yes | `bool` | `false` | no | no | `src/configstream/config.py:151` |
 | `ALLOW_PRIVATE_IPS` | yes | `bool` | `false` | no | no | `src/configstream/config.py:129` |
-| `ALLOW_UNAUTHENTICATED_ADMIN` | no | `direct-only` |  | no | no | `src/configstream/server/utils.py:229` |
+| `ALLOW_UNAUTHENTICATED_ADMIN` | no | `direct-only` |  | no | no | `src/configstream/server/utils.py:219` |
 | `BATCH_NUMBER` | yes | `str` | `""` | no | no | `src/configstream/config.py:127` |
 | `BATCH_SIZE` | yes | `int` | `50` | no | no | `src/configstream/config.py:67` |
 | `BATCH_TIME_LIMIT_GRACE_SECONDS` | yes | `int` | `2700` | no | no | `src/configstream/config.py:33` |
@@ -25,7 +25,7 @@ Variables: **161**
 | `CANARY_URL` | yes | `str` | `""` | no | no | `src/configstream/config.py:95` |
 | `CF_TOKEN` | no | `direct-only` | `<redacted>` | no | yes | `scripts/publish_ipfs.py:190` |
 | `CF_ZONE_ID` | no | `direct-only` |  | no | no | `scripts/publish_ipfs.py:195` |
-| `CI` | no | `direct-only` |  | no | no | `src/configstream/testers/go_tester/manager.py:306`<br>`src/configstream/testers/go_tester/secure_manager.py:108`<br>`src/configstream/warp_scanner.py:41`<br>`src/configstream/warp_scanner.py:64` |
+| `CI` | no | `direct-only` |  | no | no | `src/configstream/testers/go_tester/manager.py:306`<br>`src/configstream/testers/go_tester/secure_manager.py:108`<br>`src/configstream/warp_scanner.py:59`<br>`src/configstream/warp_scanner.py:82` |
 | `CIRCUIT_BREAKER_ENABLED` | yes | `bool` | `true` | no | no | `src/configstream/config.py:106` |
 | `CIRCUIT_OPEN_SEC` | yes | `int` | `120` | no | no | `src/configstream/config.py:116` |
 | `CIRCUIT_TRIP_5XX_RATE` | yes | `float` | `0.2` | no | no | `src/configstream/config.py:115` |
@@ -37,9 +37,9 @@ Variables: **161**
 | `CONFIGSTREAM_TESTER_BIN` | yes | `Optional[str]` |  | no | no | `src/configstream/config.py:141`<br>`src/configstream/testers/go_tester/process.py:20` |
 | `CONFIG_STREAM_KEY` | yes | `Optional[str]` |  | no | no | `scripts/audit_pipeline_outputs.py:323`<br>`src/configstream/config.py:138` |
 | `CORS_ALLOW_CREDENTIALS` | yes | `bool` | `false` | no | no | `src/configstream/config.py:164` |
-| `CS_PUBLIC_KEY` | no | `direct-only` |  | no | no | `scripts/snapshot_pages_release.py:416`<br>`scripts/validate_pages_artifact.py:202`<br>`scripts/verify_pages_deployment.py:471` |
-| `CS_SIGNING_PRIVATE_KEY_HEX` | no | `direct-only` | `<redacted>` | no | yes | `scripts/refresh_shard_contract.py:55`<br>`scripts/release_gate.py:358`<br>`src/configstream/output/metadata.py:518` |
-| `CS_STRICT_BINARY_TRUST` | no | `direct-only` |  | no | no | `src/configstream/testers/go_tester/binary_security.py:103` |
+| `CS_PUBLIC_KEY` | no | `direct-only` |  | no | no | `scripts/release_gate.py:365`<br>`scripts/snapshot_pages_release.py:416`<br>`scripts/validate_pages_artifact.py:202`<br>`scripts/verify_pages_deployment.py:471` |
+| `CS_SIGNING_PRIVATE_KEY_HEX` | no | `direct-only` | `<redacted>` | no | yes | `scripts/refresh_shard_contract.py:55`<br>`scripts/release_gate.py:380`<br>`src/configstream/output/metadata.py:518` |
+| `CS_STRICT_BINARY_TRUST` | no | `direct-only` |  | no | no | `src/configstream/testers/go_tester/binary_security.py:107` |
 | `DEDUP_IGNORE_PROTOCOL` | yes | `bool` | `false` | no | no | `src/configstream/config.py:153` |
 | `DNS_CACHE_ENABLED` | yes | `bool` | `true` | no | no | `src/configstream/config.py:97` |
 | `DNS_HARDENED_OUTPUTS` | yes | `bool` | `true` | no | no | `src/configstream/config.py:99` |
@@ -51,7 +51,7 @@ Variables: **161**
 | `ENABLE_CACHE_WARMING` | yes | `bool` | `true` | no | no | `src/configstream/config.py:120` |
 | `ENABLE_ENDPOINT_FILTERING` | yes | `bool` | `true` | no | no | `src/configstream/config.py:154` |
 | `ENABLE_SMART_CHAINING` | yes | `bool` | `true` | no | no | `src/configstream/config.py:121` |
-| `ENVIRONMENT` | yes | `str` | `"production"` | no | no | `src/configstream/config.py:171`<br>`src/configstream/testers/go_tester/binary_security.py:104` |
+| `ENVIRONMENT` | yes | `str` | `"production"` | no | no | `src/configstream/config.py:171`<br>`src/configstream/testers/go_tester/binary_security.py:113` |
 | `EVASION_MODE` | yes | `str` | `"aggressive"` | no | no | `src/configstream/config.py:65` |
 | `EVENT_STREAM_FLUSH_TIMEOUT_SECONDS` | yes | `float` | `2.0` | no | no | `src/configstream/config.py:35` |
 | `FAIL_ON_ZERO_WORKING` | yes | `bool` | `false` | no | no | `src/configstream/config.py:102` |
@@ -72,9 +72,9 @@ Variables: **161**
 | `GITHUB_EVENT_NAME` | no | `direct-only` |  | no | no | `scripts/generate_evidence_bundle.py:22` |
 | `GITHUB_REF` | no | `direct-only` |  | no | no | `scripts/resilient_stage.py:493` |
 | `GITHUB_REPOSITORY` | no | `direct-only` |  | no | no | `scripts/generate_evidence_bundle.py:24`<br>`scripts/resilient_stage.py:488` |
-| `GITHUB_RUN_ATTEMPT` | no | `direct-only` |  | no | no | `scripts/finalize_release_outputs.py:621`<br>`scripts/finalize_release_outputs.py:668`<br>`scripts/generate_evidence_bundle.py:20`<br>`scripts/native_client_checks.py:232`<br>`scripts/release_gate.py:191`<br>`scripts/release_gate.py:412`<br>`scripts/resilient_stage.py:491`<br>`scripts/validate_pages_artifact.py:1203`<br>`scripts/validate_pages_artifact.py:1236`<br>`src/configstream/output/metadata.py:559`<br>`src/configstream/output/metadata.py:594` |
-| `GITHUB_RUN_ID` | no | `direct-only` |  | no | no | `scripts/finalize_release_outputs.py:620`<br>`scripts/finalize_release_outputs.py:667`<br>`scripts/generate_evidence_bundle.py:19`<br>`scripts/native_client_checks.py:231`<br>`scripts/release_gate.py:190`<br>`scripts/release_gate.py:409`<br>`scripts/resilient_stage.py:490`<br>`scripts/validate_pages_artifact.py:1202`<br>`scripts/validate_pages_artifact.py:1235`<br>`src/configstream/output/metadata.py:558`<br>`src/configstream/output/metadata.py:593` |
-| `GITHUB_SHA` | no | `direct-only` |  | no | no | `scripts/finalize_release_outputs.py:619`<br>`scripts/finalize_release_outputs.py:666`<br>`scripts/generate_evidence_bundle.py:21`<br>`scripts/native_client_checks.py:230`<br>`scripts/release_gate.py:189`<br>`scripts/release_gate.py:406`<br>`scripts/resilient_stage.py:492`<br>`scripts/validate_pages_artifact.py:1201`<br>`scripts/validate_pages_artifact.py:1234`<br>`src/configstream/output/metadata.py:557`<br>`src/configstream/output/metadata.py:592` |
+| `GITHUB_RUN_ATTEMPT` | no | `direct-only` |  | no | no | `scripts/finalize_release_outputs.py:621`<br>`scripts/finalize_release_outputs.py:668`<br>`scripts/generate_evidence_bundle.py:20`<br>`scripts/native_client_checks.py:232`<br>`scripts/release_gate.py:191`<br>`scripts/release_gate.py:434`<br>`scripts/resilient_stage.py:491`<br>`scripts/validate_pages_artifact.py:1203`<br>`scripts/validate_pages_artifact.py:1236`<br>`src/configstream/output/metadata.py:559`<br>`src/configstream/output/metadata.py:594` |
+| `GITHUB_RUN_ID` | no | `direct-only` |  | no | no | `scripts/finalize_release_outputs.py:620`<br>`scripts/finalize_release_outputs.py:667`<br>`scripts/generate_evidence_bundle.py:19`<br>`scripts/native_client_checks.py:231`<br>`scripts/release_gate.py:190`<br>`scripts/release_gate.py:431`<br>`scripts/resilient_stage.py:490`<br>`scripts/validate_pages_artifact.py:1202`<br>`scripts/validate_pages_artifact.py:1235`<br>`src/configstream/output/metadata.py:558`<br>`src/configstream/output/metadata.py:593` |
+| `GITHUB_SHA` | no | `direct-only` |  | no | no | `scripts/finalize_release_outputs.py:619`<br>`scripts/finalize_release_outputs.py:666`<br>`scripts/generate_evidence_bundle.py:21`<br>`scripts/native_client_checks.py:230`<br>`scripts/release_gate.py:189`<br>`scripts/release_gate.py:428`<br>`scripts/resilient_stage.py:492`<br>`scripts/validate_pages_artifact.py:1201`<br>`scripts/validate_pages_artifact.py:1234`<br>`src/configstream/output/metadata.py:557`<br>`src/configstream/output/metadata.py:592` |
 | `GITHUB_WORKFLOW` | no | `direct-only` |  | no | no | `scripts/resilient_stage.py:489` |
 | `GO_TESTER_BATCH_SIZE` | yes | `int` | `500` | no | no | `src/configstream/config.py:57` |
 | `HEDGE_AFTER_MS` | yes | `int` | `800` | no | no | `src/configstream/config.py:112` |
@@ -109,7 +109,7 @@ Variables: **161**
 | `MIN_SOURCE_COVERAGE` | no | `direct-only` |  | no | no | `scripts/finalize_release_outputs.py:683` |
 | `NOTIFY_UPDATE_URL` | yes | `Optional[str]` |  | no | no | `src/configstream/config.py:172` |
 | `OPTIMAL_RELAY_ORIGIN` | yes | `str` | `"IR"` | no | no | `src/configstream/config.py:62` |
-| `OUTPUT_DIR` | no | `direct-only` |  | no | no | `src/configstream/server/utils.py:55` |
+| `OUTPUT_DIR` | no | `direct-only` |  | no | no | `src/configstream/server/utils.py:56` |
 | `PARENT_RELEASE_DIGEST` | no | `direct-only` |  | no | no | `scripts/finalize_release.py:297` |
 | `PATH` | no | `direct-only` |  | no | no | `scripts/native_client_checks.py:92`<br>`src/configstream/testers/go_tester/manager.py:324`<br>`src/configstream/testers/go_tester/manager.py:91` |
 | `PER_HOST_MAX_CONCURRENCY` | yes | `int` | `16` | no | no | `src/configstream/config.py:111` |
@@ -149,20 +149,20 @@ Variables: **161**
 | `TEST_TIMEOUT` | yes | `int` | `15` | no | no | `src/configstream/config.py:27` |
 | `TEST_URLS` | yes | `dict[str, str]` | `"<structured default>"` | no | no | `src/configstream/config.py:16` |
 | `TLS_TESTS_ENABLED` | yes | `bool` | `true` | no | no | `src/configstream/config.py:118` |
-| `TMPDIR` | no | `direct-only` |  | no | no | `src/configstream/testers/go_tester/binary_security.py:152`<br>`src/configstream/testers/go_tester/manager.py:323` |
+| `TMPDIR` | no | `direct-only` |  | no | no | `src/configstream/security/utls_wrapper.py:143`<br>`src/configstream/testers/go_tester/binary_security.py:158`<br>`src/configstream/testers/go_tester/manager.py:323`<br>`src/configstream/tools/dns_scanner/python/dnsscanner_tui.py:100`<br>`src/configstream/tools/vwarp/binary.py:140` |
 | `UPDATE_INTERVAL_HOURS` | yes | `int` | `4` | no | no | `src/configstream/config.py:126` |
 | `USE_VWARP_TUNNEL` | yes | `bool` | `true` | no | no | `src/configstream/config.py:144`<br>`src/configstream/intelligence/washer/core.py:515`<br>`src/configstream/pipeline/core.py:150`<br>`src/configstream/pipeline/core.py:171`<br>`src/configstream/pipeline/core.py:176`<br>`src/configstream/pipeline/core.py:181`<br>`src/configstream/pipeline/core.py:41`<br>`src/configstream/pipeline/core.py:47`<br>`src/configstream/testers/go_tester/manager.py:331`<br>`src/configstream/testers/go_tester/secure_manager.py:72` |
-| `UTLS_CLIENT_SHA256` | no | `direct-only` |  | no | no | `src/configstream/security/utls_wrapper.py:47` |
+| `UTLS_CLIENT_SHA256` | no | `direct-only` |  | no | no | `src/configstream/security/utls_wrapper.py:90` |
 | `VERSION_TAG` | no | `direct-only` |  | no | no | `scripts/upload_telegram.py:46` |
 | `VT_API_KEY` | yes | `Optional[str]` | `<redacted>` | no | yes | `src/configstream/config.py:135` |
 | `VWARP_BIND_ADDRESS` | yes | `str` | `"127.0.0.1"` | no | no | `src/configstream/config.py:146` |
 | `VWARP_FORCE_MASQUE` | no | `direct-only` |  | no | no | `src/configstream/tools/vwarp/config.py:88` |
 | `VWARP_MASQUE_ENABLED` | yes | `bool` | `true` | no | no | `src/configstream/config.py:147` |
-| `VWARP_SHA256` | no | `direct-only` |  | no | no | `src/configstream/tools/vwarp/binary.py:66` |
+| `VWARP_SHA256` | no | `direct-only` |  | no | no | `src/configstream/tools/vwarp/binary.py:83` |
 | `VWARP_SOCKS5_PORT` | yes | `int` | `10808` | no | no | `src/configstream/config.py:145` |
-| `VWARP_TUNNEL_ARGS` | no | `direct-only` |  | no | no | `src/configstream/tools/vwarp/tunnel.py:189` |
-| `VWARP_URL` | no | `direct-only` |  | no | no | `src/configstream/tools/vwarp/binary.py:65` |
-| `VWARP_VERSION` | no | `direct-only` |  | no | no | `src/configstream/tools/vwarp/binary.py:64`<br>`src/configstream/tools/vwarp/config.py:139` |
+| `VWARP_TUNNEL_ARGS` | no | `direct-only` |  | no | no | `src/configstream/tools/vwarp/tunnel.py:207` |
+| `VWARP_URL` | no | `direct-only` |  | no | no | `src/configstream/tools/vwarp/binary.py:82` |
+| `VWARP_VERSION` | no | `direct-only` |  | no | no | `src/configstream/tools/vwarp/binary.py:81`<br>`src/configstream/tools/vwarp/config.py:139` |
 | `WARP_KEY_POOL` | yes | `str` | `"[]"` | no | no | `src/configstream/config.py:60` |
 | `WARP_PEER_KEY` | yes | `Optional[str]` |  | no | no | `src/configstream/config.py:63` |
 | `WS_IDLE_TIMEOUT_SECONDS` | yes | `float` | `60.0` | no | no | `src/configstream/config.py:166` |

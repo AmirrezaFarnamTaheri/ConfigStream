@@ -42,10 +42,11 @@ This installs ConfigStream in editable mode along with development tools (`pytes
 The Go tester provides 10-50x faster proxy testing than the Python fallback.
 ```bash
 cd src/go/tester
-go mod tidy
-go build -o configstream-tester .
-mv configstream-tester ../../../
+go mod download
+go build -trimpath -mod=readonly -o ../../../configstream-tester .
 cd ../../..
+sha256sum configstream-tester | awk '{print $1}' > configstream-tester.sha256
+chmod 0444 configstream-tester.sha256
 ```
 If you skip this step, the pipeline falls back to a slower Python-based tester.
 

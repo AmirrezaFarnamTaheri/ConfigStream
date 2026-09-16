@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
+from ipaddress import ip_address
 import json
 import logging
 import shutil
@@ -9,6 +10,23 @@ from pathlib import Path
 
 # Configure logger for this module
 logger = logging.getLogger(__name__)
+
+
+async def _kill_and_reap(proc: asyncio.subprocess.Process) -> None:
+    """Kill an active scanner child and bound the reap operation."""
+    if proc.returncode is None:
+        try:
+            proc.kill()
+        except ProcessLookupError:
+            pass
+        except OSError as exc:
+            logger.warning("Failed to kill WARP scanner child: %s", type(exc).__name__)
+    try:
+        await asyncio.wait_for(proc.wait(), timeout=5.0)
+    except asyncio.TimeoutError:
+        logger.error("WARP scanner child could not be reaped after termination")
+    except (OSError, RuntimeError) as exc:
+        logger.warning("Failed to reap WARP scanner child: %s", type(exc).__name__)
 
 
 class WarpScannerWorker:
@@ -124,6 +142,12 @@ class WarpScannerWorker:
             List[str]: A list of valid IP addresses (e.g., ["162.159.192.1", ...])
         """
         from configstream.config import AppSettings
+        from configstream.security_validator import SecurityValidator
+        from configstream.testers.go_tester.binary_security import (
+            initialize_binary_identity,
+            minimal_subprocess_environment,
+            verify_binary_identity,
+        )
 
         settings = AppSettings()
         if not settings.ALLOW_ACTIVE_SCANNING and not settings.FORCE_SCANNER:
@@ -132,9 +156,27 @@ class WarpScannerWorker:
             )
             return []
 
-        if not self.available:
+        if limit <= 0 or timeout <= 0 or max_latency < 0:
+            logger.error("WARP scan rejected invalid numeric bounds")
+            return []
+
+        if not self.available or not self.binary_path:
             logger.warning("Scan requested but binary is unavailable.")
             return []
+
+        try:
+            identity = await asyncio.to_thread(
+                initialize_binary_identity, self.binary_path
+            )
+        except (OSError, ValueError) as exc:
+            logger.error("Scanner binary rejected: %s", type(exc).__name__)
+            self.available = False
+            return []
+        if not await asyncio.to_thread(verify_binary_identity, identity):
+            logger.error("Scanner binary failed integrity verification")
+            self.available = False
+            return []
+        self.binary_path = str(identity.path)
 
         # Construct Command: ./configstream-tester -mode scan -limit 50 -timeout 5s
         cmd = [
@@ -154,12 +196,13 @@ class WarpScannerWorker:
                 f"Starting active WARP scan (Target: {limit} IPs, Timeout: {timeout}s)..."
             )
 
-            # Create subprocess asynchronously
-            # We pipe stdout to read JSON stream, stderr to capture logs
-            # Ensure cmd only contains strings
-            str_cmd = [str(c) for c in cmd if c is not None]
+            # Create subprocess asynchronously with a minimal environment so
+            # unrelated pipeline credentials are never inherited by the tester.
             proc = await asyncio.create_subprocess_exec(
-                *str_cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+                *cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                env=minimal_subprocess_environment(settings),
             )
 
             # Wait for the process to finish and capture output, bounded by an
@@ -176,31 +219,28 @@ class WarpScannerWorker:
                     "WARP scan exceeded overall deadline of %ss; killing scanner.",
                     scan_deadline,
                 )
-                try:
-                    proc.kill()
-                    await proc.wait()
-                except ProcessLookupError:
-                    pass
+                await _kill_and_reap(proc)
                 return []
+            except asyncio.CancelledError:
+                await _kill_and_reap(proc)
+                raise
 
+            safe_stderr = SecurityValidator.sanitize_log_message(
+                stderr.decode(errors="replace").strip()
+            )
             if proc.returncode != 0:
                 logger.error(f"Scanner binary exited with error code {proc.returncode}")
-                if stderr:
-                    logger.error(
-                        f"Scanner stderr: {stderr.decode(errors='replace').strip()}"
-                    )
+                if safe_stderr:
+                    logger.error("Scanner stderr: %s", safe_stderr[:1000])
                 return []
 
-            # Log any debug info from the binary (if present)
-            if stderr and len(stderr) > 0:
-                # Only log stderr at DEBUG level unless it's a crash
-                logger.debug(
-                    f"Scanner internals: {stderr.decode(errors='replace').strip()}"
-                )
+            # Log any debug info from the binary (if present), sanitized and bounded.
+            if safe_stderr:
+                logger.debug("Scanner internals: %s", safe_stderr[:1000])
 
             # Parse Results
             clean_ips = []
-            raw_output = stdout.decode()
+            raw_output = stdout.decode(errors="replace")
 
             if not raw_output.strip():
                 # In CI or restricted environments, exit code 0 with no output might happen
@@ -217,15 +257,31 @@ class WarpScannerWorker:
                 try:
                     # Expected JSON: {"ip":"1.2.3.4", "port":2408, "latency":45}
                     data = json.loads(line)
+                    if not isinstance(data, dict):
+                        continue
 
                     ip = data.get("ip")
                     latency = data.get("latency", 9999)
+                    try:
+                        latency_value = float(latency)
+                    except (TypeError, ValueError):
+                        continue
 
-                    if ip and latency <= max_latency:
-                        clean_ips.append(ip)
+                    if not isinstance(ip, str) or not ip.strip():
+                        continue
+                    try:
+                        ip_address(ip.strip())
+                    except ValueError:
+                        continue
+                    if not 0 <= latency_value <= max_latency:
+                        continue
+
+                    clean_ips.append(ip.strip())
+                    if len(clean_ips) >= limit:
+                        break
 
                 except json.JSONDecodeError:
-                    logger.debug(f"Skipping invalid JSON line from scanner: {line}")
+                    logger.debug("Skipping invalid JSON line from scanner")
                     continue
 
             logger.info(
@@ -234,8 +290,12 @@ class WarpScannerWorker:
             )
             return clean_ips
 
-        except Exception as e:
+        except asyncio.CancelledError:
+            raise
+        except (OSError, ValueError, RuntimeError) as exc:
             logger.error(
-                f"Critical error during active scan execution: {e}", exc_info=True
+                "Critical error during active scan execution: %s",
+                type(exc).__name__,
+                exc_info=True,
             )
             return []

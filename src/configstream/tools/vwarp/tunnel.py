@@ -12,7 +12,7 @@ from typing import Any, Dict, List, Optional
 from configstream.async_utils import safe_wait_for
 from configstream.constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
 from configstream.security_validator import SecurityValidator
-from .binary import verify_binary
+from .binary import minimal_vwarp_environment, verify_binary
 from .config import write_temp_config
 
 logger = logging.getLogger(__name__)
@@ -36,8 +36,12 @@ class VwarpTunnel:
         if not self.binary_path or not await verify_binary(self.binary_path):
             return False
 
-        if self._proc:
-            return True
+        if self._proc is not None:
+            if self._proc.returncode is None:
+                return True
+            # Reap a previously exited child before attempting a restart. A dead
+            # Process object must never be treated as evidence that the tunnel is live.
+            await self.stop()
 
         success = await self._start_attempt(bind_addr, port, config_override)
         if success:
@@ -66,41 +70,55 @@ class VwarpTunnel:
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
+                env=minimal_vwarp_environment(),
             )
+
+            async def consume_stream(stream, level):
+                if stream is None:
+                    return
+                try:
+                    while True:
+                        chunk = await stream.read(4096)
+                        if not chunk:
+                            return
+                        safe_chunk = SecurityValidator.sanitize_log_message(
+                            chunk.decode(errors="replace")
+                        ).strip()
+                        if safe_chunk:
+                            logger.log(level, "Vwarp: %s", safe_chunk)
+                except asyncio.CancelledError:
+                    raise
+                except (OSError, RuntimeError, ValueError) as exc:
+                    logger.debug(
+                        "Vwarp stream drain failed: %s",
+                        SecurityValidator.sanitize_log_message(str(exc)),
+                    )
+
+            # Drain both pipes immediately. Waiting for readiness before consuming
+            # child output can deadlock a verbose child on a full OS pipe buffer.
+            for stream, level in (
+                (getattr(self._proc, "stdout", None), logging.DEBUG),
+                (getattr(self._proc, "stderr", None), logging.WARNING),
+            ):
+                if stream is None:
+                    continue
+                task = asyncio.create_task(consume_stream(stream, level))
+                self._stream_tasks.add(task)
+                task.add_done_callback(self._stream_tasks.discard)
 
             await asyncio.sleep(0.5)
             if self._proc.returncode is not None:
-                stdout, stderr = await self._proc.communicate()
                 logger.error(
-                    "Vwarp failed: %s",
-                    SecurityValidator.sanitize_log_message(
-                        (stdout or b"").decode() + (stderr or b"").decode()
-                    ),
+                    "Vwarp exited during startup with status %s.",
+                    self._proc.returncode,
                 )
-                self._cleanup_config_file()
+                await self.stop()
                 return False
 
             if not await self._wait_for_port(bind_addr, port):
                 logger.error("Vwarp Tunnel started but port check timed out.")
                 await self.stop()
                 return False
-
-            async def consume_stream(stream, level):
-                while stream and not stream.at_eof():
-                    line = await stream.readline()
-                    if line:
-                        safe_line = SecurityValidator.sanitize_log_message(
-                            line.decode(errors="ignore")
-                        ).strip()
-                        logger.log(level, "Vwarp: %s", safe_line)
-
-            for stream, level in (
-                (self._proc.stdout, logging.DEBUG),
-                (self._proc.stderr, logging.WARNING),
-            ):
-                task = asyncio.create_task(consume_stream(stream, level))
-                self._stream_tasks.add(task)
-                task.add_done_callback(self._stream_tasks.discard)
 
             return True
         except Exception as e:

@@ -12,7 +12,6 @@
     "scripts/upload_hf.py": 3,
     "scripts/upload_telegram.py": 1,
     "scripts/validate_pages_artifact.py": 1,
-    "src/configstream/__init__.py": 2,
     "src/configstream/adapters/loon.py": 2,
     "src/configstream/adapters/quantumult.py": 1,
     "src/configstream/adapters/shadowrocket.py": 1,
@@ -63,11 +62,9 @@
     "src/configstream/testers/manager.py": 2,
     "src/configstream/testers/python.py": 6,
     "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py": 25,
-    "src/configstream/tools/vwarp/scanner.py": 1,
     "src/configstream/tools/vwarp/tunnel.py": 1,
     "src/configstream/tools/warp.py": 1,
-    "src/configstream/utils/__init__.py": 4,
-    "src/configstream/warp_scanner.py": 1
+    "src/configstream/utils/__init__.py": 4
   },
   "policy": {
     "required_boundary_behavior": "catch only at a recovery or translation boundary; preserve cancellation and fail closed for security/publication",
@@ -79,5 +76,5 @@
     "target_total": 0
   },
   "schema_version": 1,
-  "total_ceiling": 232
+  "total_ceiling": 228
 }

@@ -1,0 +1,85 @@
+name: Preempt Stale ConfigStream Runs
+
+on:
+  push:
+    branches: [main]
+  workflow_run:
+    workflows: ["Config's Stream"]
+    types: [requested]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: preempt-stale-configstream-main
+  cancel-in-progress: true
+
+jobs:
+  preempt:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel obsolete Config's Stream runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          TARGET_RUN_ID: ${{ github.event.workflow_run.id || '0' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          cancel_err="$(mktemp)"
+          trap 'rm -f "$tmp" "$cancel_err"' EXIT
+
+          for status in queued in_progress; do
+            gh api --paginate \
+              -H 'Accept: application/vnd.github+json' \
+              "/repos/${GITHUB_REPOSITORY}/actions/workflows/main.yml/runs?branch=main&status=${status}&per_page=100" \
+              --jq '.workflow_runs[] | [.id, .head_sha, .event] | @tsv' >> "$tmp"
+          done
+
+          sort -u "$tmp" | while IFS=$'\t' read -r run_id head_sha event; do
+            [[ "$run_id" =~ ^[0-9]+$ ]] || continue
+            if [[ "$run_id" == "$TARGET_RUN_ID" ]]; then
+              continue
+            fi
+            case "$event" in
+              push|schedule|workflow_dispatch) ;;
+              *) continue ;;
+            esac
+
+            if [[ "$TARGET_RUN_ID" =~ ^[1-9][0-9]*$ ]]; then
+              # A workflow_run event identifies the exact newest run. Cancel only
+              # older runs, including duplicate same-SHA schedules, so an older
+              # preemption event can never cancel a newer production request.
+              if (( run_id > TARGET_RUN_ID )); then
+                continue
+              fi
+            elif [[ "$head_sha" == "$TARGET_SHA" ]]; then
+              # Push/manual preemption has no exact target run id. Preserve all
+              # same-head runs until the workflow_run event can choose one safely.
+              continue
+            fi
+
+            echo "Cancelling stale Config's Stream run ${run_id} at ${head_sha} (${event})"
+            if ! gh api --method POST \
+              -H 'Accept: application/vnd.github+json' \
+              "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/cancel" \
+              >/dev/null 2>"$cancel_err"; then
+              state="$(gh api \
+                -H 'Accept: application/vnd.github+json' \
+                "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}" \
+                --jq '.status' 2>/dev/null || printf 'unknown')"
+              if [[ "$state" != "completed" ]]; then
+                cat "$cancel_err" >&2
+                echo "Failed to cancel still-active Config's Stream run ${run_id}" >&2
+                exit 1
+              fi
+            fi
+            : > "$cancel_err"
+          done

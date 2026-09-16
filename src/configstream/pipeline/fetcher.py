@@ -727,13 +727,26 @@ class HttpFetcher(IFetcher):
         self.timeout_tracker = timeout_tracker
 
     async def fetch(self, source: str) -> FetchResult:
-        return cast(
-            FetchResult,
-            await fetch_from_source(
-                self.client,
-                source,
-                app_settings=self.settings,
-                breaker_manager=self.breaker_manager,
-                timeout_tracker=self.timeout_tracker,
-            ),
-        )
+        if self.client is not None:
+            return cast(
+                FetchResult,
+                await fetch_from_source(
+                    self.client,
+                    source,
+                    app_settings=self.settings,
+                    breaker_manager=self.breaker_manager,
+                    timeout_tracker=self.timeout_tracker,
+                ),
+            )
+
+        async with get_client() as managed_client:
+            return cast(
+                FetchResult,
+                await fetch_from_source(
+                    managed_client,
+                    source,
+                    app_settings=self.settings,
+                    breaker_manager=self.breaker_manager,
+                    timeout_tracker=self.timeout_tracker,
+                ),
+            )

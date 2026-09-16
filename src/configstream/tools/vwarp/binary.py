@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
 import hashlib
+import hmac
 import logging
 import os
 import platform
@@ -32,6 +33,22 @@ MAX_VWARP_ARCHIVE_BYTES = 64 * 1024 * 1024
 MAX_VWARP_BINARY_BYTES = 64 * 1024 * 1024
 VERIFY_TIMEOUT_SECONDS = 10.0
 _SHA256_RE = re.compile(r"^[0-9a-fA-F]{64}$")
+_BINARY_DIGEST_ENV = "VWARP_BINARY_SHA256"
+_ENV_ALLOWLIST = (
+    "PATH",
+    "HOME",
+    "USERPROFILE",
+    "SYSTEMROOT",
+    "WINDIR",
+    "TMPDIR",
+    "TMP",
+    "TEMP",
+    "SSL_CERT_FILE",
+    "SSL_CERT_DIR",
+    "LANG",
+    "LC_ALL",
+    "TZ",
+)
 
 
 def _is_supported_platform() -> bool:
@@ -114,6 +131,93 @@ async def _download_archive(client: httpx.AsyncClient, url: str) -> bytes:
         return bytes(content)
 
 
+def minimal_vwarp_environment() -> dict[str, str]:
+    """Return the environment explicitly allowed into Vwarp subprocesses."""
+    environment = {
+        key: value for key in _ENV_ALLOWLIST if (value := os.environ.get(key))
+    }
+    environment.setdefault("PATH", os.defpath)
+    environment["TMPDIR"] = os.environ.get("TMPDIR") or tempfile.gettempdir()
+    return environment
+
+
+def _normalize_binary_digest(value: str) -> Optional[str]:
+    candidate = (
+        str(value or "").strip().split()[0].lower() if str(value or "").strip() else ""
+    )
+    if not candidate or not _SHA256_RE.fullmatch(candidate):
+        return None
+    return candidate
+
+
+def _validate_trusted_file(path: Path, *, executable: bool) -> Path:
+    candidate = Path(path)
+    if candidate.is_symlink():
+        raise ValueError("Vwarp trusted file must not be a symbolic link")
+    resolved = candidate.resolve(strict=True)
+    metadata = resolved.stat()
+    if not stat.S_ISREG(metadata.st_mode):
+        raise ValueError("Vwarp trusted file must be a regular file")
+    if os.name != "nt":
+        if metadata.st_mode & (stat.S_IWGRP | stat.S_IWOTH):
+            raise ValueError("Vwarp trusted file must not be group/world writable")
+        euid = getattr(os, "geteuid", lambda: 0)()
+        if metadata.st_uid not in {0, euid}:
+            raise ValueError("Vwarp trusted file has an unexpected owner")
+    if executable and not os.access(resolved, os.X_OK):
+        raise ValueError("Vwarp binary is not executable")
+    return resolved
+
+
+def _binary_sidecar_digest(path: Path) -> Optional[str]:
+    sidecar = path.with_name(path.name + ".sha256")
+    if not sidecar.exists():
+        return None
+    trusted = _validate_trusted_file(sidecar, executable=False)
+    digest = _normalize_binary_digest(trusted.read_text(encoding="ascii"))
+    if digest is None:
+        raise ValueError("Vwarp executable checksum sidecar is invalid")
+    return digest
+
+
+def _expected_binary_digest(
+    path: Path, explicit: Optional[str] = None
+) -> Optional[str]:
+    raw = explicit if explicit is not None else os.environ.get(_BINARY_DIGEST_ENV, "")
+    if raw:
+        digest = _normalize_binary_digest(raw)
+        if digest is None:
+            raise ValueError(f"{_BINARY_DIGEST_ENV} is not a valid SHA-256 digest")
+        return digest
+    return _binary_sidecar_digest(path)
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def _write_binary_digest_sidecar(path: Path, digest: str) -> None:
+    sidecar = path.with_name(path.name + ".sha256")
+    fd, temporary_name = tempfile.mkstemp(
+        prefix=f".{sidecar.name}.", dir=sidecar.parent
+    )
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(fd, "w", encoding="ascii") as handle:
+            handle.write(digest + "\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        if os.name != "nt":
+            temporary.chmod(0o600)
+        os.replace(temporary, sidecar)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
 def _prepare_install_dir() -> Path:
     """Return a writable install directory without trusting shared temp paths."""
 
@@ -155,14 +259,31 @@ def find_binary() -> Optional[str]:
     return None
 
 
-async def verify_binary(binary_path: str) -> bool:
-    """Verify the existing binary executes properly."""
+async def verify_binary(
+    binary_path: str, expected_sha256: Optional[str] = None
+) -> bool:
+    """Verify file provenance and digest before executing the Vwarp binary."""
     try:
+        resolved = _validate_trusted_file(Path(binary_path), executable=True)
+        expected = _expected_binary_digest(resolved, expected_sha256)
+        if expected is None:
+            logger.error(
+                "Vwarp executable has no trusted SHA-256 pin; set %s or provide %s.sha256",
+                _BINARY_DIGEST_ENV,
+                resolved,
+            )
+            return False
+        observed = _sha256_file(resolved)
+        if not hmac.compare_digest(observed, expected):
+            logger.error("Vwarp executable checksum does not match the trusted digest")
+            return False
+
         proc = await asyncio.create_subprocess_exec(
-            binary_path,
+            str(resolved),
             "version",
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
+            env=minimal_vwarp_environment(),
         )
         try:
             stdout, stderr = await asyncio.wait_for(
@@ -186,9 +307,9 @@ async def verify_binary(binary_path: str) -> bool:
                 SecurityValidator.sanitize_log_message(stdout.decode(errors="ignore")),
             )
         return False
-    except OSError as exc:
+    except (OSError, ValueError, UnicodeError) as exc:
         logger.error(
-            "Vwarp version check error: %s",
+            "Vwarp version check rejected the executable: %s",
             SecurityValidator.sanitize_log_message(str(exc)),
         )
         return False
@@ -295,11 +416,18 @@ async def ensure_installed() -> Optional[str]:
 
                 st = temporary_path.stat()
                 temporary_path.chmod(st.st_mode | stat.S_IEXEC)
-                if not await verify_binary(str(temporary_path)):
+                executable_digest = _sha256_file(temporary_path)
+                if not await verify_binary(
+                    str(temporary_path), expected_sha256=executable_digest
+                ):
                     logger.error("Downloaded Vwarp binary failed execution check")
                     return None
                 os.replace(temporary_path, target_path)
                 temporary_path = None
+                _write_binary_digest_sidecar(target_path, executable_digest)
+                if not await verify_binary(str(target_path)):
+                    logger.error("Installed Vwarp binary failed pinned verification")
+                    return None
             finally:
                 if temporary_path is not None:
                     temporary_path.unlink(missing_ok=True)

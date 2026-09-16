@@ -1,5 +1,4 @@
 import json
-import logging
 from unittest.mock import patch
 
 import pytest
@@ -62,18 +61,18 @@ def test_frontend_secret_key_is_removed_not_replaced(tmp_path):
     assert "NEW_SECRET_KEY_123" not in content
 
 
-def test_frontend_secret_cleanup_is_best_effort_for_non_utf8(tmp_path, caplog):
+def test_frontend_secret_cleanup_fails_closed_for_non_utf8(tmp_path, caplog):
     js_file = tmp_path / "app.js"
     js_file.write_bytes(b"\xff\xfe")
 
-    with caplog.at_level(logging.WARNING):
+    with pytest.raises(RuntimeError, match="could not inspect"):
         inject_stego_key_into_frontend("NEW_SECRET", js_file)
 
     assert "UnicodeDecodeError" in caplog.text
     assert "NEW_SECRET" not in caplog.text
 
 
-def test_frontend_secret_cleanup_is_best_effort_for_write_errors(tmp_path, caplog):
+def test_frontend_secret_cleanup_fails_closed_for_write_errors(tmp_path, caplog):
     js_file = tmp_path / "app.js"
     original = 'const SECRET_KEY = "OLD";'
     js_file.write_text(original, encoding="utf-8")
@@ -83,7 +82,7 @@ def test_frontend_secret_cleanup_is_best_effort_for_write_errors(tmp_path, caplo
             "configstream.output_transport.AtomicFileWriter.write_text",
             side_effect=OSError("permission denied"),
         ),
-        caplog.at_level(logging.WARNING),
+        pytest.raises(RuntimeError, match="could not sanitize"),
     ):
         inject_stego_key_into_frontend("NEW_SECRET", js_file)
 
