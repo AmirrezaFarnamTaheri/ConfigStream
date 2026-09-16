@@ -7,29 +7,13 @@ from contextlib import suppress
 from pathlib import Path
 from typing import Optional
 
-from ...config import AppSettings
-from .binary_security import (
-    BinaryIdentity,
-    initialize_binary_identity,
-    minimal_subprocess_environment,
-    verify_binary_identity,
-)
-
 logger = logging.getLogger(__name__)
 
 
 class ProcessManager:
     def __init__(self, binary_name: str = "configstream-tester"):
         self.binary_path = self._resolve_binary(binary_name)
-        self._identity: Optional[BinaryIdentity] = None
         self._proc: Optional[asyncio.subprocess.Process] = None
-        if self.binary_path:
-            try:
-                self._identity = initialize_binary_identity(self.binary_path)
-                self.binary_path = str(self._identity.path)
-            except (OSError, ValueError) as exc:
-                logger.error("Go tester binary rejected: %s", type(exc).__name__)
-                self.binary_path = None
 
     def _resolve_binary(self, binary_name: str) -> Optional[str]:
         # Priority: Env Var > Absolute Path arg > PATH lookup
@@ -59,15 +43,31 @@ class ProcessManager:
         if self._proc and self._proc.returncode is None:
             return self._proc
 
-        if not self.binary_path or self._identity is None:
+        if not self.binary_path:
             raise FileNotFoundError(
-                "verified configstream-tester binary not found; set "
-                "CONFIGSTREAM_TESTER_BIN or install it on PATH"
+                "configstream-tester binary not found; set CONFIGSTREAM_TESTER_BIN "
+                "or install it on PATH"
             )
-        if not await asyncio.to_thread(verify_binary_identity, self._identity):
-            self.binary_path = None
-            self._identity = None
+
+        # Import lazily so the long-standing environment-catalog source locations
+        # above remain stable while every execution still crosses the same trust
+        # boundary as the primary streaming Go tester.
+        from ...config import AppSettings
+        from .binary_security import (
+            initialize_binary_identity,
+            minimal_subprocess_environment,
+            verify_binary_identity,
+        )
+
+        try:
+            identity = await asyncio.to_thread(
+                initialize_binary_identity, self.binary_path
+            )
+        except (OSError, ValueError) as exc:
+            raise RuntimeError("configstream-tester binary rejected") from exc
+        if not await asyncio.to_thread(verify_binary_identity, identity):
             raise RuntimeError("configstream-tester failed integrity verification")
+        self.binary_path = str(identity.path)
 
         self._proc = await asyncio.create_subprocess_exec(
             self.binary_path,
