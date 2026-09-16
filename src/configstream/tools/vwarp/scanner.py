@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
+import ipaddress
 import logging
-import re
 import time
 from typing import List, Tuple, Optional
 
@@ -12,24 +12,36 @@ from .binary import minimal_vwarp_environment, verify_binary
 
 logger = logging.getLogger(__name__)
 
-# Simple IPv4/IPv6 validation pattern for scan output parsing
-_IPV4_RE = re.compile(
-    r"^(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)$"
-)
 
 
 def is_valid_ip(host: str) -> bool:
-    """Check if a string looks like a valid IPv4 or IPv6 address."""
-    host = host.strip()
-    if not host:
+    """Return whether *host* is a syntactically valid IPv4 or IPv6 address."""
+    candidate = host.strip()
+    if not candidate:
         return False
-    # IPv4
-    if _IPV4_RE.match(host):
-        return True
-    # IPv6: hex/colon/dot chars only AND at least 2 colons (real IPv6 has 2-7)
-    if host.count(":") >= 2 and all(c in "0123456789abcdefABCDEF:." for c in host):
-        return True
-    return False
+    try:
+        ipaddress.ip_address(candidate)
+    except ValueError:
+        return False
+    return True
+
+
+async def _kill_and_reap(proc: asyncio.subprocess.Process) -> None:
+    """Kill a scanner child if needed and always attempt to reap it."""
+    if proc.returncode is None:
+        try:
+            proc.kill()
+        except ProcessLookupError:
+            pass
+    try:
+        await safe_wait_for(proc.wait(), timeout=5.0)
+    except asyncio.TimeoutError:
+        logger.error("Vwarp scan process could not be reaped after kill.")
+    except (OSError, RuntimeError) as exc:
+        logger.warning(
+            "Vwarp scan process cleanup failed: %s",
+            SecurityValidator.sanitize_log_message(str(exc)),
+        )
 
 
 async def scan_endpoints(
@@ -76,11 +88,11 @@ async def scan_endpoints(
             logger.warning(
                 "Vwarp scan timed out after %.1fs. Killing process.", elapsed
             )
-            try:
-                proc.kill()
-            except ProcessLookupError:
-                pass
+            await _kill_and_reap(proc)
             return []
+        except asyncio.CancelledError:
+            await _kill_and_reap(proc)
+            raise
 
         endpoints: List[Tuple[str, int]] = []
         if stdout:
@@ -131,10 +143,12 @@ async def scan_endpoints(
         )
         return endpoints
 
-    except Exception as e:
+    except asyncio.CancelledError:
+        raise
+    except (OSError, RuntimeError, ValueError) as exc:
         logger.error(
             "Vwarp scan failed after %.1fs: %s",
             time.time() - scan_start,
-            SecurityValidator.sanitize_log_message(str(e)),
+            SecurityValidator.sanitize_log_message(str(exc)),
         )
         return []
