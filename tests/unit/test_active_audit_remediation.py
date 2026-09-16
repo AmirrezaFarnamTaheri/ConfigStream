@@ -81,7 +81,10 @@ def test_strict_binary_trust_flag_is_case_insensitive(
         initialize_binary_identity(tester)
 
 
-@pytest.mark.skipif(os.name == "nt", reason="POSIX permission semantics")
+@pytest.mark.skipif(
+    os.name == "nt",
+    reason="unsupported platform: test requires POSIX file permission semantics",
+)
 def test_binary_checksum_sidecar_must_not_be_group_writable(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
