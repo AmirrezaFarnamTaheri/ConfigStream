@@ -74,7 +74,11 @@ def _transport_details(data: dict) -> dict:
         details["allowInsecure"] = _bool(data["allowInsecure"])
     if "alpn" in data:
         details["alpn"] = data["alpn"]
-    fingerprint = data.get("fp") or data.get("client-fingerprint") or data.get("fingerprint")
+    fingerprint = (
+        data.get("fp")
+        or data.get("client-fingerprint")
+        or data.get("fingerprint")
+    )
     if fingerprint:
         details["fp"] = _string(fingerprint)
 
