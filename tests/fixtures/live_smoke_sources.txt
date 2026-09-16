@@ -1,0 +1,7 @@
+# Two admitted HTTPS production sources selected for a tiny live canary.
+# TheSpeedX SOCKS5 is primary because the latest strict live smoke produced
+# two verified working proxies from its first 16 entries. Proxifly remains a
+# separately admitted fallback; its current first 16 entries were all working
+# in the most recent full production candidate inspected while adding this test.
+https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks5.txt
+https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/all/data.txt
