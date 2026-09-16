@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "6bf8fad51f4e1665f061b39fd8ea0fb8348d660fb1792a1ea27af94fe3c82723",
+  "source_digest": "b49424a640e733c724fcb4d8a0dbab59f2bb147017695499a3bcd110fa3553bc",
   "variable_count": 161,
   "variables": [
     {
@@ -1647,7 +1647,8 @@
       "sensitive": false,
       "sources": [
         "src/configstream/testers/go_tester/binary_security.py:157",
-        "src/configstream/testers/go_tester/manager.py:323"
+        "src/configstream/testers/go_tester/manager.py:323",
+        "src/configstream/tools/vwarp/binary.py:141"
       ],
       "type": null
     },
@@ -1755,7 +1756,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/tools/vwarp/binary.py:66"
+        "src/configstream/tools/vwarp/binary.py:83"
       ],
       "type": null
     },
@@ -1777,7 +1778,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/tools/vwarp/tunnel.py:189"
+        "src/configstream/tools/vwarp/tunnel.py:190"
       ],
       "type": null
     },
@@ -1788,7 +1789,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/tools/vwarp/binary.py:65"
+        "src/configstream/tools/vwarp/binary.py:82"
       ],
       "type": null
     },
@@ -1799,7 +1800,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/tools/vwarp/binary.py:64",
+        "src/configstream/tools/vwarp/binary.py:81",
         "src/configstream/tools/vwarp/config.py:139"
       ],
       "type": null
