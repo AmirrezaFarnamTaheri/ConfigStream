@@ -47,12 +47,16 @@ async def _read_admin_payload(request: Request) -> dict:
         if declared_length < 0:
             raise HTTPException(status_code=400, detail="Invalid Content-Length header")
         if declared_length > _ADMIN_REQUEST_MAX_BYTES:
-            raise HTTPException(status_code=413, detail="Admin request body exceeds size limit")
+            raise HTTPException(
+                status_code=413, detail="Admin request body exceeds size limit"
+            )
 
     body = bytearray()
     async for chunk in request.stream():
         if len(body) + len(chunk) > _ADMIN_REQUEST_MAX_BYTES:
-            raise HTTPException(status_code=413, detail="Admin request body exceeds size limit")
+            raise HTTPException(
+                status_code=413, detail="Admin request body exceeds size limit"
+            )
         body.extend(chunk)
 
     if not body:
@@ -60,9 +64,13 @@ async def _read_admin_payload(request: Request) -> dict:
     try:
         payload = json.loads(body)
     except (json.JSONDecodeError, UnicodeDecodeError) as exc:
-        raise HTTPException(status_code=400, detail="Request body must be valid JSON") from exc
+        raise HTTPException(
+            status_code=400, detail="Request body must be valid JSON"
+        ) from exc
     if not isinstance(payload, dict):
-        raise HTTPException(status_code=400, detail="Request body must be a JSON object")
+        raise HTTPException(
+            status_code=400, detail="Request body must be a JSON object"
+        )
     return payload
 
 

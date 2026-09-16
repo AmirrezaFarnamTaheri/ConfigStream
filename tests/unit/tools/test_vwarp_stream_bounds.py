@@ -26,7 +26,7 @@ class _ChunkStream:
 
 class _Process:
     def __init__(self) -> None:
-        self.returncode = None
+        self.returncode: int | None = None
         self.stdout = _ChunkStream([b"x" * 9000, b""])
         self.stderr = _ChunkStream([b"warning", b""])
 

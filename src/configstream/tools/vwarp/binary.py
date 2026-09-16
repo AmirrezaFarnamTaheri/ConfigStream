@@ -131,7 +131,6 @@ async def _download_archive(client: httpx.AsyncClient, url: str) -> bytes:
         return bytes(content)
 
 
-
 def minimal_vwarp_environment() -> dict[str, str]:
     """Return the environment explicitly allowed into Vwarp subprocesses."""
     environment = {
@@ -143,7 +142,9 @@ def minimal_vwarp_environment() -> dict[str, str]:
 
 
 def _normalize_binary_digest(value: str) -> Optional[str]:
-    candidate = str(value or "").strip().split()[0].lower() if str(value or "").strip() else ""
+    candidate = (
+        str(value or "").strip().split()[0].lower() if str(value or "").strip() else ""
+    )
     if not candidate or not _SHA256_RE.fullmatch(candidate):
         return None
     return candidate
@@ -179,7 +180,9 @@ def _binary_sidecar_digest(path: Path) -> Optional[str]:
     return digest
 
 
-def _expected_binary_digest(path: Path, explicit: Optional[str] = None) -> Optional[str]:
+def _expected_binary_digest(
+    path: Path, explicit: Optional[str] = None
+) -> Optional[str]:
     raw = explicit if explicit is not None else os.environ.get(_BINARY_DIGEST_ENV, "")
     if raw:
         digest = _normalize_binary_digest(raw)
@@ -199,7 +202,9 @@ def _sha256_file(path: Path) -> str:
 
 def _write_binary_digest_sidecar(path: Path, digest: str) -> None:
     sidecar = path.with_name(path.name + ".sha256")
-    fd, temporary_name = tempfile.mkstemp(prefix=f".{sidecar.name}.", dir=sidecar.parent)
+    fd, temporary_name = tempfile.mkstemp(
+        prefix=f".{sidecar.name}.", dir=sidecar.parent
+    )
     temporary = Path(temporary_name)
     try:
         with os.fdopen(fd, "w", encoding="ascii") as handle:
@@ -211,6 +216,7 @@ def _write_binary_digest_sidecar(path: Path, digest: str) -> None:
         os.replace(temporary, sidecar)
     finally:
         temporary.unlink(missing_ok=True)
+
 
 def _prepare_install_dir() -> Path:
     """Return a writable install directory without trusting shared temp paths."""

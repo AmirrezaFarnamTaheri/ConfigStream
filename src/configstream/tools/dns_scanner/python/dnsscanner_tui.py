@@ -91,10 +91,14 @@ _SUBPROCESS_ENV_ALLOWLIST = (
 def _minimal_child_environment() -> dict[str, str]:
     """Return only non-secret runtime context needed by Slipstream."""
     environment = {
-        key: value for key in _SUBPROCESS_ENV_ALLOWLIST if (value := os.environ.get(key))
+        key: value
+        for key in _SUBPROCESS_ENV_ALLOWLIST
+        if (value := os.environ.get(key))
     }
     environment.setdefault("PATH", os.defpath)
-    environment["TMPDIR"] = os.environ.get("TMPDIR") or __import__("tempfile").gettempdir()
+    environment["TMPDIR"] = (
+        os.environ.get("TMPDIR") or __import__("tempfile").gettempdir()
+    )
     return environment
 
 

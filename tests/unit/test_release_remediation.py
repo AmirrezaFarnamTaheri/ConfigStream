@@ -263,7 +263,6 @@ def test_release_gate_rejects_skipped_or_missing_native_validation(
     assert any("xray" in error for error in errors)
 
 
-
 def test_promoted_manifest_signature_matches_configured_public_key(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -295,6 +294,7 @@ def test_promoted_manifest_signature_rejects_configured_key_mismatch(
 
     with pytest.raises(ValueError, match="configured CS_PUBLIC_KEY"):
         _sign_promoted_manifest(manifest, "11" * 32)
+
 
 def test_release_manifest_entries_keep_pages_contract_categories(
     tmp_path: Path,

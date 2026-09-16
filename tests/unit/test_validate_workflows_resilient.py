@@ -152,7 +152,6 @@ def test_main_preserves_authoritative_native_report() -> None:
     assert validate_workflows._main_native_output_contract(data) is True
 
 
-
 def test_main_contract_requires_public_key_for_final_manifest_verification() -> None:
     """Do not allow the final Pages contract to skip signature verification."""
 
@@ -165,6 +164,7 @@ def test_main_contract_requires_public_key_for_final_manifest_verification() -> 
         "final release contract must receive CS_PUBLIC_KEY for manifest signature verification"
         in validate_workflows._main_safe(data)
     )
+
 
 def test_main_contract_rejects_authoritative_native_report_overwrite() -> None:
     """Reject workflow mutations that overwrite the authoritative native report."""

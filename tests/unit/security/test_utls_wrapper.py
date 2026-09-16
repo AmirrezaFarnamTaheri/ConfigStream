@@ -56,9 +56,10 @@ async def test_ensure_binary_async_builds_committed_module_with_digest_sidecar(
     assert command[-1] == "."
     assert binary.read_bytes() == b"locally-built-utls"
     sidecar = binary.with_name(binary.name + ".sha256")
-    assert sidecar.read_text(encoding="ascii").strip() == hashlib.sha256(
-        binary.read_bytes()
-    ).hexdigest()
+    assert (
+        sidecar.read_text(encoding="ascii").strip()
+        == hashlib.sha256(binary.read_bytes()).hexdigest()
+    )
 
 
 @pytest.mark.asyncio

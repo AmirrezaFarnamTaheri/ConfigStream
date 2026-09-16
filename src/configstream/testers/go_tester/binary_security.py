@@ -104,13 +104,14 @@ def initialize_binary_identity(path: Path | str) -> BinaryIdentity:
         raise ValueError(f"{_DIGEST_ENV} is not a valid SHA-256 digest")
     expected = expected or _sidecar_digest(resolved)
 
-    strict_requested = (
-        os.environ.get("CS_STRICT_BINARY_TRUST", "").strip().lower()
-        in {"1", "true", "yes"}
-    )
+    strict_requested = os.environ.get("CS_STRICT_BINARY_TRUST", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+    }
     environment = (
-        os.getenv("ENVIRONMENT", "") or _effective_environment()
-    ).strip().lower()
+        (os.getenv("ENVIRONMENT", "") or _effective_environment()).strip().lower()
+    )
     strict_mode = strict_requested or environment == "production"
     if strict_mode and expected is None:
         raise ValueError(

@@ -201,4 +201,11 @@ def test_slipstream_spawn_uses_minimal_child_environment() -> None:
         "WARP_KEY_POOL",
         "CS_SIGNING_PRIVATE_KEY_HEX",
     ):
-        assert secret_name not in source[source.index("_SUBPROCESS_ENV_ALLOWLIST"):source.index("class SlipstreamManager")]
+        assert (
+            secret_name
+            not in source[
+                source.index("_SUBPROCESS_ENV_ALLOWLIST") : source.index(
+                    "class SlipstreamManager"
+                )
+            ]
+        )

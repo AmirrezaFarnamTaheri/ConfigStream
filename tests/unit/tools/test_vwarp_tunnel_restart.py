@@ -8,7 +8,9 @@ from configstream.tools.vwarp.tunnel import VwarpTunnel
 
 
 @pytest.mark.asyncio
-async def test_start_reaps_exited_child_before_retry(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_start_reaps_exited_child_before_retry(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     class ExitedProcess:
         returncode = 1
 

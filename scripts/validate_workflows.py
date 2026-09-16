@@ -475,7 +475,10 @@ def _main_safe(data: dict[Any, Any]) -> list[str]:
         errors.append("WASM artifact consumers must depend on build_wasm")
     gate = _find_step(data, "Run every mandatory release gate")
     gate_env = gate.get("env") if isinstance(gate, dict) else None
-    if not isinstance(gate_env, dict) or not str(gate_env.get("CS_PUBLIC_KEY", "")).strip():
+    if (
+        not isinstance(gate_env, dict)
+        or not str(gate_env.get("CS_PUBLIC_KEY", "")).strip()
+    ):
         errors.append(
             "final release contract must receive CS_PUBLIC_KEY for manifest signature verification"
         )

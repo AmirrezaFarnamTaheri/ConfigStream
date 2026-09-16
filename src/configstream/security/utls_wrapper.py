@@ -138,9 +138,7 @@ def _minimal_subprocess_environment(*, include_go: bool = False) -> dict[str, st
     allowed = list(_BASE_ENV_ALLOWLIST)
     if include_go:
         allowed.extend(_GO_ENV_ALLOWLIST)
-    environment = {
-        key: value for key in allowed if (value := os.environ.get(key))
-    }
+    environment = {key: value for key in allowed if (value := os.environ.get(key))}
     environment.setdefault("PATH", os.defpath)
     environment["TMPDIR"] = os.environ.get("TMPDIR") or tempfile.gettempdir()
     if include_go:
@@ -153,7 +151,9 @@ def _minimal_subprocess_environment(*, include_go: bool = False) -> dict[str, st
 
 def _write_checksum_sidecar(path: Path, digest: str) -> None:
     sidecar = path.with_name(path.name + ".sha256")
-    fd, temporary_name = tempfile.mkstemp(prefix=f".{sidecar.name}.", dir=sidecar.parent)
+    fd, temporary_name = tempfile.mkstemp(
+        prefix=f".{sidecar.name}.", dir=sidecar.parent
+    )
     temporary = Path(temporary_name)
     try:
         with os.fdopen(fd, "w", encoding="ascii") as handle:

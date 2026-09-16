@@ -9,7 +9,9 @@ from configstream.pipeline.fetcher import HttpFetcher
 
 
 @pytest.mark.asyncio
-async def test_http_fetcher_default_owns_hardened_client(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_http_fetcher_default_owns_hardened_client(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     managed_client = object()
     expected = object()
 
@@ -34,7 +36,9 @@ async def test_http_fetcher_default_owns_hardened_client(monkeypatch: pytest.Mon
 
 
 @pytest.mark.asyncio
-async def test_http_fetcher_preserves_injected_client(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_http_fetcher_preserves_injected_client(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     injected = object()
     expected = object()
     fetch = AsyncMock(return_value=expected)

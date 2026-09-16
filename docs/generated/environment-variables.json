@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "6a5048c61af2f069816bc87290ff049b9c8715e5c5c8b8b927496e290c996026",
+  "source_digest": "8492dcfd6d3d3270fd10e4bb8c7f3ef156ee3be649ff6e3d3ed2def6f1f67572",
   "variable_count": 161,
   "variables": [
     {
@@ -345,7 +345,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/release_gate.py:368",
+        "scripts/release_gate.py:365",
         "scripts/snapshot_pages_release.py:416",
         "scripts/validate_pages_artifact.py:202",
         "scripts/verify_pages_deployment.py:471"
@@ -360,7 +360,7 @@
       "sensitive": true,
       "sources": [
         "scripts/refresh_shard_contract.py:55",
-        "scripts/release_gate.py:382",
+        "scripts/release_gate.py:380",
         "src/configstream/output/metadata.py:518"
       ],
       "type": null
@@ -372,7 +372,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/testers/go_tester/binary_security.py:108"
+        "src/configstream/testers/go_tester/binary_security.py:107"
       ],
       "type": null
     },
@@ -505,7 +505,7 @@
       "sensitive": false,
       "sources": [
         "src/configstream/config.py:171",
-        "src/configstream/testers/go_tester/binary_security.py:112"
+        "src/configstream/testers/go_tester/binary_security.py:113"
       ],
       "type": "str"
     },
@@ -745,7 +745,7 @@
         "scripts/generate_evidence_bundle.py:20",
         "scripts/native_client_checks.py:232",
         "scripts/release_gate.py:191",
-        "scripts/release_gate.py:436",
+        "scripts/release_gate.py:434",
         "scripts/resilient_stage.py:491",
         "scripts/validate_pages_artifact.py:1203",
         "scripts/validate_pages_artifact.py:1236",
@@ -766,7 +766,7 @@
         "scripts/generate_evidence_bundle.py:19",
         "scripts/native_client_checks.py:231",
         "scripts/release_gate.py:190",
-        "scripts/release_gate.py:433",
+        "scripts/release_gate.py:431",
         "scripts/resilient_stage.py:490",
         "scripts/validate_pages_artifact.py:1202",
         "scripts/validate_pages_artifact.py:1235",
@@ -787,7 +787,7 @@
         "scripts/generate_evidence_bundle.py:21",
         "scripts/native_client_checks.py:230",
         "scripts/release_gate.py:189",
-        "scripts/release_gate.py:430",
+        "scripts/release_gate.py:428",
         "scripts/resilient_stage.py:492",
         "scripts/validate_pages_artifact.py:1201",
         "scripts/validate_pages_artifact.py:1234",
@@ -1646,11 +1646,11 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/security/utls_wrapper.py:145",
-        "src/configstream/testers/go_tester/binary_security.py:157",
+        "src/configstream/security/utls_wrapper.py:143",
+        "src/configstream/testers/go_tester/binary_security.py:158",
         "src/configstream/testers/go_tester/manager.py:323",
-        "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py:97",
-        "src/configstream/tools/vwarp/binary.py:141"
+        "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py:100",
+        "src/configstream/tools/vwarp/binary.py:140"
       ],
       "type": null
     },

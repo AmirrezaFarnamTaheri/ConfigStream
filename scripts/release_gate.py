@@ -352,10 +352,7 @@ def validate(root: Path, native_report: Path, min_coverage: float) -> list[str]:
     return errors
 
 
-
-def _sign_promoted_manifest(
-    manifest: dict[str, Any], signing_key: str
-) -> None:
+def _sign_promoted_manifest(manifest: dict[str, Any], signing_key: str) -> None:
     """Sign a promoted manifest and immediately verify its trust binding."""
     from configstream.signer import Signer, normalize_public_key_hex
 
@@ -375,6 +372,7 @@ def _sign_promoted_manifest(
         raise ValueError(
             "promotion manifest signature does not match configured CS_PUBLIC_KEY"
         )
+
 
 def promote(root: Path, native_report: Path, min_coverage: float) -> None:
     manifest = load_checked(root / "artifact_manifest.json", [])

@@ -2,7 +2,6 @@
 
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -14,8 +13,9 @@ def test_local_tester_build_docs_include_strict_trust_pin() -> None:
     ):
         text = (ROOT / relative).read_text(encoding="utf-8")
         assert "configstream-tester.sha256" in text
-        assert "Production-mode startup intentionally rejects an unpinned tester" in text or (
-            "chmod 0444 configstream-tester.sha256" in text
+        assert (
+            "Production-mode startup intentionally rejects an unpinned tester" in text
+            or ("chmod 0444 configstream-tester.sha256" in text)
         )
 
 

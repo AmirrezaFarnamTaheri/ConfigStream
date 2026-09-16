@@ -233,7 +233,6 @@ async def test_vwarp_verification_kills_timed_out_process(
     assert process.waited is True
 
 
-
 @pytest.mark.asyncio
 async def test_vwarp_verification_rejects_unpinned_executable(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
@@ -311,6 +310,7 @@ def test_container_persists_vwarp_executable_digest_sidecar() -> None:
     assert "sha256sum /usr/local/bin/vwarp" in dockerfile
     assert "> /usr/local/bin/vwarp.sha256" in dockerfile
     assert "chmod 0444 /usr/local/bin/vwarp.sha256" in dockerfile
+
 
 def test_install_directory_falls_back_when_user_bin_creation_fails(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path

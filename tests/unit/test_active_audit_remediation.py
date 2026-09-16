@@ -53,7 +53,9 @@ async def test_standalone_process_manager_rejects_pinned_binary_replacement(
     tester.write_bytes(original)
     tester.chmod(0o700)
     monkeypatch.setenv("CONFIGSTREAM_TESTER_BIN", str(tester))
-    monkeypatch.setenv("CONFIGSTREAM_TESTER_SHA256", hashlib.sha256(original).hexdigest())
+    monkeypatch.setenv(
+        "CONFIGSTREAM_TESTER_SHA256", hashlib.sha256(original).hexdigest()
+    )
     monkeypatch.delenv("CS_STRICT_BINARY_TRUST", raising=False)
     monkeypatch.setenv("ENVIRONMENT", "development")
 
