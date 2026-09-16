@@ -1,0 +1,59 @@
+name: Fix Workflow Validator Fixture
+
+on:
+  push:
+    branches: [agent/fix-active-audit-items]
+    paths:
+      - '.github/workflows/fix-workflow-fixture.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fix-workflow-validator-fixture-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          ref: ${{ github.ref_name }}
+      - name: Update valid synthetic main workflow fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('tests/unit/test_validate_workflows.py')
+          text = path.read_text(encoding='utf-8')
+          function_start = text.index('def test_validate_workflows_accepts_numeric_string_pipeline_retention(')
+          function_end = text.index('\n\ndef test_validate_workflows_requires_main_public_artifact_preparation(', function_start)
+          block = text[function_start:function_end]
+          old = '''      - name: Validate data release output contract\n        run: |\n          python scripts/validate_pages_artifact.py \\\n            --native-client-check \\\n            --native-report-file pipeline-evidence/native_client_check_report.json \\\n            output\n'''
+          new = old + '''      - name: Run every mandatory release gate\n        env:\n          CS_PUBLIC_KEY: test-public-key\n        run: echo final-contract\n'''
+          if block.count(old) != 1:
+              raise SystemExit(f'expected one final-contract fixture anchor, found {block.count(old)}')
+          block = block.replace(old, new, 1)
+          path.write_text(text[:function_start] + block + text[function_end:], encoding='utf-8')
+          PY
+      - name: Commit fixture correction
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          path='tests/unit/test_validate_workflows.py'
+          sha="$(gh api "/repos/${GITHUB_REPOSITORY}/contents/${path}?ref=${GITHUB_REF_NAME}" --jq '.sha')"
+          encoded="$(base64 -w0 "$path")"
+          gh api --method PUT \
+            -H 'Accept: application/vnd.github+json' \
+            "/repos/${GITHUB_REPOSITORY}/contents/${path}" \
+            -f message='test: update valid workflow fixture for public-key contract' \
+            -f content="$encoded" \
+            -f sha="$sha" \
+            -f branch="$GITHUB_REF_NAME" \
+            >/dev/null
