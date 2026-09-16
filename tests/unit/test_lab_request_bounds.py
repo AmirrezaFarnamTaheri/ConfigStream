@@ -86,3 +86,16 @@ async def test_lab_rejects_non_object_json_after_auth(async_client, monkeypatch)
 
     assert response.status_code == 400
     assert "must be a JSON object" in response.text
+
+
+def test_lab_openapi_retains_json_body_contract() -> None:
+    from configstream.server import create_app
+
+    operation = create_app().openapi()["paths"]["/api/lab/test-chain"]["post"]
+    request_body = operation["requestBody"]
+    schema = request_body["content"]["application/json"]["schema"]
+
+    assert request_body["required"] is True
+    assert schema["type"] == "object"
+    assert "config" in schema["required"]
+    assert schema["properties"]["api_key"]["writeOnly"] is True
