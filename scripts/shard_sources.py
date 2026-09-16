@@ -266,10 +266,10 @@ def _is_runtime_feed_locator(classified: dict[str, object]) -> bool:
     if host == "gist.github.com":
         return len(parts) >= 3 and "raw" in parts[2:]
 
-    # GitHub repository/profile pages are not direct feeds. Exact raw/blob file
-    # locators remain eligible; blob URLs are normalized by the fetcher.
+    # GitHub repository/profile/blob pages are HTML, not direct feeds. Only
+    # explicit /raw/ file locators are fetched as machine-readable source data.
     if host in {"github.com", "www.github.com"}:
-        return len(parts) >= 5 and parts[2] in {"raw", "blob"}
+        return len(parts) >= 5 and parts[2] == "raw"
 
     return True
 
