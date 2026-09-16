@@ -136,7 +136,7 @@ async def scan_endpoints(
         if stdout:
             output_text = stdout.decode(errors="ignore")
             for line in output_text.splitlines():
-                if ":" not in line or "ms" not in line:
+                if "ms" not in line:
                     continue
                 raw_endpoint = line.split()[0].strip()
                 endpoint = _parse_endpoint(raw_endpoint)
