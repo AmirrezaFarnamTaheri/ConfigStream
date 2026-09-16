@@ -352,6 +352,30 @@ def validate(root: Path, native_report: Path, min_coverage: float) -> list[str]:
     return errors
 
 
+
+def _sign_promoted_manifest(
+    manifest: dict[str, Any], signing_key: str
+) -> None:
+    """Sign a promoted manifest and immediately verify its trust binding."""
+    from configstream.signer import Signer, normalize_public_key_hex
+
+    signer = Signer(signing_key)
+    manifest["manifest_signature"] = signer.sign_manifest(manifest)
+    signer_public_key = signer.get_public_key_hex()
+    if not Signer.verify_manifest_signature(manifest, signer_public_key):
+        raise ValueError("promotion produced an unverifiable manifest signature")
+
+    configured_value = (os.environ.get("CS_PUBLIC_KEY") or "").strip()
+    if not configured_value:
+        return
+    configured_public_key = normalize_public_key_hex(configured_value)
+    if not configured_public_key:
+        raise ValueError("CS_PUBLIC_KEY is not a valid Ed25519 public key")
+    if not Signer.verify_manifest_signature(manifest, configured_public_key):
+        raise ValueError(
+            "promotion manifest signature does not match configured CS_PUBLIC_KEY"
+        )
+
 def promote(root: Path, native_report: Path, min_coverage: float) -> None:
     manifest = load_checked(root / "artifact_manifest.json", [])
     had_signature = isinstance(manifest, dict) and "manifest_signature" in manifest
@@ -418,11 +442,7 @@ def promote(root: Path, native_report: Path, min_coverage: float) -> None:
             }
         )
         if signing_key:
-            from configstream.signer import Signer
-
-            staged_manifest["manifest_signature"] = Signer(signing_key).sign_manifest(
-                staged_manifest
-            )
+            _sign_promoted_manifest(staged_manifest, signing_key)
         (stage / "artifact_manifest.json").write_text(
             json.dumps(staged_manifest, indent=2, ensure_ascii=False) + "\n",
             encoding="utf-8",
