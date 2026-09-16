@@ -42,6 +42,16 @@ class _ScannerProcess:
         return -9
 
 
+class _OutputProcess:
+    returncode: int | None = 0
+
+    async def communicate(self) -> tuple[bytes, bytes]:
+        return (
+            b"1.2.3.4 12ms\n2001:db8::1 20ms\n[2001:db8::2]:8443 25ms\n",
+            b"",
+        )
+
+
 def _enable_scanner(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         scanner_module,
@@ -49,6 +59,24 @@ def _enable_scanner(monkeypatch: pytest.MonkeyPatch) -> None:
         lambda: SimpleNamespace(ALLOW_ACTIVE_SCANNING=True, FORCE_SCANNER=False),
     )
     monkeypatch.setattr(scanner_module, "verify_binary", AsyncMock(return_value=True))
+
+
+@pytest.mark.asyncio
+async def test_scan_output_accepts_bare_and_bracketed_endpoints(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _enable_scanner(monkeypatch)
+    monkeypatch.setattr(
+        scanner_module.asyncio,
+        "create_subprocess_exec",
+        AsyncMock(return_value=_OutputProcess()),
+    )
+
+    assert await scanner_module.scan_endpoints("/trusted/vwarp") == [
+        ("1.2.3.4", 2408),
+        ("2001:db8::1", 2408),
+        ("2001:db8::2", 8443),
+    ]
 
 
 @pytest.mark.asyncio
