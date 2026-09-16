@@ -30,11 +30,17 @@ jobs:
 
           path = Path('tests/unit/test_validate_workflows.py')
           text = path.read_text(encoding='utf-8')
+          start_marker = 'def test_validate_workflows_accepts_build_wasm_dependency_for_wasm_download('
+          end_marker = '\ndef test_validate_workflows_rejects_short_pipeline_retention_retest('
+          start = text.index(start_marker)
+          end = text.index(end_marker, start)
+          block = text[start:end]
           needle = '''      - name: Validate data release output contract\n        run: |\n          python scripts/dynamic_reshard.py\n          python scripts/validate_pages_artifact.py \\\n            --native-client-check \\\n            --native-report-file pipeline-evidence/native_client_check_report.json \\\n            output\n      - uses: actions/upload-artifact@v4\n        with:\n          name: source-reshard-recommendation\n'''
           replacement = '''      - name: Validate data release output contract\n        run: |\n          python scripts/dynamic_reshard.py\n          python scripts/validate_pages_artifact.py \\\n            --native-client-check \\\n            --native-report-file pipeline-evidence/native_client_check_report.json \\\n            output\n      - name: Run every mandatory release gate\n        env:\n          CS_PUBLIC_KEY: test-public-key\n        run: echo final-contract\n      - uses: actions/upload-artifact@v4\n        with:\n          name: source-reshard-recommendation\n'''
-          if text.count(needle) != 1:
-              raise SystemExit(f'fixture anchor count was {text.count(needle)}, expected 1')
-          path.write_text(text.replace(needle, replacement, 1), encoding='utf-8')
+          if block.count(needle) != 1:
+              raise SystemExit(f'target fixture anchor count was {block.count(needle)}, expected 1')
+          updated = block.replace(needle, replacement, 1)
+          path.write_text(text[:start] + updated + text[end:], encoding='utf-8')
           PY
           python -m py_compile tests/unit/test_validate_workflows.py
       - name: Commit fixture correction
