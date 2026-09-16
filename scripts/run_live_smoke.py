@@ -14,6 +14,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+
 # Fixed local Python entrypoint; subprocess receives no shell command string.
 import subprocess  # nosec B404
 import sys
@@ -26,7 +27,9 @@ def load_candidates(path: Path) -> list[str]:
         if line.strip() and not line.lstrip().startswith("#")
     ]
     if not 1 <= len(candidates) <= 2:
-        raise ValueError(f"live smoke requires 1-2 source candidates, found {len(candidates)}")
+        raise ValueError(
+            f"live smoke requires 1-2 source candidates, found {len(candidates)}"
+        )
     if len(candidates) != len(set(candidates)):
         raise ValueError("live smoke source candidates must be unique")
     if any(not source.startswith("https://") for source in candidates):
@@ -115,7 +118,10 @@ def _run_attempt(
         captured = exc.stdout or ""
         if isinstance(captured, bytes):
             captured = captured.decode("utf-8", errors="replace")
-        return 124, f"{captured}\nLive smoke attempt timed out after {attempt_timeout}s\n"
+        return (
+            124,
+            f"{captured}\nLive smoke attempt timed out after {attempt_timeout}s\n",
+        )
 
 
 def run(args: argparse.Namespace) -> int:
@@ -141,7 +147,9 @@ def run(args: argparse.Namespace) -> int:
                 attempt_timeout=args.attempt_timeout,
             )
             with args.log.open("a", encoding="utf-8") as handle:
-                handle.write(f"===== live smoke attempt {index}/{len(candidates)} =====\n")
+                handle.write(
+                    f"===== live smoke attempt {index}/{len(candidates)} =====\n"
+                )
                 handle.write(f"source={source}\n")
                 handle.write(output)
                 if output and not output.endswith("\n"):
@@ -174,17 +182,17 @@ def main() -> int:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--log", type=Path, required=True)
     parser.add_argument("--selected-source", type=Path, required=True)
-    parser.add_argument("--max-workers", type=int, default=2)
+    parser.add_argument("--max-workers", type=int, default=8)
     parser.add_argument("--fetch-timeout", type=int, default=15)
     parser.add_argument("--max-latency", type=int, default=6000)
-    parser.add_argument("--attempt-timeout", type=int, default=240)
+    parser.add_argument("--attempt-timeout", type=int, default=120)
     args = parser.parse_args()
-    if args.max_workers < 1 or args.max_workers > 2:
-        parser.error("--max-workers must be between 1 and 2")
+    if args.max_workers < 1 or args.max_workers > 8:
+        parser.error("--max-workers must be between 1 and 8")
     if args.fetch_timeout < 1 or args.fetch_timeout > 30:
         parser.error("--fetch-timeout must be between 1 and 30 seconds")
-    if args.attempt_timeout < 30 or args.attempt_timeout > 300:
-        parser.error("--attempt-timeout must be between 30 and 300 seconds")
+    if args.attempt_timeout < 30 or args.attempt_timeout > 180:
+        parser.error("--attempt-timeout must be between 30 and 180 seconds")
     return run(args)
 
 

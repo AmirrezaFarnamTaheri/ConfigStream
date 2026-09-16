@@ -21,16 +21,16 @@ env:
   USE_VWARP_TUNNEL: "false"
   FORCE_SCANNER: "false"
   ALLOW_ACTIVE_SCANNING: "false"
-  MAX_LINES_PER_SOURCE: "200"
+  MAX_LINES_PER_SOURCE: "64"
   MAX_RESPONSE_SIZE: "4194304"
-  MAX_WORKERS: "2"
+  MAX_WORKERS: "8"
   MIN_SOURCE_COVERAGE: "0.70"
 
 jobs:
   live_full_path_smoke:
     name: Live full-path smoke (1 of 2 sources)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -102,9 +102,9 @@ jobs:
             --output smoke-output \
             --log live-smoke.log \
             --selected-source live-smoke-selected-source.txt \
-            --max-workers 2 \
+            --max-workers 8 \
             --fetch-timeout 15 \
-            --attempt-timeout 240
+            --attempt-timeout 120
       - name: Exercise production public-output path
         run: |
           set -euo pipefail

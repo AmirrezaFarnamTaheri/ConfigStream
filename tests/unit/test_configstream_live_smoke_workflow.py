@@ -84,10 +84,10 @@ def test_live_smoke_falls_back_to_second_candidate(tmp_path: Path, monkeypatch) 
         output=output,
         log=log,
         selected_source=selected,
-        max_workers=2,
+        max_workers=8,
         fetch_timeout=15,
         max_latency=6000,
-        attempt_timeout=240,
+        attempt_timeout=120,
     )
     assert run_live_smoke.run(args) == 0
     assert attempts == ["https://example.test/one", "https://example.test/two"]
@@ -105,11 +105,12 @@ def test_live_smoke_workflow_is_read_only_bounded_and_full_path() -> None:
     assert "secrets." not in text
 
     job = payload["jobs"]["live_full_path_smoke"]
-    assert int(job["timeout-minutes"]) <= 15
+    assert int(job["timeout-minutes"]) <= 10
     assert payload["permissions"] == {"contents": "read"}
     assert payload["env"]["ALLOW_ACTIVE_SCANNING"] == "false"
     assert payload["env"]["FORCE_SCANNER"] == "false"
-    assert payload["env"]["MAX_WORKERS"] == "2"
+    assert payload["env"]["MAX_LINES_PER_SOURCE"] == "64"
+    assert payload["env"]["MAX_WORKERS"] == "8"
     assert payload["env"]["MIN_SOURCE_COVERAGE"] == "0.70"
 
     steps = [step for step in job.get("steps", []) if isinstance(step, dict)]
@@ -122,11 +123,11 @@ def test_live_smoke_workflow_is_read_only_bounded_and_full_path() -> None:
     assert "CGO_ENABLED=0 go build" in commands
     assert "CONFIGSTREAM_TESTER_BIN=" in commands
     assert "python scripts/run_live_smoke.py" in commands
-    assert "--max-workers 2" in commands
-    assert "--attempt-timeout 240" in commands
+    assert "--max-workers 8" in commands
+    assert "--attempt-timeout 120" in commands
     assert "python scripts/prepare_public_candidate.py" in commands
     assert "python scripts/finalize_release_outputs.py" in commands
-    assert ' --min-source-coverage "$MIN_SOURCE_COVERAGE"' in commands
+    assert '--min-source-coverage "$MIN_SOURCE_COVERAGE"' in commands
     assert (
         "python scripts/validate_pages_artifact.py --refresh-contract smoke-public"
         in commands
