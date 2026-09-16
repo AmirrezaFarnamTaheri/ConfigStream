@@ -14,6 +14,7 @@ import { connect } from 'cloudflare:sockets';
 const DEFAULT_PROXY_PATH = '/my-secret-tunnel';
 const DEFAULT_FAKE_SITE_URL = 'https://www.kernel.org/';
 const MIN_TOKEN_LENGTH = 32;
+const MAX_WS_MESSAGE_SIZE = 1024 * 1024;
 const encoder = new TextEncoder();
 
 export default {
@@ -122,6 +123,19 @@ function constantTimeEqual(left, right) {
   return difference === 0;
 }
 
+function toBytes(data) {
+  if (typeof data === 'string') {
+    return encoder.encode(data);
+  }
+  if (data instanceof ArrayBuffer) {
+    return new Uint8Array(data);
+  }
+  if (ArrayBuffer.isView(data)) {
+    return new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+  }
+  return null;
+}
+
 async function handleProxy(config) {
   let socket;
   try {
@@ -146,6 +160,7 @@ async function handleProxy(config) {
   server.accept({ allowHalfOpen: true });
   const writer = socket.writable.getWriter();
   let shuttingDown = false;
+  let messageChain = Promise.resolve();
 
   const shutdown = async (code = 1000, reason = 'Tunnel closed') => {
     if (shuttingDown) {
@@ -171,29 +186,28 @@ async function handleProxy(config) {
     }
   };
 
+  const handleMessage = async (data) => {
+    const chunk = toBytes(data);
+    if (!chunk) {
+      await shutdown(1003, 'Unsupported WebSocket message type');
+      return;
+    }
+    if (chunk.byteLength === 0 || chunk.byteLength > MAX_WS_MESSAGE_SIZE) {
+      await shutdown(1009, 'WebSocket message too large');
+      return;
+    }
+    try {
+      await writer.write(chunk);
+    } catch (_error) {
+      await shutdown(1011, 'Upstream write failed');
+    }
+  };
+
   server.addEventListener('message', (event) => {
-    void (async () => {
-      let chunk;
-      if (typeof event.data === 'string') {
-        chunk = encoder.encode(event.data);
-      } else if (event.data instanceof ArrayBuffer) {
-        chunk = new Uint8Array(event.data);
-      } else if (ArrayBuffer.isView(event.data)) {
-        chunk = new Uint8Array(
-          event.data.buffer,
-          event.data.byteOffset,
-          event.data.byteLength,
-        );
-      } else {
-        await shutdown(1003, 'Unsupported WebSocket message type');
-        return;
-      }
-      try {
-        await writer.write(chunk);
-      } catch (_error) {
-        await shutdown(1011, 'Upstream write failed');
-      }
-    })();
+    // Serialize writes so a fast peer cannot create an unbounded set of
+    // concurrent writer.write() promises while the upstream applies backpressure.
+    messageChain = messageChain.then(() => handleMessage(event.data));
+    void messageChain.catch(() => shutdown(1011, 'Tunnel processing failed'));
   });
 
   server.addEventListener('close', () => {
