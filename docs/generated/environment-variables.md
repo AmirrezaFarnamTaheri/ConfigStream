@@ -25,7 +25,7 @@ Variables: **161**
 | `CANARY_URL` | yes | `str` | `""` | no | no | `src/configstream/config.py:95` |
 | `CF_TOKEN` | no | `direct-only` | `<redacted>` | no | yes | `scripts/publish_ipfs.py:190` |
 | `CF_ZONE_ID` | no | `direct-only` |  | no | no | `scripts/publish_ipfs.py:195` |
-| `CI` | no | `direct-only` |  | no | no | `src/configstream/testers/go_tester/manager.py:306`<br>`src/configstream/testers/go_tester/secure_manager.py:108`<br>`src/configstream/warp_scanner.py:41`<br>`src/configstream/warp_scanner.py:64` |
+| `CI` | no | `direct-only` |  | no | no | `src/configstream/testers/go_tester/manager.py:306`<br>`src/configstream/testers/go_tester/secure_manager.py:108`<br>`src/configstream/warp_scanner.py:59`<br>`src/configstream/warp_scanner.py:82` |
 | `CIRCUIT_BREAKER_ENABLED` | yes | `bool` | `true` | no | no | `src/configstream/config.py:106` |
 | `CIRCUIT_OPEN_SEC` | yes | `int` | `120` | no | no | `src/configstream/config.py:116` |
 | `CIRCUIT_TRIP_5XX_RATE` | yes | `float` | `0.2` | no | no | `src/configstream/config.py:115` |

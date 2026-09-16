@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "8492dcfd6d3d3270fd10e4bb8c7f3ef156ee3be649ff6e3d3ed2def6f1f67572",
+  "source_digest": "29005d97a3040155c62d1a7ff98eaddfa34a2b60a3c8721b17c6ac5cc19dafc6",
   "variable_count": 161,
   "variables": [
     {
@@ -210,8 +210,8 @@
       "sources": [
         "src/configstream/testers/go_tester/manager.py:306",
         "src/configstream/testers/go_tester/secure_manager.py:108",
-        "src/configstream/warp_scanner.py:41",
-        "src/configstream/warp_scanner.py:64"
+        "src/configstream/warp_scanner.py:59",
+        "src/configstream/warp_scanner.py:82"
       ],
       "type": null
     },
