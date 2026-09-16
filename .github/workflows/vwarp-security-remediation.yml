@@ -1,0 +1,177 @@
+name: Vwarp Security Remediation
+
+on:
+  push:
+    branches: [agent/fix-active-audit-items]
+    paths:
+      - '.github/workflows/vwarp-security-remediation.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vwarp-security-remediation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  remediate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          ref: ${{ github.ref_name }}
+      - name: Harden Vwarp executable trust and child environments
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              text = target.read_text(encoding='utf-8')
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'expected one match in {path}, found {count}: {old!r}')
+              target.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          binary = Path('src/configstream/tools/vwarp/binary.py')
+          text = binary.read_text(encoding='utf-8')
+          text = text.replace('import hashlib\n', 'import hashlib\nimport hmac\n', 1)
+          text = text.replace(
+              '_SHA256_RE = re.compile(r"^[0-9a-fA-F]{64}$")\n',
+              '_SHA256_RE = re.compile(r"^[0-9a-fA-F]{64}$")\n'
+              '_BINARY_DIGEST_ENV = "VWARP_BINARY_SHA256"\n'
+              '_ENV_ALLOWLIST = (\n'
+              '    "PATH",\n'
+              '    "HOME",\n'
+              '    "USERPROFILE",\n'
+              '    "SYSTEMROOT",\n'
+              '    "WINDIR",\n'
+              '    "TMPDIR",\n'
+              '    "TMP",\n'
+              '    "TEMP",\n'
+              '    "SSL_CERT_FILE",\n'
+              '    "SSL_CERT_DIR",\n'
+              '    "LANG",\n'
+              '    "LC_ALL",\n'
+              '    "TZ",\n'
+              ')\n',
+              1,
+          )
+          anchor = '''\ndef _prepare_install_dir() -> Path:\n'''
+          helpers = '''\n\ndef minimal_vwarp_environment() -> dict[str, str]:\n    \"\"\"Return the environment explicitly allowed into Vwarp subprocesses.\"\"\"\n    environment = {\n        key: value for key in _ENV_ALLOWLIST if (value := os.environ.get(key))\n    }\n    environment.setdefault(\"PATH\", os.defpath)\n    environment[\"TMPDIR\"] = os.environ.get(\"TMPDIR\") or tempfile.gettempdir()\n    return environment\n\n\ndef _normalize_binary_digest(value: str) -> Optional[str]:\n    candidate = str(value or \"\").strip().split()[0].lower() if str(value or \"\").strip() else \"\"\n    if not candidate or not _SHA256_RE.fullmatch(candidate):\n        return None\n    return candidate\n\n\ndef _validate_trusted_file(path: Path, *, executable: bool) -> Path:\n    candidate = Path(path)\n    if candidate.is_symlink():\n        raise ValueError(\"Vwarp trusted file must not be a symbolic link\")\n    resolved = candidate.resolve(strict=True)\n    metadata = resolved.stat()\n    if not stat.S_ISREG(metadata.st_mode):\n        raise ValueError(\"Vwarp trusted file must be a regular file\")\n    if os.name != \"nt\":\n        if metadata.st_mode & (stat.S_IWGRP | stat.S_IWOTH):\n            raise ValueError(\"Vwarp trusted file must not be group/world writable\")\n        euid = getattr(os, \"geteuid\", lambda: 0)()\n        if metadata.st_uid not in {0, euid}:\n            raise ValueError(\"Vwarp trusted file has an unexpected owner\")\n    if executable and not os.access(resolved, os.X_OK):\n        raise ValueError(\"Vwarp binary is not executable\")\n    return resolved\n\n\ndef _binary_sidecar_digest(path: Path) -> Optional[str]:\n    sidecar = path.with_name(path.name + \".sha256\")\n    if not sidecar.exists():\n        return None\n    trusted = _validate_trusted_file(sidecar, executable=False)\n    digest = _normalize_binary_digest(trusted.read_text(encoding=\"ascii\"))\n    if digest is None:\n        raise ValueError(\"Vwarp executable checksum sidecar is invalid\")\n    return digest\n\n\ndef _expected_binary_digest(path: Path, explicit: Optional[str] = None) -> Optional[str]:\n    raw = explicit if explicit is not None else os.environ.get(_BINARY_DIGEST_ENV, \"\")\n    if raw:\n        digest = _normalize_binary_digest(raw)\n        if digest is None:\n            raise ValueError(f\"{_BINARY_DIGEST_ENV} is not a valid SHA-256 digest\")\n        return digest\n    return _binary_sidecar_digest(path)\n\n\ndef _sha256_file(path: Path) -> str:\n    digest = hashlib.sha256()\n    with path.open(\"rb\") as handle:\n        for block in iter(lambda: handle.read(1024 * 1024), b\"\"):\n            digest.update(block)\n    return digest.hexdigest()\n\n\ndef _write_binary_digest_sidecar(path: Path, digest: str) -> None:\n    sidecar = path.with_name(path.name + \".sha256\")\n    fd, temporary_name = tempfile.mkstemp(prefix=f\".{sidecar.name}.\", dir=sidecar.parent)\n    temporary = Path(temporary_name)\n    try:\n        with os.fdopen(fd, \"w\", encoding=\"ascii\") as handle:\n            handle.write(digest + \"\\n\")\n            handle.flush()\n            os.fsync(handle.fileno())\n        if os.name != \"nt\":\n            temporary.chmod(0o600)\n        os.replace(temporary, sidecar)\n    finally:\n        temporary.unlink(missing_ok=True)\n'''
+          if text.count(anchor) != 1:
+              raise SystemExit('binary helper insertion anchor missing')
+          text = text.replace(anchor, helpers + anchor, 1)
+
+          old_verify_start = text.index('async def verify_binary(binary_path: str) -> bool:')
+          old_verify_end = text.index('\n\nasync def ensure_installed()', old_verify_start)
+          new_verify = '''async def verify_binary(\n    binary_path: str, expected_sha256: Optional[str] = None\n) -> bool:\n    \"\"\"Verify file provenance and digest before executing the Vwarp binary.\"\"\"\n    try:\n        resolved = _validate_trusted_file(Path(binary_path), executable=True)\n        expected = _expected_binary_digest(resolved, expected_sha256)\n        if expected is None:\n            logger.error(\n                \"Vwarp executable has no trusted SHA-256 pin; set %s or provide %s.sha256\",\n                _BINARY_DIGEST_ENV,\n                resolved,\n            )\n            return False\n        observed = _sha256_file(resolved)\n        if not hmac.compare_digest(observed, expected):\n            logger.error(\"Vwarp executable checksum does not match the trusted digest\")\n            return False\n\n        proc = await asyncio.create_subprocess_exec(\n            str(resolved),\n            \"version\",\n            stdout=asyncio.subprocess.PIPE,\n            stderr=asyncio.subprocess.PIPE,\n            env=minimal_vwarp_environment(),\n        )\n        try:\n            stdout, stderr = await asyncio.wait_for(\n                proc.communicate(), timeout=VERIFY_TIMEOUT_SECONDS\n            )\n        except asyncio.TimeoutError:\n            proc.kill()\n            await proc.wait()\n            logger.error(\"Vwarp version check timed out\")\n            return False\n        if proc.returncode == 0:\n            return True\n        if stderr:\n            logger.error(\n                \"Vwarp version check failed: %s\",\n                SecurityValidator.sanitize_log_message(stderr.decode(errors=\"ignore\")),\n            )\n        elif stdout:\n            logger.error(\n                \"Vwarp version check failed: %s\",\n                SecurityValidator.sanitize_log_message(stdout.decode(errors=\"ignore\")),\n            )\n        return False\n    except (OSError, ValueError, UnicodeError) as exc:\n        logger.error(\n            \"Vwarp version check rejected the executable: %s\",\n            SecurityValidator.sanitize_log_message(str(exc)),\n        )\n        return False\n'''
+          text = text[:old_verify_start] + new_verify + text[old_verify_end:]
+
+          old_download_verify = '''                st = temporary_path.stat()\n                temporary_path.chmod(st.st_mode | stat.S_IEXEC)\n                if not await verify_binary(str(temporary_path)):\n                    logger.error("Downloaded Vwarp binary failed execution check")\n                    return None\n                os.replace(temporary_path, target_path)\n                temporary_path = None\n'''
+          new_download_verify = '''                st = temporary_path.stat()\n                temporary_path.chmod(st.st_mode | stat.S_IEXEC)\n                executable_digest = _sha256_file(temporary_path)\n                if not await verify_binary(\n                    str(temporary_path), expected_sha256=executable_digest\n                ):\n                    logger.error("Downloaded Vwarp binary failed execution check")\n                    return None\n                os.replace(temporary_path, target_path)\n                temporary_path = None\n                _write_binary_digest_sidecar(target_path, executable_digest)\n                if not await verify_binary(str(target_path)):\n                    logger.error("Installed Vwarp binary failed pinned verification")\n                    return None\n'''
+          if text.count(old_download_verify) != 1:
+              raise SystemExit('download verification anchor missing')
+          text = text.replace(old_download_verify, new_download_verify, 1)
+          binary.write_text(text, encoding='utf-8')
+
+          replace_once(
+              'src/configstream/tools/vwarp/scanner.py',
+              'from .binary import verify_binary\n',
+              'from .binary import minimal_vwarp_environment, verify_binary\n',
+          )
+          replace_once(
+              'src/configstream/tools/vwarp/scanner.py',
+              '''        proc = await asyncio.create_subprocess_exec(\n            *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE\n        )\n''',
+              '''        proc = await asyncio.create_subprocess_exec(\n            *cmd,\n            stdout=asyncio.subprocess.PIPE,\n            stderr=asyncio.subprocess.PIPE,\n            env=minimal_vwarp_environment(),\n        )\n''',
+          )
+          replace_once(
+              'src/configstream/tools/vwarp/tunnel.py',
+              'from .binary import verify_binary\n',
+              'from .binary import minimal_vwarp_environment, verify_binary\n',
+          )
+          replace_once(
+              'src/configstream/tools/vwarp/tunnel.py',
+              '''            self._proc = await asyncio.create_subprocess_exec(\n                *cmd,\n                stdout=asyncio.subprocess.PIPE,\n                stderr=asyncio.subprocess.PIPE,\n            )\n''',
+              '''            self._proc = await asyncio.create_subprocess_exec(\n                *cmd,\n                stdout=asyncio.subprocess.PIPE,\n                stderr=asyncio.subprocess.PIPE,\n                env=minimal_vwarp_environment(),\n            )\n''',
+          )
+
+          replace_once(
+              'Dockerfile',
+              '''    install -m 0755 /tmp/vwarp-extract/vwarp /usr/local/bin/vwarp && \\\n    rm -rf /tmp/vwarp.zip /tmp/vwarp-extract /tmp/vwarp-filelist && \\\n    (vwarp version || (echo "Vwarp binary check failed" >&2; exit 1))\n''',
+              '''    install -m 0755 /tmp/vwarp-extract/vwarp /usr/local/bin/vwarp && \\\n    sha256sum /usr/local/bin/vwarp | awk '{print $1}' > /usr/local/bin/vwarp.sha256 && \\\n    chmod 0444 /usr/local/bin/vwarp.sha256 && \\\n    rm -rf /tmp/vwarp.zip /tmp/vwarp-extract /tmp/vwarp-filelist && \\\n    (vwarp version || (echo "Vwarp binary check failed" >&2; exit 1))\n''',
+          )
+
+          tests = Path('tests/unit/tools/test_vwarp_tool.py')
+          t = tests.read_text(encoding='utf-8')
+          t = t.replace(
+              'from configstream.tools.vwarp.binary import _validate_download_digest\n',
+              'from configstream.tools.vwarp.binary import (\n'
+              '    _validate_download_digest,\n'
+              '    minimal_vwarp_environment,\n'
+              ')\n',
+              1,
+          )
+          old_timeout = '''@pytest.mark.asyncio\nasync def test_vwarp_verification_kills_timed_out_process(monkeypatch):\n'''
+          new_timeout = '''@pytest.mark.asyncio\nasync def test_vwarp_verification_kills_timed_out_process(\n    monkeypatch: pytest.MonkeyPatch, tmp_path: Path\n):\n'''
+          if t.count(old_timeout) != 1:
+              raise SystemExit('timeout test anchor missing')
+          t = t.replace(old_timeout, new_timeout, 1)
+          old_setup = '''    process = _Process()\n\n    async def _create(*args, **kwargs):\n        return process\n\n    monkeypatch.setattr(vwarp_binary.asyncio, "create_subprocess_exec", _create)\n    monkeypatch.setattr(vwarp_binary, "VERIFY_TIMEOUT_SECONDS", 0.001)\n\n    assert await vwarp_binary.verify_binary("/tmp/vwarp") is False\n'''
+          new_setup = '''    process = _Process()\n    executable = tmp_path / "vwarp"\n    executable.write_bytes(b"trusted-vwarp")\n    executable.chmod(0o700)\n    monkeypatch.setenv(\n        "VWARP_BINARY_SHA256", hashlib.sha256(executable.read_bytes()).hexdigest()\n    )\n\n    async def _create(*args, **kwargs):\n        assert kwargs["env"] == minimal_vwarp_environment()\n        assert "CS_SIGNING_PRIVATE_KEY_HEX" not in kwargs["env"]\n        return process\n\n    monkeypatch.setenv("CS_SIGNING_PRIVATE_KEY_HEX", "sensitive")\n    monkeypatch.setattr(vwarp_binary.asyncio, "create_subprocess_exec", _create)\n    monkeypatch.setattr(vwarp_binary, "VERIFY_TIMEOUT_SECONDS", 0.001)\n\n    assert await vwarp_binary.verify_binary(str(executable)) is False\n'''
+          if t.count(old_setup) != 1:
+              raise SystemExit('timeout test setup anchor missing')
+          t = t.replace(old_setup, new_setup, 1)
+
+          insertion_anchor = '''\ndef test_install_directory_falls_back_when_user_bin_creation_fails(\n'''
+          new_tests = '''\n\n@pytest.mark.asyncio\nasync def test_vwarp_verification_rejects_unpinned_executable(\n    monkeypatch: pytest.MonkeyPatch, tmp_path: Path\n) -> None:\n    executable = tmp_path / "vwarp"\n    executable.write_bytes(b"untrusted-vwarp")\n    executable.chmod(0o700)\n    monkeypatch.delenv("VWARP_BINARY_SHA256", raising=False)\n\n    called = False\n\n    async def _create(*args, **kwargs):\n        nonlocal called\n        called = True\n        raise AssertionError("unpinned executable must not run")\n\n    monkeypatch.setattr(vwarp_binary.asyncio, "create_subprocess_exec", _create)\n\n    assert await vwarp_binary.verify_binary(str(executable)) is False\n    assert called is False\n\n\ndef test_vwarp_minimal_environment_excludes_pipeline_secrets(\n    monkeypatch: pytest.MonkeyPatch,\n) -> None:\n    for name in (\n        "CS_PUBLIC_KEY",\n        "CS_IPNS_KEY",\n        "VT_API_KEY",\n        "WARP_KEY_POOL",\n        "CS_SIGNING_PRIVATE_KEY_HEX",\n    ):\n        monkeypatch.setenv(name, "sensitive")\n\n    environment = minimal_vwarp_environment()\n\n    assert "PATH" in environment\n    assert "TMPDIR" in environment\n    assert all(\n        name not in environment\n        for name in (\n            "CS_PUBLIC_KEY",\n            "CS_IPNS_KEY",\n            "VT_API_KEY",\n            "WARP_KEY_POOL",\n            "CS_SIGNING_PRIVATE_KEY_HEX",\n        )\n    )\n\n\n@pytest.mark.skipif(\n    __import__("os").name == "nt",\n    reason="unsupported platform: test requires POSIX file permission semantics",\n)\n@pytest.mark.asyncio\nasync def test_vwarp_verification_rejects_group_writable_sidecar(\n    monkeypatch: pytest.MonkeyPatch, tmp_path: Path\n) -> None:\n    executable = tmp_path / "vwarp"\n    executable.write_bytes(b"trusted-vwarp")\n    executable.chmod(0o700)\n    sidecar = tmp_path / "vwarp.sha256"\n    sidecar.write_text(hashlib.sha256(executable.read_bytes()).hexdigest() + "\\n")\n    sidecar.chmod(0o660)\n    monkeypatch.delenv("VWARP_BINARY_SHA256", raising=False)\n\n    assert await vwarp_binary.verify_binary(str(executable)) is False\n\n\ndef test_container_persists_vwarp_executable_digest_sidecar() -> None:\n    dockerfile = (Path(__file__).resolve().parents[3] / "Dockerfile").read_text(\n        encoding="utf-8"\n    )\n\n    assert "sha256sum /usr/local/bin/vwarp" in dockerfile\n    assert "> /usr/local/bin/vwarp.sha256" in dockerfile\n    assert "chmod 0444 /usr/local/bin/vwarp.sha256" in dockerfile\n'''
+          if t.count(insertion_anchor) != 1:
+              raise SystemExit('Vwarp test insertion anchor missing')
+          t = t.replace(insertion_anchor, new_tests + insertion_anchor, 1)
+          tests.write_text(t, encoding='utf-8')
+          PY
+
+          python -m py_compile \
+            src/configstream/tools/vwarp/binary.py \
+            src/configstream/tools/vwarp/scanner.py \
+            src/configstream/tools/vwarp/tunnel.py \
+            tests/unit/tools/test_vwarp_tool.py
+          python scripts/generate_environment_catalog.py
+          python scripts/generate_debt_matrix.py
+          python scripts/generate_triage_report.py
+      - name: Commit reviewed files and governed evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          files=(
+            src/configstream/tools/vwarp/binary.py
+            src/configstream/tools/vwarp/scanner.py
+            src/configstream/tools/vwarp/tunnel.py
+            Dockerfile
+            tests/unit/tools/test_vwarp_tool.py
+            docs/generated/environment-variables.md
+            docs/generated/environment-variables.json
+            docs/DEBT_MATRIX.md
+            docs/debt_matrix.json
+            TRIAGE_REPORT.md
+          )
+          for path in "${files[@]}"; do
+            if git diff --quiet -- "$path"; then
+              continue
+            fi
+            sha="$(gh api "/repos/${GITHUB_REPOSITORY}/contents/${path}?ref=${GITHUB_REF_NAME}" --jq '.sha')"
+            encoded="$(base64 -w0 "$path")"
+            gh api --method PUT \
+              -H 'Accept: application/vnd.github+json' \
+              "/repos/${GITHUB_REPOSITORY}/contents/${path}" \
+              -f message='fix: harden Vwarp executable trust and subprocess environment' \
+              -f content="$encoded" \
+              -f sha="$sha" \
+              -f branch="$GITHUB_REF_NAME" \
+              >/dev/null
+          done
