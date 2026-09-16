@@ -18,6 +18,7 @@ from slowapi.util import get_remote_address
 
 from ..config import AppSettings
 from ..logging_config import setup_logging
+from ..publication import is_private_publication_path
 
 # Ensure WASM files are served with correct MIME type
 mimetypes.add_type("application/wasm", ".wasm")
@@ -189,8 +190,15 @@ def _resolve_output_path(rel_path: str) -> Path:
 
 
 def _serve_output_file(rel_path: str, media_type: Optional[str] = None) -> FileResponse:
+    if is_private_publication_path(rel_path):
+        raise HTTPException(404, "File not generated yet")
+
     target = _resolve_output_path(rel_path)
-    if not target.exists():
+    base = OUTPUT_DIR.resolve()
+    resolved_rel = target.relative_to(base).as_posix()
+    if is_private_publication_path(resolved_rel):
+        raise HTTPException(404, "File not generated yet")
+    if not target.is_file():
         raise HTTPException(404, "File not generated yet")
     return FileResponse(target, media_type=media_type)
 
@@ -199,10 +207,7 @@ def _serve_output_subpath(prefix: str, path: str) -> FileResponse:
     if not path or ".." in path:
         raise HTTPException(400, "Invalid path")
     rel = str(Path(prefix) / path)
-    target = _resolve_output_path(rel)
-    if not target.exists() or not target.is_file():
-        raise HTTPException(404, "File not generated yet")
-    return FileResponse(target)
+    return _serve_output_file(rel)
 
 
 def _is_nonproduction_environment(environment: str) -> bool:
