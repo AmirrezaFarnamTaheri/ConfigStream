@@ -50,8 +50,10 @@ COPY --from=ghcr.io/astral-sh/uv:0.11.32@sha256:2381d6aa60c326b71fd40023f921a0a3
 ARG RUNNER_UID=1001
 RUN useradd -m -u "${RUNNER_UID}" runner
 
-# Copy Go binary
+# Copy the Go tester and seal its build-time digest for strict production trust.
 COPY --from=builder /app/tester /usr/local/bin/configstream-tester
+RUN sha256sum /usr/local/bin/configstream-tester | awk '{print $1}' > /usr/local/bin/configstream-tester.sha256 && \
+    chmod 0444 /usr/local/bin/configstream-tester.sha256
 
 # Install the prebuilt Vwarp binary with architecture-specific checksum proof.
 ARG TARGETARCH
