@@ -55,7 +55,9 @@ def test_live_smoke_output_requires_real_nonempty_pipeline_result(tmp_path: Path
 
 def test_live_smoke_falls_back_to_second_candidate(tmp_path: Path, monkeypatch) -> None:
     sources = tmp_path / "sources.txt"
-    sources.write_text("https://example.test/one\nhttps://example.test/two\n", encoding="utf-8")
+    sources.write_text(
+        "https://example.test/one\nhttps://example.test/two\n", encoding="utf-8"
+    )
     output = tmp_path / "output"
     log = tmp_path / "smoke.log"
     selected = tmp_path / "selected.txt"
@@ -110,15 +112,22 @@ def test_live_smoke_workflow_is_read_only_bounded_and_full_path() -> None:
     assert payload["env"]["MAX_WORKERS"] == "2"
     assert payload["env"]["MIN_SOURCE_COVERAGE"] == "0.70"
 
-    commands = "\n".join(
-        str(step.get("run", ""))
-        for step in job.get("steps", [])
-        if isinstance(step, dict)
-    )
+    steps = [step for step in job.get("steps", []) if isinstance(step, dict)]
+    uses = "\n".join(str(step.get("uses", "")) for step in steps)
+    commands = "\n".join(str(step.get("run", "")) for step in steps)
+
+    assert "actions/setup-go@" in uses
+    assert "requirements-prod.txt" in commands
+    assert "requirements-dev.txt" not in commands
+    assert "CGO_ENABLED=0 go build" in commands
+    assert "CONFIGSTREAM_TESTER_BIN=" in commands
     assert "python scripts/run_live_smoke.py" in commands
     assert "--max-workers 2" in commands
     assert "--attempt-timeout 240" in commands
     assert "python scripts/prepare_public_candidate.py" in commands
     assert "python scripts/finalize_release_outputs.py" in commands
     assert ' --min-source-coverage "$MIN_SOURCE_COVERAGE"' in commands
-    assert "python scripts/validate_pages_artifact.py --refresh-contract smoke-public" in commands
+    assert (
+        "python scripts/validate_pages_artifact.py --refresh-contract smoke-public"
+        in commands
+    )

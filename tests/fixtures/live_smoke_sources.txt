@@ -1,6 +1,6 @@
 # Two small admitted HTTPS feeds. The live smoke runner tries them in order and
 # stops after the first source that completes a real ConfigStream merge with a
 # non-empty validated output. This keeps normal smoke workload to one source
-# while retaining a second independent fallback for upstream availability.
-https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-4.txt
+# while retaining a second fallback for upstream availability.
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub27.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub1.txt

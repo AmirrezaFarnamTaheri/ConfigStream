@@ -39,13 +39,29 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
-          cache-dependency-path: requirements-dev.txt
-      - name: Install pinned development dependencies
+          cache-dependency-path: requirements-prod.txt
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version: "1.26.8"
+          cache-dependency-path: src/go/tester/go.sum
+      - name: Install pinned production dependencies
         run: |
           set -euo pipefail
-          python -m pip install -r requirements-dev.txt
+          python -m pip install -r requirements-prod.txt
           python -m pip install -e . --no-deps
           python -m pip check
+      - name: Build production Go tester
+        run: |
+          set -euo pipefail
+          pushd src/go/tester >/dev/null
+          CGO_ENABLED=0 go build \
+            -ldflags="-s -w -checklinkname=0" \
+            -tags "with_quic,with_dhcp,with_wireguard,with_ech,with_utls,with_reality_server,with_clash_api,with_gvisor" \
+            -o ../../../configstream-tester \
+            main.go
+          popd >/dev/null
+          test -x configstream-tester
+          echo "CONFIGSTREAM_TESTER_BIN=$PWD/configstream-tester" >> "$GITHUB_ENV"
       - name: Verify bounded live source fixture
         run: |
           set -euo pipefail
@@ -132,6 +148,7 @@ jobs:
               handle.write(f'- Generated proxies: **{proxy_count}**\n')
               if coverage is not None:
                   handle.write(f'- Source coverage: **{coverage}**\n')
+              handle.write('- Production Go tester: **enabled**\n')
               handle.write('- Publication: **disabled (test-only)**\n')
           PY
       - name: Upload live smoke diagnostics
