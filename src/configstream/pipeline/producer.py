@@ -231,9 +231,7 @@ async def _validate_and_budget_remote_source(
             await loop.run_in_executor(None, anomaly_detector.record, source, raw_count)
         except Exception as rec_err:
             safe_rec_err = SecurityValidator.sanitize_log_message(str(rec_err))
-            logger.debug(
-                "Anomaly record failed for %s: %s", safe_source, safe_rec_err
-            )
+            logger.debug("Anomaly record failed for %s: %s", safe_source, safe_rec_err)
 
     selected, exact_duplicate_drops, budget_drops = select_source_candidates(
         lines,
@@ -242,8 +240,7 @@ async def _validate_and_budget_remote_source(
     )
     if exact_duplicate_drops:
         drop_stats["source_exact_duplicate"] = (
-            int(drop_stats.get("source_exact_duplicate", 0))
-            + exact_duplicate_drops
+            int(drop_stats.get("source_exact_duplicate", 0)) + exact_duplicate_drops
         )
     if budget_drops:
         drop_stats["source_candidate_budget"] = (
@@ -581,16 +578,18 @@ async def source_producer(
                             )
                             continue
 
-                        lines, is_safe, reason = await _validate_and_budget_remote_source(
-                            loop,
-                            anomaly_detector,
-                            settings,
-                            source,
-                            safe_source,
-                            lines,
-                            drop_stats,
-                            count,
-                            enable_anomaly_detection,
+                        lines, is_safe, reason = (
+                            await _validate_and_budget_remote_source(
+                                loop,
+                                anomaly_detector,
+                                settings,
+                                source,
+                                safe_source,
+                                lines,
+                                drop_stats,
+                                count,
+                                enable_anomaly_detection,
+                            )
                         )
 
                         if is_safe:

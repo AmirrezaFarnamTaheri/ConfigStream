@@ -18,9 +18,7 @@ def test_go_tester_timeout_threshold_is_configurable(monkeypatch) -> None:
 
 
 def test_go_tester_result_timeout_scales_with_worker_waves() -> None:
-    fast = GoBatchTester(
-        binary_path="/definitely-not-present", workers=128, timeout=15
-    )
+    fast = GoBatchTester(binary_path="/definitely-not-present", workers=128, timeout=15)
     conservative = GoBatchTester(
         binary_path="/definitely-not-present", workers=20, timeout=10
     )

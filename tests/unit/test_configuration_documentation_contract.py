@@ -5,7 +5,6 @@ import re
 
 from configstream.config import AppSettings
 
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CONFIG_DOC = REPO_ROOT / "docs/wiki/project/Configuration.md"
 ENV_EXAMPLE = REPO_ROOT / ".env.example"
@@ -46,9 +45,9 @@ def test_authoritative_configuration_doc_matches_runtime_defaults() -> None:
     for name in governed_fields:
         assert name in documented, f"missing documented default for {name}"
         default = AppSettings.model_fields[name].default
-        assert documented[name] == _render_default(default), (
-            f"{name} docs={documented[name]!r} runtime={default!r}"
-        )
+        assert documented[name] == _render_default(
+            default
+        ), f"{name} docs={documented[name]!r} runtime={default!r}"
 
 
 def test_removed_source_url_limit_is_not_advertised_as_live_configuration() -> None:

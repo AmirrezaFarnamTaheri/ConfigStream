@@ -64,8 +64,12 @@ def test_candidate_budget_keeps_original_order_when_under_limit() -> None:
 def test_candidate_budget_uses_source_scoped_selection() -> None:
     lines = [f"vless://candidate-{index}" for index in range(100)]
 
-    first, _, _ = select_source_candidates(lines, source="https://a.example/sub", limit=10)
-    second, _, _ = select_source_candidates(lines, source="https://b.example/sub", limit=10)
+    first, _, _ = select_source_candidates(
+        lines, source="https://a.example/sub", limit=10
+    )
+    second, _, _ = select_source_candidates(
+        lines, source="https://b.example/sub", limit=10
+    )
 
     assert first != second
 
@@ -73,4 +77,6 @@ def test_candidate_budget_uses_source_scoped_selection() -> None:
 @pytest.mark.parametrize("limit", [0, -1, True])
 def test_candidate_budget_rejects_non_positive_or_boolean_limits(limit: int) -> None:
     with pytest.raises(ValueError, match="positive integer"):
-        select_source_candidates(["vless://a"], source="https://example.com", limit=limit)
+        select_source_candidates(
+            ["vless://a"], source="https://example.com", limit=limit
+        )
