@@ -7,6 +7,8 @@ import pytest
 from configstream.models import Proxy
 from configstream.testers.go_tester.process import ProcessManager
 
+ROOT = Path(__file__).resolve().parents[2]
+
 
 @pytest.mark.parametrize("process", ["revived-warp", "revived-vwarp"])
 def test_revived_proxy_cannot_start_working_without_test_evidence(process: str) -> None:
@@ -61,7 +63,7 @@ async def test_standalone_process_manager_rejects_pinned_binary_replacement(
 
 
 def test_preemption_workflow_is_narrow_and_privileged_only_for_actions() -> None:
-    workflow = Path(".github/workflows/preempt-stale-configstream.yml").read_text(
+    workflow = (ROOT / ".github/workflows/preempt-stale-configstream.yml").read_text(
         encoding="utf-8"
     )
 
@@ -73,3 +75,13 @@ def test_preemption_workflow_is_narrow_and_privileged_only_for_actions() -> None
     assert "head_sha" in workflow
     assert "TARGET_SHA" in workflow
     assert "/actions/runs/${run_id}/cancel" in workflow
+
+
+def test_byow_bridge_bounds_and_serializes_websocket_writes() -> None:
+    worker = (ROOT / "tools/worker.js").read_text(encoding="utf-8")
+
+    assert "MAX_WS_MESSAGE_SIZE = 1024 * 1024" in worker
+    assert "chunk.byteLength > MAX_WS_MESSAGE_SIZE" in worker
+    assert "shutdown(1009, 'WebSocket message too large')" in worker
+    assert "let messageChain = Promise.resolve()" in worker
+    assert "messageChain = messageChain.then(() => handleMessage(event.data))" in worker
