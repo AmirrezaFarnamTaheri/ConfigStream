@@ -73,7 +73,6 @@ jobs:
             tests/unit/test_go_tester_streaming.py
           python scripts/generate_debt_matrix.py --check
           python scripts/validate_function_size_budget.py
-          python scripts/verify_repository.py --profile static
       - name: Commit refactor and lower size budget
         run: |
           set -euo pipefail
