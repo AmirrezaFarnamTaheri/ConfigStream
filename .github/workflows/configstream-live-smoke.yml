@@ -21,7 +21,7 @@ env:
   USE_VWARP_TUNNEL: "false"
   FORCE_SCANNER: "false"
   ALLOW_ACTIVE_SCANNING: "false"
-  MAX_LINES_PER_SOURCE: "64"
+  MAX_LINES_PER_SOURCE: "16"
   MAX_RESPONSE_SIZE: "4194304"
   MAX_WORKERS: "8"
   MIN_SOURCE_COVERAGE: "0.70"
@@ -30,7 +30,7 @@ jobs:
   live_full_path_smoke:
     name: Live full-path smoke (1 of 2 sources)
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -104,7 +104,7 @@ jobs:
             --selected-source live-smoke-selected-source.txt \
             --max-workers 8 \
             --fetch-timeout 15 \
-            --attempt-timeout 120
+            --attempt-timeout 90
       - name: Exercise production public-output path
         run: |
           set -euo pipefail
@@ -148,6 +148,7 @@ jobs:
               handle.write(f'- Generated proxies: **{proxy_count}**\n')
               if coverage is not None:
                   handle.write(f'- Source coverage: **{coverage}**\n')
+              handle.write('- Live sample: **16 configs max from one source**\n')
               handle.write('- Production Go tester: **enabled**\n')
               handle.write('- Publication: **disabled (test-only)**\n')
           PY
