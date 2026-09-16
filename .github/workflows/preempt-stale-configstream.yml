@@ -33,7 +33,8 @@ jobs:
         run: |
           set -euo pipefail
           tmp="$(mktemp)"
-          trap 'rm -f "$tmp"' EXIT
+          cancel_err="$(mktemp)"
+          trap 'rm -f "$tmp" "$cancel_err"' EXIT
 
           for status in queued in_progress; do
             gh api --paginate \
@@ -43,17 +44,42 @@ jobs:
           done
 
           sort -u "$tmp" | while IFS=$'\t' read -r run_id head_sha event; do
-            test -n "$run_id" || continue
-            if [[ "$run_id" == "$TARGET_RUN_ID" || "$head_sha" == "$TARGET_SHA" ]]; then
+            [[ "$run_id" =~ ^[0-9]+$ ]] || continue
+            if [[ "$run_id" == "$TARGET_RUN_ID" ]]; then
               continue
             fi
             case "$event" in
               push|schedule|workflow_dispatch) ;;
               *) continue ;;
             esac
+
+            if [[ "$TARGET_RUN_ID" =~ ^[1-9][0-9]*$ ]]; then
+              # A workflow_run event identifies the exact newest run. Cancel only
+              # older runs, including duplicate same-SHA schedules, so an older
+              # preemption event can never cancel a newer production request.
+              if (( run_id > TARGET_RUN_ID )); then
+                continue
+              fi
+            elif [[ "$head_sha" == "$TARGET_SHA" ]]; then
+              # Push/manual preemption has no exact target run id. Preserve all
+              # same-head runs until the workflow_run event can choose one safely.
+              continue
+            fi
+
             echo "Cancelling stale Config's Stream run ${run_id} at ${head_sha} (${event})"
-            gh api --method POST \
+            if ! gh api --method POST \
               -H 'Accept: application/vnd.github+json' \
               "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/cancel" \
-              >/dev/null || true
+              >/dev/null 2>"$cancel_err"; then
+              state="$(gh api \
+                -H 'Accept: application/vnd.github+json' \
+                "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}" \
+                --jq '.status' 2>/dev/null || printf 'unknown')"
+              if [[ "$state" != "completed" ]]; then
+                cat "$cancel_err" >&2
+                echo "Failed to cancel still-active Config's Stream run ${run_id}" >&2
+                exit 1
+              fi
+            fi
+            : > "$cancel_err"
           done
