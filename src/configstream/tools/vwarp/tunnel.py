@@ -36,8 +36,12 @@ class VwarpTunnel:
         if not self.binary_path or not await verify_binary(self.binary_path):
             return False
 
-        if self._proc:
-            return True
+        if self._proc is not None:
+            if self._proc.returncode is None:
+                return True
+            # Reap a previously exited child before attempting a restart. A dead
+            # Process object must never be treated as evidence that the tunnel is live.
+            await self.stop()
 
         success = await self._start_attempt(bind_addr, port, config_override)
         if success:
@@ -75,10 +79,11 @@ class VwarpTunnel:
                 logger.error(
                     "Vwarp failed: %s",
                     SecurityValidator.sanitize_log_message(
-                        (stdout or b"").decode() + (stderr or b"").decode()
+                        (stdout or b"").decode(errors="replace")
+                        + (stderr or b"").decode(errors="replace")
                     ),
                 )
-                self._cleanup_config_file()
+                await self.stop()
                 return False
 
             if not await self._wait_for_port(bind_addr, port):
