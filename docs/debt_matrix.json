@@ -1680,7 +1680,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 609,
+      "line": 636,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1688,7 +1688,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 673,
+      "line": 700,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1696,7 +1696,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 691,
+      "line": 718,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1704,7 +1704,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 759,
+      "line": 786,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1712,7 +1712,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 894,
+      "line": 921,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1720,7 +1720,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 957,
+      "line": 984,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1728,7 +1728,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 981,
+      "line": 1008,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1736,7 +1736,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1005,
+      "line": 1032,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1744,7 +1744,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1045,
+      "line": 1072,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1752,7 +1752,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1065,
+      "line": 1092,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1760,7 +1760,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1082,
+      "line": 1109,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1768,7 +1768,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1087,
+      "line": 1114,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1776,7 +1776,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1112,
+      "line": 1139,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1784,7 +1784,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1117,
+      "line": 1144,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1792,7 +1792,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1198,
+      "line": 1225,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1800,7 +1800,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1294,
+      "line": 1321,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1808,7 +1808,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1334,
+      "line": 1361,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1816,7 +1816,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1389,
+      "line": 1416,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1824,7 +1824,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1564,
+      "line": 1592,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1832,7 +1832,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1615,
+      "line": 1643,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1840,7 +1840,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1628,
+      "line": 1656,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1848,7 +1848,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1644,
+      "line": 1672,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1856,7 +1856,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1653,
+      "line": 1681,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1864,7 +1864,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1670,
+      "line": 1698,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1872,7 +1872,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1821,
+      "line": 1849,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
