@@ -45,10 +45,6 @@ _GO_ENV_ALLOWLIST = (
     "GONOPROXY",
     "GOSUMDB",
     "GONOSUMDB",
-    "GOPRIVATE",
-    "GOTOOLCHAIN",
-    "GOENV",
-    "CGO_ENABLED",
 )
 
 
@@ -132,7 +128,13 @@ def _verify_binary_checksum(path: Path) -> bool:
 
 
 def _minimal_subprocess_environment(*, include_go: bool = False) -> dict[str, str]:
-    """Build an explicit child environment without unrelated pipeline secrets."""
+    """Build an explicit child environment without unrelated pipeline secrets.
+
+    Go builds additionally disable the per-user GOENV file, workspace discovery,
+    automatic toolchain downloads, and cgo. This keeps the locally built sidecar
+    tied to the committed module and the already-selected Go executable instead
+    of silently inheriting hidden user build flags or executing a C toolchain.
+    """
     allowed = list(_BASE_ENV_ALLOWLIST)
     if include_go:
         allowed.extend(_GO_ENV_ALLOWLIST)
@@ -141,6 +143,11 @@ def _minimal_subprocess_environment(*, include_go: bool = False) -> dict[str, st
     }
     environment.setdefault("PATH", os.defpath)
     environment["TMPDIR"] = os.environ.get("TMPDIR") or tempfile.gettempdir()
+    if include_go:
+        environment["GOENV"] = "off"
+        environment["GOTOOLCHAIN"] = "local"
+        environment["GOWORK"] = "off"
+        environment["CGO_ENABLED"] = "0"
     return environment
 
 
@@ -210,7 +217,8 @@ async def ensure_binary_async() -> bool:
     if BINARY_PATH.exists() and _verify_binary_checksum(BINARY_PATH):
         return True
 
-    if not shutil.which("go"):
+    go_binary = shutil.which("go")
+    if not go_binary:
         logger.warning("Go not found. Cannot build uTLS client.")
         return False
 
@@ -233,7 +241,15 @@ async def ensure_binary_async() -> bool:
     logger.info("Building uTLS client from the committed Go module...")
     try:
         success = await _run_cmd(
-            ["go", "build", "-trimpath", "-mod=readonly", "-o", str(temporary), "."],
+            [
+                go_binary,
+                "build",
+                "-trimpath",
+                "-mod=readonly",
+                "-o",
+                str(temporary),
+                ".",
+            ],
             cwd=src_dir,
         )
         if not success or not temporary.is_file():
