@@ -149,3 +149,33 @@ def test_live_smoke_workflow_is_read_only_bounded_and_full_path() -> None:
         "python scripts/validate_pages_artifact.py --refresh-contract smoke-public"
         in commands
     )
+
+    live_step = next(step for step in steps if step.get("id") == "live_merge")
+    assert live_step["continue-on-error"] is True
+
+    public_step = next(
+        step for step in steps if step.get("name") == "Exercise production public-output path"
+    )
+    assert public_step["if"] == "steps.live_merge.outcome == 'success'"
+
+    report_step = next(
+        step for step in steps if step.get("name") == "Report live smoke result"
+    )
+    assert "LIVE_PROBE_OUTCOME" in report_step.get("env", {})
+    assert "live-smoke-status.json" in str(report_step.get("run", ""))
+    assert "verified_working_proxies" in str(report_step.get("run", ""))
+
+    enforce_step = next(
+        step
+        for step in steps
+        if step.get("name") == "Enforce live working status on main and manual runs"
+    )
+    enforce_if = str(enforce_step["if"])
+    assert "github.event_name != 'pull_request'" in enforce_if
+    assert "steps.live_merge.outcome != 'success'" in enforce_if
+    assert "exit 1" in str(enforce_step.get("run", ""))
+
+    upload_step = next(
+        step for step in steps if step.get("name") == "Upload live smoke diagnostics"
+    )
+    assert "live-smoke-status.json" in str(upload_step["with"]["path"])

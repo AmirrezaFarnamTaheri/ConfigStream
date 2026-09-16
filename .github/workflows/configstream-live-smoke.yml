@@ -28,7 +28,7 @@ env:
 
 jobs:
   live_full_path_smoke:
-    name: Live full-path smoke (1 of 2 sources)
+    name: Live full-path status (1 of 2 sources)
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
@@ -95,6 +95,8 @@ jobs:
           print(f'OK: {len(candidates)} bounded admitted live source candidates')
           PY
       - name: Run real ConfigStream merge against live HTTPS source
+        id: live_merge
+        continue-on-error: true
         run: |
           set -euo pipefail
           python scripts/run_live_smoke.py \
@@ -106,6 +108,7 @@ jobs:
             --fetch-timeout 15 \
             --attempt-timeout 90
       - name: Exercise production public-output path
+        if: steps.live_merge.outcome == 'success'
         run: |
           set -euo pipefail
           rm -rf smoke-public
@@ -124,6 +127,8 @@ jobs:
           python scripts/validate_pages_artifact.py --refresh-contract smoke-public
       - name: Report live smoke result
         if: always()
+        env:
+          LIVE_PROBE_OUTCOME: ${{ steps.live_merge.outcome }}
         run: |
           python - <<'PY'
           import json
@@ -131,24 +136,53 @@ jobs:
           from pathlib import Path
 
           selected = Path('live-smoke-selected-source.txt')
-          output = Path('smoke-public')
+          raw_output = Path('smoke-output')
+          public_output = Path('smoke-public')
+          output = public_output if (public_output / 'proxies.json').is_file() else raw_output
           metadata_path = output / 'metadata.json'
           selected_source = selected.read_text(encoding='utf-8').strip() if selected.is_file() else 'none'
-          proxy_count = 0
-          coverage = None
+          proxies = []
           if (output / 'proxies.json').is_file():
-              proxies = json.loads((output / 'proxies.json').read_text(encoding='utf-8'))
-              proxy_count = len(proxies) if isinstance(proxies, list) else 0
+              loaded = json.loads((output / 'proxies.json').read_text(encoding='utf-8'))
+              proxies = loaded if isinstance(loaded, list) else []
+          working_count = sum(
+              1
+              for proxy in proxies
+              if isinstance(proxy, dict) and proxy.get('is_working') is True
+          )
+          coverage = None
           if metadata_path.is_file():
               metadata = json.loads(metadata_path.read_text(encoding='utf-8'))
               coverage = metadata.get('source_coverage_ratio')
+          probe_outcome = os.environ.get('LIVE_PROBE_OUTCOME', 'unknown')
+          working = probe_outcome == 'success' and working_count > 0
+          strict = os.environ.get('GITHUB_EVENT_NAME') != 'pull_request'
+          status = {
+              'schema_version': 1,
+              'working': working,
+              'probe_outcome': probe_outcome,
+              'strict': strict,
+              'event_name': os.environ.get('GITHUB_EVENT_NAME', 'unknown'),
+              'selected_source': selected_source,
+              'generated_proxies': len(proxies),
+              'verified_working_proxies': working_count,
+              'source_coverage_ratio': coverage,
+              'max_source_lines': int(os.environ.get('MAX_LINES_PER_SOURCE', '16')),
+          }
+          Path('live-smoke-status.json').write_text(
+              json.dumps(status, indent=2, sort_keys=True) + '\n', encoding='utf-8'
+          )
           with Path(os.environ['GITHUB_STEP_SUMMARY']).open('a', encoding='utf-8') as handle:
               handle.write("## Config's Stream live smoke\n")
+              handle.write(f"- Live working status: **{'PASS' if working else 'FAIL'}**\n")
+              handle.write(f'- Probe outcome: **{probe_outcome}**\n')
+              handle.write(f'- Enforcement: **{"strict" if strict else "diagnostic on pull request"}**\n')
               handle.write(f'- Selected source: `{selected_source}`\n')
-              handle.write(f'- Generated proxies: **{proxy_count}**\n')
+              handle.write(f'- Generated proxies: **{len(proxies)}**\n')
+              handle.write(f'- Verified working proxies: **{working_count}**\n')
               if coverage is not None:
                   handle.write(f'- Source coverage: **{coverage}**\n')
-              handle.write('- Live sample: **16 configs max from one source**\n')
+              handle.write('- Live sample: **16 configs max from one source; 2nd source fallback only**\n')
               handle.write('- Production Go tester: **enabled**\n')
               handle.write('- Publication: **disabled (test-only)**\n')
           PY
@@ -159,9 +193,15 @@ jobs:
           name: configstream-live-smoke-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             live-smoke.log
+            live-smoke-status.json
             live-smoke-selected-source.txt
             smoke-output/
             smoke-public/
           if-no-files-found: warn
           retention-days: 7
           overwrite: true
+      - name: Enforce live working status on main and manual runs
+        if: github.event_name != 'pull_request' && steps.live_merge.outcome != 'success'
+        run: |
+          echo "Live ConfigStream smoke found no verified working proxy. See live-smoke-status.json and live-smoke.log."
+          exit 1
