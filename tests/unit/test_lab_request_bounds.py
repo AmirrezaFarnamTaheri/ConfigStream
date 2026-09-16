@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 from contextlib import asynccontextmanager
+from types import SimpleNamespace
 
 import httpx
 import pytest
@@ -18,11 +19,23 @@ async def _client():
         yield client
 
 
+def _lab_settings(**overrides):
+    values = {
+        "ENVIRONMENT": "test",
+        "ADMIN_API_KEY": None,
+        "LAB_LIVE_TEST_ENABLED": True,
+        "LAB_MAX_CONFIG_BYTES": 64 * 1024,
+        "LAB_TEST_TIMEOUT_SECONDS": 15,
+    }
+    values.update(overrides)
+    return SimpleNamespace(**values)
+
+
 @pytest.mark.asyncio
 async def test_lab_rejects_unauthenticated_request_before_body_parse(monkeypatch):
-    monkeypatch.setenv("ENVIRONMENT", "test")
-    monkeypatch.delenv("ADMIN_API_KEY", raising=False)
-    monkeypatch.delenv("ALLOW_UNAUTHENTICATED_ADMIN", raising=False)
+    from configstream.server.routes import lab
+
+    monkeypatch.setattr(lab, "settings", _lab_settings())
 
     async with _client() as client:
         response = await client.post(
@@ -37,9 +50,17 @@ async def test_lab_rejects_unauthenticated_request_before_body_parse(monkeypatch
 
 @pytest.mark.asyncio
 async def test_lab_disabled_production_rejects_before_body_parse(monkeypatch):
-    monkeypatch.setenv("ENVIRONMENT", "production")
-    monkeypatch.setenv("ADMIN_API_KEY", "secret")
-    monkeypatch.setenv("LAB_LIVE_TEST_ENABLED", "false")
+    from configstream.server.routes import lab
+
+    monkeypatch.setattr(
+        lab,
+        "settings",
+        _lab_settings(
+            ENVIRONMENT="production",
+            ADMIN_API_KEY="secret",
+            LAB_LIVE_TEST_ENABLED=False,
+        ),
+    )
 
     async with _client() as client:
         response = await client.post(
@@ -54,8 +75,9 @@ async def test_lab_disabled_production_rejects_before_body_parse(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_lab_rejects_oversized_raw_request_before_json_parse(monkeypatch):
-    monkeypatch.setenv("ENVIRONMENT", "test")
-    monkeypatch.setenv("LAB_MAX_CONFIG_BYTES", "64")
+    from configstream.server.routes import lab
+
+    monkeypatch.setattr(lab, "settings", _lab_settings(LAB_MAX_CONFIG_BYTES=64))
     monkeypatch.setenv("ALLOW_UNAUTHENTICATED_ADMIN", "true")
     body = b'{"config":"' + (b"x" * (20 * 1024)) + b'"}'
 
@@ -72,7 +94,9 @@ async def test_lab_rejects_oversized_raw_request_before_json_parse(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_lab_rejects_malformed_json_after_auth(monkeypatch):
-    monkeypatch.setenv("ENVIRONMENT", "test")
+    from configstream.server.routes import lab
+
+    monkeypatch.setattr(lab, "settings", _lab_settings())
     monkeypatch.setenv("ALLOW_UNAUTHENTICATED_ADMIN", "true")
 
     async with _client() as client:
@@ -88,7 +112,9 @@ async def test_lab_rejects_malformed_json_after_auth(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_lab_rejects_non_object_json_after_auth(monkeypatch):
-    monkeypatch.setenv("ENVIRONMENT", "test")
+    from configstream.server.routes import lab
+
+    monkeypatch.setattr(lab, "settings", _lab_settings())
     monkeypatch.setenv("ALLOW_UNAUTHENTICATED_ADMIN", "true")
 
     async with _client() as client:
