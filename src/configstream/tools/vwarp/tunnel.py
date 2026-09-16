@@ -12,7 +12,7 @@ from typing import Any, Dict, List, Optional
 from configstream.async_utils import safe_wait_for
 from configstream.constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
 from configstream.security_validator import SecurityValidator
-from .binary import verify_binary
+from .binary import minimal_vwarp_environment, verify_binary
 from .config import write_temp_config
 
 logger = logging.getLogger(__name__)
@@ -66,6 +66,7 @@ class VwarpTunnel:
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
+                env=minimal_vwarp_environment(),
             )
 
             await asyncio.sleep(0.5)
