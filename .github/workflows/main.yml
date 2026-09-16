@@ -623,7 +623,7 @@ jobs:
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - name: Run every mandatory release gate
         env:
-          CS_PUBLIC_KEY: 
+          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
         run: |
           set -euo pipefail
           mkdir -p pipeline-evidence
