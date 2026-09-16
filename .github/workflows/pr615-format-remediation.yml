@@ -1,0 +1,71 @@
+name: PR615 Format Remediation
+
+on:
+  push:
+    branches: [agent/fix-active-audit-items]
+    paths:
+      - '.github/workflows/pr615-format-remediation.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pr615-format-remediation
+  cancel-in-progress: true
+
+jobs:
+  remediate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: agent/fix-active-audit-items
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Install formatter
+        run: python -m pip install --disable-pip-version-check black==26.5.1
+      - name: Fix exact mypy regression
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('tests/unit/tools/test_vwarp_stream_bounds.py')
+          text = path.read_text(encoding='utf-8')
+          old = '        self.returncode = None\n'
+          new = '        self.returncode: int | None = None\n'
+          if text.count(old) != 1:
+              raise SystemExit(f'expected one returncode initializer, found {text.count(old)}')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+      - name: Format exact PR Python diff
+        env:
+          BASE_SHA: 40966ab9bb64b3f4d8c8b1c4f16bba0e48c8876b
+        run: |
+          mapfile -t python_files < <(git diff --name-only --diff-filter=ACMR "$BASE_SHA" HEAD -- '*.py')
+          if (( ${#python_files[@]} == 0 )); then
+            echo 'No changed Python files.'
+            exit 0
+          fi
+          python -m black --fast --target-version py310 "${python_files[@]}"
+          python -m black --check --fast --target-version py310 "${python_files[@]}"
+      - name: Refresh line-sensitive governed evidence
+        run: |
+          python scripts/generate_environment_catalog.py
+          python scripts/generate_debt_matrix.py
+          python scripts/generate_triage_report.py
+          python scripts/generate_environment_catalog.py --check
+          python scripts/generate_debt_matrix.py --check
+          python scripts/generate_triage_report.py --check
+      - name: Commit remediation
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src scripts tests docs
+          if git diff --cached --quiet; then
+            echo 'No remediation changes to commit.'
+            exit 0
+          fi
+          git commit -m 'style: normalize audited Python changes'
+          git push origin HEAD:agent/fix-active-audit-items
