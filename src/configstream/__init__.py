@@ -70,8 +70,8 @@ def _patch_sniffio_for_asyncio() -> None:
     """Work around sniffio detection failures on newer Python/asyncio combos."""
     try:
         import sniffio  # type: ignore
-    except Exception:
-        logging.getLogger(__name__).debug("Suppressed broad exception")
+    except ImportError:
+        logging.getLogger(__name__).debug("sniffio compatibility patch unavailable")
         return
 
     import asyncio
@@ -103,8 +103,8 @@ def _patch_anyio_current_task() -> None:
     """Work around anyio current_task returning None on newer Python/asyncio."""
     try:
         import anyio._backends._asyncio as anyio_asyncio  # type: ignore
-    except Exception:
-        logging.getLogger(__name__).debug("Suppressed broad exception")
+    except ImportError:
+        logging.getLogger(__name__).debug("anyio compatibility patch unavailable")
         return
 
     import asyncio
