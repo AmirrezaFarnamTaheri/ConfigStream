@@ -55,3 +55,10 @@ def test_removed_source_url_limit_is_not_advertised_as_live_configuration() -> N
     assert "MAX_SOURCE_URL_LENGTH" not in AppSettings.model_fields
     assert "MAX_SOURCE_URL_LENGTH" not in CONFIG_DOC.read_text(encoding="utf-8")
     assert "MAX_SOURCE_URL_LENGTH" not in ENV_EXAMPLE.read_text(encoding="utf-8")
+
+
+def test_env_example_uses_live_virustotal_key_name() -> None:
+    env_example = ENV_EXAMPLE.read_text(encoding="utf-8")
+
+    assert "VIRUSTOTAL_API_KEY" not in env_example
+    assert "#VT_API_KEY=" in env_example
