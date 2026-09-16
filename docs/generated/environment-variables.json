@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "b49424a640e733c724fcb4d8a0dbab59f2bb147017695499a3bcd110fa3553bc",
+  "source_digest": "5d7b47142838d6a44f4cb08345ba5a6f3ee42cef50eba87e25c80b8ce642d746",
   "variable_count": 161,
   "variables": [
     {
@@ -1646,8 +1646,10 @@
       "required": false,
       "sensitive": false,
       "sources": [
+        "src/configstream/security/utls_wrapper.py:143",
         "src/configstream/testers/go_tester/binary_security.py:157",
         "src/configstream/testers/go_tester/manager.py:323",
+        "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py:97",
         "src/configstream/tools/vwarp/binary.py:141"
       ],
       "type": null
@@ -1690,7 +1692,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/security/utls_wrapper.py:47"
+        "src/configstream/security/utls_wrapper.py:94"
       ],
       "type": null
     },
