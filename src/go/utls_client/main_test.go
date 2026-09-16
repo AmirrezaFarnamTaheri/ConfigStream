@@ -2,8 +2,13 @@
 package main
 
 import (
+	"bufio"
+	"fmt"
+	"io"
+	"net"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestParseTarget(t *testing.T) {
@@ -57,6 +62,123 @@ func TestBuildHTTPRequestPreservesNonDefaultPort(t *testing.T) {
 	request := buildHTTPRequest(parsed)
 	if want := "Host: example.com:8443\r\n"; !strings.Contains(request, want) {
 		t.Fatalf("request does not contain %q: %q", want, request)
+	}
+}
+
+func TestParseProxyBareAddressDefaultsToHTTP(t *testing.T) {
+	proxyURL, err := parseProxy("127.0.0.1:8080")
+	if err != nil {
+		t.Fatalf("parseProxy returned error: %v", err)
+	}
+	if proxyURL == nil {
+		t.Fatal("parseProxy returned nil URL")
+	}
+	if proxyURL.Scheme != "http" || proxyURL.Hostname() != "127.0.0.1" || proxyURL.Port() != "8080" {
+		t.Fatalf("unexpected parsed proxy: %#v", proxyURL)
+	}
+}
+
+func TestParseProxyRejectsUnsupportedOrCredentialedURLs(t *testing.T) {
+	for _, raw := range []string{
+		"socks5://127.0.0.1:1080",
+		"http://user:pass@127.0.0.1:8080",
+		"http://127.0.0.1:8080/path",
+		"http://127.0.0.1:8080?mode=unsafe",
+	} {
+		if _, err := parseProxy(raw); err == nil {
+			t.Fatalf("parseProxy(%q) unexpectedly succeeded", raw)
+		}
+	}
+}
+
+func TestHelloIDRejectsUnknownFingerprint(t *testing.T) {
+	if _, ok := helloIDForFingerprint("not-a-browser"); ok {
+		t.Fatal("unknown fingerprint was silently accepted")
+	}
+}
+
+func TestDialTargetUsesHTTPConnectAndPreservesBufferedBytes(t *testing.T) {
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+	defer listener.Close()
+
+	proxyErr := make(chan error, 1)
+	go func() {
+		conn, acceptErr := listener.Accept()
+		if acceptErr != nil {
+			proxyErr <- acceptErr
+			return
+		}
+		defer conn.Close()
+
+		reader := bufio.NewReader(conn)
+		requestLine, readErr := reader.ReadString('\n')
+		if readErr != nil {
+			proxyErr <- readErr
+			return
+		}
+		if requestLine != "CONNECT example.com:443 HTTP/1.1\r\n" {
+			proxyErr <- fmt.Errorf("unexpected CONNECT line %q", requestLine)
+			return
+		}
+		for {
+			line, lineErr := reader.ReadString('\n')
+			if lineErr != nil {
+				proxyErr <- lineErr
+				return
+			}
+			if line == "\r\n" {
+				break
+			}
+		}
+		if _, writeErr := io.WriteString(
+			conn,
+			"HTTP/1.1 200 Connection Established\r\n\r\nhello",
+		); writeErr != nil {
+			proxyErr <- writeErr
+			return
+		}
+		proxyErr <- nil
+	}()
+
+	dialer := &net.Dialer{Timeout: time.Second}
+	conn, err := dialTarget(dialer, "example.com:443", listener.Addr().String())
+	if err != nil {
+		t.Fatalf("dialTarget: %v", err)
+	}
+	defer conn.Close()
+
+	payload := make([]byte, len("hello"))
+	if _, err := io.ReadFull(conn, payload); err != nil {
+		t.Fatalf("read tunneled payload: %v", err)
+	}
+	if string(payload) != "hello" {
+		t.Fatalf("unexpected tunneled payload %q", payload)
+	}
+	if err := <-proxyErr; err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestParseProxyEmptyMeansDirect(t *testing.T) {
+	proxyURL, err := parseProxy("   ")
+	if err != nil {
+		t.Fatalf("parseProxy returned error: %v", err)
+	}
+	if proxyURL != nil {
+		t.Fatalf("expected direct mode, got %v", proxyURL)
+	}
+}
+
+func TestProxyErrorDoesNotEchoCredentialMaterial(t *testing.T) {
+	_, err := parseProxy("http://super-secret:password@127.0.0.1:8080")
+	if err == nil {
+		t.Fatal("credentialed proxy unexpectedly accepted")
+	}
+	if strings.Contains(err.Error(), "super-secret") || strings.Contains(err.Error(), "password") {
+		t.Fatalf("proxy parse error leaked credentials: %v", err)
 	}
 }
 
