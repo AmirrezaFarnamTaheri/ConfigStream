@@ -1,5 +1,7 @@
-# Two admitted HTTPS proxy lists whose early entries include endpoints verified
-# working by recent full ConfigStream production output. The runner stops after
-# the first source that yields a non-empty tested output; the second is fallback.
-https://raw.githubusercontent.com/B4RC0DE-TM/proxy-list/main/SOCKS5.txt
-https://raw.githubusercontent.com/B4RC0DE-TM/proxy-list/main/SOCKS4.txt
+# Two admitted HTTPS production sources selected for a tiny live canary.
+# The primary Proxifly feed's current first 16 entries were all verified working
+# by the latest full ConfigStream candidate inspected while adding this test.
+# The runner stops after the first source that yields a verified working proxy;
+# TheSpeedX SOCKS5 is a separately admitted fallback.
+https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/all/data.txt
+https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks5.txt
