@@ -1,0 +1,56 @@
+name: Fix Release Validator Fixture
+
+on:
+  push:
+    branches: [agent/fix-active-audit-items]
+    paths:
+      - '.github/workflows/fix-release-validator-fixture.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fix-release-validator-fixture-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          ref: ${{ github.ref_name }}
+      - name: Update synthetic valid workflow fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('tests/unit/test_validate_workflows.py')
+          text = path.read_text(encoding='utf-8')
+          needle = '''      - name: Validate data release output contract\n        run: |\n          python scripts/dynamic_reshard.py\n          python scripts/validate_pages_artifact.py \\\n            --native-client-check \\\n            --native-report-file pipeline-evidence/native_client_check_report.json \\\n            output\n      - uses: actions/upload-artifact@v4\n        with:\n          name: source-reshard-recommendation\n'''
+          replacement = '''      - name: Validate data release output contract\n        run: |\n          python scripts/dynamic_reshard.py\n          python scripts/validate_pages_artifact.py \\\n            --native-client-check \\\n            --native-report-file pipeline-evidence/native_client_check_report.json \\\n            output\n      - name: Run every mandatory release gate\n        env:\n          CS_PUBLIC_KEY: test-public-key\n        run: echo final-contract\n      - uses: actions/upload-artifact@v4\n        with:\n          name: source-reshard-recommendation\n'''
+          if text.count(needle) != 1:
+              raise SystemExit(f'fixture anchor count was {text.count(needle)}, expected 1')
+          path.write_text(text.replace(needle, replacement, 1), encoding='utf-8')
+          PY
+          python -m py_compile tests/unit/test_validate_workflows.py
+      - name: Commit fixture correction
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          path='tests/unit/test_validate_workflows.py'
+          sha="$(gh api "/repos/${GITHUB_REPOSITORY}/contents/${path}?ref=${GITHUB_REF_NAME}" --jq '.sha')"
+          encoded="$(base64 -w0 "$path")"
+          gh api --method PUT \
+            -H 'Accept: application/vnd.github+json' \
+            "/repos/${GITHUB_REPOSITORY}/contents/${path}" \
+            -f message='test(ci): align release workflow fixture with signature contract' \
+            -f content="$encoded" \
+            -f sha="$sha" \
+            -f branch="$GITHUB_REF_NAME" \
+            >/dev/null
