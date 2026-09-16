@@ -37,4 +37,4 @@ async def test_tls_fingerprint_forwards_proxy_as_explicit_argv() -> None:
     assert argv[0].endswith("utls-client")
     assert argv[1:5] == ("-url", "https://example.com/probe", "-fp", "firefox")
     assert argv[5:7] == ("-proxy", "http://127.0.0.1:8080")
-    assert execute.call_args.kwargs["shell"] if "shell" in execute.call_args.kwargs else True
+    assert "shell" not in execute.call_args.kwargs
