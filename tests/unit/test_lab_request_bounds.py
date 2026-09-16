@@ -36,6 +36,7 @@ async def test_lab_rejects_unauthenticated_request_before_body_parse(monkeypatch
     from configstream.server.routes import lab
 
     monkeypatch.setattr(lab, "settings", _lab_settings())
+    monkeypatch.delenv("ALLOW_UNAUTHENTICATED_ADMIN", raising=False)
 
     async with _client() as client:
         response = await client.post(
