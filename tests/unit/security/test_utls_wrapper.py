@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import asyncio
 import hashlib
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -165,11 +166,43 @@ async def test_bounded_communicate_kills_timed_out_child():
     from configstream.security.utls_wrapper import _communicate_bounded
 
     process = MagicMock()
-    process.communicate = AsyncMock(side_effect=__import__("asyncio").TimeoutError)
-    process.wait = AsyncMock(return_value=0)
+    process.returncode = None
+    process.communicate = AsyncMock(side_effect=asyncio.TimeoutError)
+    process.wait = AsyncMock(return_value=-9)
 
     result = await _communicate_bounded(process, timeout_seconds=0.01)
 
     assert result is None
     process.kill.assert_called_once_with()
+    process.wait.assert_awaited_once_with()
+
+
+@pytest.mark.asyncio
+async def test_bounded_communicate_reaps_on_caller_cancellation():
+    from configstream.security.utls_wrapper import _communicate_bounded
+
+    process = MagicMock()
+    process.returncode = None
+    process.communicate = AsyncMock(side_effect=asyncio.CancelledError)
+    process.wait = AsyncMock(return_value=-9)
+
+    with pytest.raises(asyncio.CancelledError):
+        await _communicate_bounded(process, timeout_seconds=30)
+
+    process.kill.assert_called_once_with()
+    process.wait.assert_awaited_once_with()
+
+
+@pytest.mark.asyncio
+async def test_bounded_communicate_reaps_without_killing_already_exited_child():
+    from configstream.security.utls_wrapper import _communicate_bounded
+
+    process = MagicMock()
+    process.returncode = 0
+    process.communicate = AsyncMock(side_effect=asyncio.TimeoutError)
+    process.wait = AsyncMock(return_value=0)
+
+    assert await _communicate_bounded(process, timeout_seconds=0.01) is None
+
+    process.kill.assert_not_called()
     process.wait.assert_awaited_once_with()
