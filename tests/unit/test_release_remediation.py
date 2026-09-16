@@ -5,9 +5,12 @@ import hashlib
 import json
 from pathlib import Path
 
+import pytest
+
+from configstream.signer import Signer
 from scripts.finalize_release_outputs import _blockers, finalize, modernize_singbox
 from scripts.reconcile_release_metadata import reconcile
-from scripts.release_gate import manifest_entries, validate
+from scripts.release_gate import _sign_promoted_manifest, manifest_entries, validate
 from scripts.shard_sources import partition
 from scripts.validate_pages_artifact import _validate_health
 
@@ -259,6 +262,39 @@ def test_release_gate_rejects_skipped_or_missing_native_validation(
     assert any("did not pass" in error for error in errors)
     assert any("xray" in error for error in errors)
 
+
+
+def test_promoted_manifest_signature_matches_configured_public_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    private_key = "11" * 32
+    signer = Signer(private_key)
+    monkeypatch.setenv("CS_PUBLIC_KEY", signer.get_public_key_hex())
+    manifest: dict[str, object] = {
+        "schema_version": "2.0",
+        "files": [],
+        "file_count": 0,
+        "total_size_bytes": 0,
+    }
+
+    _sign_promoted_manifest(manifest, private_key)
+
+    assert Signer.verify_manifest_signature(manifest, signer.get_public_key_hex())
+
+
+def test_promoted_manifest_signature_rejects_configured_key_mismatch(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("CS_PUBLIC_KEY", Signer("22" * 32).get_public_key_hex())
+    manifest: dict[str, object] = {
+        "schema_version": "2.0",
+        "files": [],
+        "file_count": 0,
+        "total_size_bytes": 0,
+    }
+
+    with pytest.raises(ValueError, match="configured CS_PUBLIC_KEY"):
+        _sign_promoted_manifest(manifest, "11" * 32)
 
 def test_release_manifest_entries_keep_pages_contract_categories(
     tmp_path: Path,
