@@ -14,7 +14,8 @@ import json
 import os
 from pathlib import Path
 import shutil
-import subprocess  # nosec B404 - fixed local Python entrypoint, no shell
+# Fixed local Python entrypoint; subprocess receives no shell command string.
+import subprocess  # nosec B404
 import sys
 
 
@@ -97,7 +98,8 @@ def _run_attempt(
         }
     )
     try:
-        completed = subprocess.run(  # nosec B603 - argv is fixed except bounded values
+        # argv is fixed except for bounded numeric/path values; shell stays disabled.
+        completed = subprocess.run(  # nosec B603
             command,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
