@@ -1880,7 +1880,7 @@
     },
     {
       "path": "src/configstream/tools/vwarp/scanner.py",
-      "line": 131,
+      "line": 134,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1888,7 +1888,7 @@
     },
     {
       "path": "src/configstream/tools/vwarp/tunnel.py",
-      "line": 106,
+      "line": 107,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
