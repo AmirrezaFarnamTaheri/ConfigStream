@@ -1560,7 +1560,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 963,
+      "line": 971,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",

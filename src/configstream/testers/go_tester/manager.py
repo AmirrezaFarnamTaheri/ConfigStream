@@ -944,11 +944,19 @@ class GoBatchTester:
             stdin.write(payload_str.encode())
             await safe_wait_for(stdin.drain(), timeout=15.0)
         except asyncio.TimeoutError:
+            self._consecutive_timeouts += 1
             logger.error(
-                "IPC drain timed out writing custom configs to Go Tester Daemon."
+                "IPC drain timed out writing custom configs to Go Tester Daemon "
+                "(consecutive: %d/%d).",
+                self._consecutive_timeouts,
+                self._max_consecutive_timeouts,
             )
             await self._cleanup_pending(list(reverse_map.keys()), futures)
-            await self._restart_daemon()
+            if self._consecutive_timeouts >= self._max_consecutive_timeouts:
+                self.available = False
+                await self.close()
+            else:
+                await self._restart_daemon()
             return {}
         except asyncio.CancelledError:
             await self._cleanup_pending(list(reverse_map.keys()), futures)
@@ -969,13 +977,20 @@ class GoBatchTester:
         try:
             completed = await safe_wait_for(
                 asyncio.gather(*futures, return_exceptions=True),
-                timeout=max(120, min(300, len(inputs) * 2 + 40)),
+                timeout=self._result_timeout_seconds(len(inputs)),
             )
         except asyncio.CancelledError:
             await self._cleanup_pending(list(reverse_map.keys()), futures)
             raise
         except asyncio.TimeoutError:
-            # Cleanup under lock to prevent race with _read_loop
+            self._consecutive_timeouts += 1
+            logger.error(
+                "Timed out waiting for custom-config results from Go Tester Daemon "
+                "(consecutive: %d/%d).",
+                self._consecutive_timeouts,
+                self._max_consecutive_timeouts,
+            )
+            # Cleanup under lock to prevent race with _read_loop.
             async with self._lock:
                 for req_id in reverse_map.keys():
                     self._pending_futures.pop(req_id, None)
@@ -983,8 +998,20 @@ class GoBatchTester:
                 if not f.done():
                     f.cancel()
             await self._consume_futures(futures)
+            if self._consecutive_timeouts >= self._max_consecutive_timeouts:
+                self.available = False
+                await self.close()
+            else:
+                try:
+                    await safe_wait_for(self._restart_daemon(), timeout=30.0)
+                except (asyncio.TimeoutError, OSError, RuntimeError) as exc:
+                    logger.warning(
+                        "Custom-config daemon restart failed after timeout: %s",
+                        type(exc).__name__,
+                    )
             return {}
 
+        self._consecutive_timeouts = 0
         results = {}
         for res in completed:
             if isinstance(res, dict):
