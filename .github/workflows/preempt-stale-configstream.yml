@@ -1,0 +1,59 @@
+name: Preempt Stale ConfigStream Runs
+
+on:
+  push:
+    branches: [main]
+  workflow_run:
+    workflows: ["Config's Stream"]
+    types: [requested]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: preempt-stale-configstream-main
+  cancel-in-progress: true
+
+jobs:
+  preempt:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel obsolete Config's Stream runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          TARGET_RUN_ID: ${{ github.event.workflow_run.id || '0' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+
+          for status in queued in_progress; do
+            gh api --paginate \
+              -H 'Accept: application/vnd.github+json' \
+              "/repos/${GITHUB_REPOSITORY}/actions/workflows/main.yml/runs?branch=main&status=${status}&per_page=100" \
+              --jq '.workflow_runs[] | [.id, .head_sha, .event] | @tsv' >> "$tmp"
+          done
+
+          sort -u "$tmp" | while IFS=$'\t' read -r run_id head_sha event; do
+            test -n "$run_id" || continue
+            if [[ "$run_id" == "$TARGET_RUN_ID" || "$head_sha" == "$TARGET_SHA" ]]; then
+              continue
+            fi
+            case "$event" in
+              push|schedule|workflow_dispatch) ;;
+              *) continue ;;
+            esac
+            echo "Cancelling stale Config's Stream run ${run_id} at ${head_sha} (${event})"
+            gh api --method POST \
+              -H 'Accept: application/vnd.github+json' \
+              "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/cancel" \
+              >/dev/null || true
+          done
