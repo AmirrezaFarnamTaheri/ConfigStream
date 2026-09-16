@@ -1,0 +1,149 @@
+name: "Config's Stream Live Smoke"
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  ENABLE_WASHER: "false"
+  ENABLE_WARP_REVIVAL: "false"
+  ENABLE_VWARP_REVIVAL: "false"
+  USE_VWARP_TUNNEL: "false"
+  FORCE_SCANNER: "false"
+  ALLOW_ACTIVE_SCANNING: "false"
+  MAX_LINES_PER_SOURCE: "200"
+  MAX_RESPONSE_SIZE: "4194304"
+  MAX_WORKERS: "2"
+  MIN_SOURCE_COVERAGE: "0.70"
+
+jobs:
+  live_full_path_smoke:
+    name: Live full-path smoke (1 of 2 sources)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - name: Install pinned development dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install -r requirements-dev.txt
+          python -m pip install -e . --no-deps
+          python -m pip check
+      - name: Verify bounded live source fixture
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          root = Path('.')
+          fixture = root / 'tests' / 'fixtures' / 'live_smoke_sources.txt'
+          candidates = [
+              line.strip()
+              for line in fixture.read_text(encoding='utf-8').splitlines()
+              if line.strip() and not line.lstrip().startswith('#')
+          ]
+          if not 1 <= len(candidates) <= 2:
+              raise SystemExit(f'live smoke must contain 1-2 candidates, found {len(candidates)}')
+          if len(candidates) != len(set(candidates)):
+              raise SystemExit('live smoke candidates must be unique')
+          if any(not source.startswith('https://') for source in candidates):
+              raise SystemExit('live smoke candidates must use HTTPS')
+
+          admitted = set()
+          for path in sorted((root / 'sources').glob('batch_*.txt')):
+              admitted.update(
+                  line.strip()
+                  for line in path.read_text(encoding='utf-8').splitlines()
+                  if line.strip() and not line.lstrip().startswith('#')
+              )
+          missing = [source for source in candidates if source not in admitted]
+          if missing:
+              raise SystemExit(f'live smoke candidates are not admitted sources: {missing}')
+          print(f'OK: {len(candidates)} bounded admitted live source candidates')
+          PY
+      - name: Run real ConfigStream merge against live HTTPS source
+        run: |
+          set -euo pipefail
+          python scripts/run_live_smoke.py \
+            --sources tests/fixtures/live_smoke_sources.txt \
+            --output smoke-output \
+            --log live-smoke.log \
+            --selected-source live-smoke-selected-source.txt \
+            --max-workers 2 \
+            --fetch-timeout 15 \
+            --attempt-timeout 240
+      - name: Exercise production public-output path
+        run: |
+          set -euo pipefail
+          rm -rf smoke-public
+          python scripts/prepare_public_candidate.py \
+            smoke-output smoke-public \
+            --frontend frontend \
+            --repo-root .
+          python scripts/validate_frontend_placeholders.py \
+            --inject-env --strict smoke-public
+          python scripts/normalize_legacy_profiles.py smoke-public
+          python scripts/finalize_release_outputs.py \
+            smoke-public \
+            --repo-root . \
+            --min-source-coverage "$MIN_SOURCE_COVERAGE"
+          python scripts/reconcile_release_metadata.py smoke-public
+          python scripts/validate_pages_artifact.py --refresh-contract smoke-public
+      - name: Report live smoke result
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          selected = Path('live-smoke-selected-source.txt')
+          output = Path('smoke-public')
+          metadata_path = output / 'metadata.json'
+          selected_source = selected.read_text(encoding='utf-8').strip() if selected.is_file() else 'none'
+          proxy_count = 0
+          coverage = None
+          if (output / 'proxies.json').is_file():
+              proxies = json.loads((output / 'proxies.json').read_text(encoding='utf-8'))
+              proxy_count = len(proxies) if isinstance(proxies, list) else 0
+          if metadata_path.is_file():
+              metadata = json.loads(metadata_path.read_text(encoding='utf-8'))
+              coverage = metadata.get('source_coverage_ratio')
+          with Path(os.environ['GITHUB_STEP_SUMMARY']).open('a', encoding='utf-8') as handle:
+              handle.write("## Config's Stream live smoke\n")
+              handle.write(f'- Selected source: `{selected_source}`\n')
+              handle.write(f'- Generated proxies: **{proxy_count}**\n')
+              if coverage is not None:
+                  handle.write(f'- Source coverage: **{coverage}**\n')
+              handle.write('- Publication: **disabled (test-only)**\n')
+          PY
+      - name: Upload live smoke diagnostics
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: configstream-live-smoke-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            live-smoke.log
+            live-smoke-selected-source.txt
+            smoke-output/
+            smoke-public/
+          if-no-files-found: warn
+          retention-days: 7
+          overwrite: true
