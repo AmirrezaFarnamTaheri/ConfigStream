@@ -14,7 +14,10 @@ from configstream.tools.vwarp import (
 )
 from configstream.tools.vwarp.tunnel import VwarpTunnel
 from configstream.tools.vwarp import binary as vwarp_binary
-from configstream.tools.vwarp.binary import _validate_download_digest
+from configstream.tools.vwarp.binary import (
+    _validate_download_digest,
+    minimal_vwarp_environment,
+)
 
 
 def test_key_validation():
@@ -190,7 +193,9 @@ async def test_vwarp_download_enforces_streaming_size_limit(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_vwarp_verification_kills_timed_out_process(monkeypatch):
+async def test_vwarp_verification_kills_timed_out_process(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+):
     class _Process:
         returncode = None
         killed = False
@@ -207,17 +212,105 @@ async def test_vwarp_verification_kills_timed_out_process(monkeypatch):
             self.waited = True
 
     process = _Process()
+    executable = tmp_path / "vwarp"
+    executable.write_bytes(b"trusted-vwarp")
+    executable.chmod(0o700)
+    monkeypatch.setenv(
+        "VWARP_BINARY_SHA256", hashlib.sha256(executable.read_bytes()).hexdigest()
+    )
 
     async def _create(*args, **kwargs):
+        assert kwargs["env"] == minimal_vwarp_environment()
+        assert "CS_SIGNING_PRIVATE_KEY_HEX" not in kwargs["env"]
         return process
 
+    monkeypatch.setenv("CS_SIGNING_PRIVATE_KEY_HEX", "sensitive")
     monkeypatch.setattr(vwarp_binary.asyncio, "create_subprocess_exec", _create)
     monkeypatch.setattr(vwarp_binary, "VERIFY_TIMEOUT_SECONDS", 0.001)
 
-    assert await vwarp_binary.verify_binary("/tmp/vwarp") is False
+    assert await vwarp_binary.verify_binary(str(executable)) is False
     assert process.killed is True
     assert process.waited is True
 
+
+
+@pytest.mark.asyncio
+async def test_vwarp_verification_rejects_unpinned_executable(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    executable = tmp_path / "vwarp"
+    executable.write_bytes(b"untrusted-vwarp")
+    executable.chmod(0o700)
+    monkeypatch.delenv("VWARP_BINARY_SHA256", raising=False)
+
+    called = False
+
+    async def _create(*args, **kwargs):
+        nonlocal called
+        called = True
+        raise AssertionError("unpinned executable must not run")
+
+    monkeypatch.setattr(vwarp_binary.asyncio, "create_subprocess_exec", _create)
+
+    assert await vwarp_binary.verify_binary(str(executable)) is False
+    assert called is False
+
+
+def test_vwarp_minimal_environment_excludes_pipeline_secrets(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    for name in (
+        "CS_PUBLIC_KEY",
+        "CS_IPNS_KEY",
+        "VT_API_KEY",
+        "WARP_KEY_POOL",
+        "CS_SIGNING_PRIVATE_KEY_HEX",
+    ):
+        monkeypatch.setenv(name, "sensitive")
+
+    environment = minimal_vwarp_environment()
+
+    assert "PATH" in environment
+    assert "TMPDIR" in environment
+    assert all(
+        name not in environment
+        for name in (
+            "CS_PUBLIC_KEY",
+            "CS_IPNS_KEY",
+            "VT_API_KEY",
+            "WARP_KEY_POOL",
+            "CS_SIGNING_PRIVATE_KEY_HEX",
+        )
+    )
+
+
+@pytest.mark.skipif(
+    __import__("os").name == "nt",
+    reason="unsupported platform: test requires POSIX file permission semantics",
+)
+@pytest.mark.asyncio
+async def test_vwarp_verification_rejects_group_writable_sidecar(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    executable = tmp_path / "vwarp"
+    executable.write_bytes(b"trusted-vwarp")
+    executable.chmod(0o700)
+    sidecar = tmp_path / "vwarp.sha256"
+    sidecar.write_text(hashlib.sha256(executable.read_bytes()).hexdigest() + "\n")
+    sidecar.chmod(0o660)
+    monkeypatch.delenv("VWARP_BINARY_SHA256", raising=False)
+
+    assert await vwarp_binary.verify_binary(str(executable)) is False
+
+
+def test_container_persists_vwarp_executable_digest_sidecar() -> None:
+    dockerfile = (Path(__file__).resolve().parents[3] / "Dockerfile").read_text(
+        encoding="utf-8"
+    )
+
+    assert "sha256sum /usr/local/bin/vwarp" in dockerfile
+    assert "> /usr/local/bin/vwarp.sha256" in dockerfile
+    assert "chmod 0444 /usr/local/bin/vwarp.sha256" in dockerfile
 
 def test_install_directory_falls_back_when_user_bin_creation_fails(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
