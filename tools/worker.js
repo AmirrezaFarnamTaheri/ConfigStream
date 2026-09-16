@@ -15,6 +15,8 @@ const DEFAULT_PROXY_PATH = '/my-secret-tunnel';
 const DEFAULT_FAKE_SITE_URL = 'https://www.kernel.org/';
 const MIN_TOKEN_LENGTH = 32;
 const MAX_WS_MESSAGE_SIZE = 1024 * 1024;
+const MAX_WS_BUFFERED_BYTES = 4 * 1024 * 1024;
+const MAX_WS_PENDING_MESSAGES = 64;
 const encoder = new TextEncoder();
 
 export default {
@@ -128,10 +130,12 @@ function toBytes(data) {
     return encoder.encode(data);
   }
   if (data instanceof ArrayBuffer) {
-    return new Uint8Array(data);
+    return new Uint8Array(data.slice(0));
   }
   if (ArrayBuffer.isView(data)) {
-    return new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+    return new Uint8Array(
+      data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength),
+    );
   }
   return null;
 }
@@ -160,6 +164,8 @@ async function handleProxy(config) {
   server.accept({ allowHalfOpen: true });
   const writer = socket.writable.getWriter();
   let shuttingDown = false;
+  let queuedBytes = 0;
+  let pendingMessages = 0;
   let messageChain = Promise.resolve();
 
   const shutdown = async (code = 1000, reason = 'Tunnel closed') => {
@@ -186,27 +192,46 @@ async function handleProxy(config) {
     }
   };
 
-  const handleMessage = async (data) => {
-    const chunk = toBytes(data);
-    if (!chunk) {
-      await shutdown(1003, 'Unsupported WebSocket message type');
-      return;
-    }
-    if (chunk.byteLength === 0 || chunk.byteLength > MAX_WS_MESSAGE_SIZE) {
-      await shutdown(1009, 'WebSocket message too large');
-      return;
-    }
+  const writeChunk = async (chunk) => {
     try {
-      await writer.write(chunk);
+      if (!shuttingDown) {
+        await writer.write(chunk);
+      }
     } catch (_error) {
       await shutdown(1011, 'Upstream write failed');
+    } finally {
+      pendingMessages = Math.max(0, pendingMessages - 1);
+      queuedBytes = Math.max(0, queuedBytes - chunk.byteLength);
     }
   };
 
   server.addEventListener('message', (event) => {
-    // Serialize writes so a fast peer cannot create an unbounded set of
-    // concurrent writer.write() promises while the upstream applies backpressure.
-    messageChain = messageChain.then(() => handleMessage(event.data));
+    if (shuttingDown) {
+      return;
+    }
+    const chunk = toBytes(event.data);
+    if (!chunk) {
+      void shutdown(1003, 'Unsupported WebSocket message type');
+      return;
+    }
+    if (chunk.byteLength === 0 || chunk.byteLength > MAX_WS_MESSAGE_SIZE) {
+      void shutdown(1009, 'WebSocket message too large');
+      return;
+    }
+    if (
+      pendingMessages >= MAX_WS_PENDING_MESSAGES ||
+      queuedBytes + chunk.byteLength > MAX_WS_BUFFERED_BYTES
+    ) {
+      void shutdown(1013, 'WebSocket backpressure limit exceeded');
+      return;
+    }
+
+    pendingMessages += 1;
+    queuedBytes += chunk.byteLength;
+    // Preserve wire order while bounding both retained bytes and queued closures.
+    messageChain = messageChain
+      .catch(() => undefined)
+      .then(() => writeChunk(chunk));
     void messageChain.catch(() => shutdown(1011, 'Tunnel processing failed'));
   });
 
