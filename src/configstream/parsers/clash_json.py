@@ -74,11 +74,7 @@ def _transport_details(data: dict) -> dict:
         details["allowInsecure"] = _bool(data["allowInsecure"])
     if "alpn" in data:
         details["alpn"] = data["alpn"]
-    fingerprint = (
-        data.get("fp")
-        or data.get("client-fingerprint")
-        or data.get("fingerprint")
-    )
+    fingerprint = data.get("fp") or data.get("client-fingerprint") or data.get("fingerprint")
     if fingerprint:
         details["fp"] = _string(fingerprint)
 
@@ -133,7 +129,7 @@ def _canonical_details(data: dict, protocol: str) -> dict:
         return details
 
     if protocol == "wireguard":
-        details: dict = {}
+        details = {}
         aliases = {
             "private_key": ("private_key", "private-key", "privateKey"),
             "peer_public_key": ("peer_public_key", "public-key", "publicKey"),
