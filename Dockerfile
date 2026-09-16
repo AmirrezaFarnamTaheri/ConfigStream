@@ -77,6 +77,8 @@ RUN set -eux; \
     VWARP_ENTRY="$(grep -E '^(|.*/)?vwarp$' /tmp/vwarp-filelist | head -n1)" && \
     unzip -j /tmp/vwarp.zip "$VWARP_ENTRY" -d /tmp/vwarp-extract && \
     install -m 0755 /tmp/vwarp-extract/vwarp /usr/local/bin/vwarp && \
+    sha256sum /usr/local/bin/vwarp | awk '{print $1}' > /usr/local/bin/vwarp.sha256 && \
+    chmod 0444 /usr/local/bin/vwarp.sha256 && \
     rm -rf /tmp/vwarp.zip /tmp/vwarp-extract /tmp/vwarp-filelist && \
     (vwarp version || (echo "Vwarp binary check failed" >&2; exit 1))
 
