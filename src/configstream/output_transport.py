@@ -54,13 +54,13 @@ def save_json(
 
 
 def inject_stego_key_into_frontend(secret_key: str, js_file_path: Path) -> None:
-    """Compatibility shim that guarantees no symmetric key is published.
+    """Guarantee that no symmetric stego key is published in frontend code.
 
-    Older output code called this function to place a decryption key in the same
-    public JavaScript bundle as encrypted data.  That is obfuscation, not
-    confidentiality.  The function now removes any existing literal key and
-    never writes the supplied secret.  Confidential delivery must use an
-    authenticated endpoint or recipient public-key encryption.
+    Older output code placed a decryption key in the same public JavaScript
+    bundle as encrypted data. That is obfuscation, not confidentiality. This
+    compatibility shim removes any existing literal key and never writes the
+    supplied secret. If an existing frontend file cannot be inspected or
+    cleaned, fail closed so release preparation cannot publish a stale secret.
     """
 
     if not js_file_path.exists():
@@ -72,13 +72,14 @@ def inject_stego_key_into_frontend(secret_key: str, js_file_path: Path) -> None:
     try:
         content = js_file_path.read_text(encoding="utf-8")
     except (OSError, UnicodeDecodeError) as exc:
-        logger.warning(
-            "Unable to inspect frontend JS %s for embedded secrets (%s); "
-            "continuing without cleanup",
+        logger.error(
+            "Unable to verify frontend JS %s is free of embedded secrets (%s)",
             js_file_path,
             type(exc).__name__,
         )
-        return
+        raise RuntimeError(
+            "frontend secret cleanup could not inspect the public JavaScript bundle"
+        ) from exc
 
     pattern = r'(const\s+SECRET_KEY\s*=\s*")([^"]*)(")'
     new_content, replacements = re.subn(pattern, r"\1\3", content)
@@ -94,11 +95,12 @@ def inject_stego_key_into_frontend(secret_key: str, js_file_path: Path) -> None:
     try:
         AtomicFileWriter.write_text(js_file_path, new_content)
     except (OSError, UnicodeError) as exc:
-        logger.warning(
-            "Unable to remove embedded frontend secret from %s (%s); "
-            "continuing without cleanup",
+        logger.error(
+            "Unable to remove embedded frontend secret from %s (%s)",
             js_file_path,
             type(exc).__name__,
         )
-        return
+        raise RuntimeError(
+            "frontend secret cleanup could not sanitize the public JavaScript bundle"
+        ) from exc
     logger.info("Removed %d embedded frontend secret key(s)", replacements)
