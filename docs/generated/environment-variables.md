@@ -15,7 +15,7 @@ Variables: **161**
 | `ALLOWED_ORIGIN_REGEX` | yes | `str` | `""` | no | no | `src/configstream/config.py:163` |
 | `ALLOW_ACTIVE_SCANNING` | yes | `bool` | `false` | no | no | `src/configstream/config.py:151` |
 | `ALLOW_PRIVATE_IPS` | yes | `bool` | `false` | no | no | `src/configstream/config.py:129` |
-| `ALLOW_UNAUTHENTICATED_ADMIN` | no | `direct-only` |  | no | no | `src/configstream/server/utils.py:229` |
+| `ALLOW_UNAUTHENTICATED_ADMIN` | no | `direct-only` |  | no | no | `src/configstream/server/utils.py:214` |
 | `BATCH_NUMBER` | yes | `str` | `""` | no | no | `src/configstream/config.py:127` |
 | `BATCH_SIZE` | yes | `int` | `50` | no | no | `src/configstream/config.py:67` |
 | `BATCH_TIME_LIMIT_GRACE_SECONDS` | yes | `int` | `2700` | no | no | `src/configstream/config.py:33` |
