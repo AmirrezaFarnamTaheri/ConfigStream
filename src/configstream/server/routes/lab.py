@@ -12,7 +12,12 @@ from fastapi.responses import JSONResponse
 from ...lab_validation import (
     _validate_and_build_lab_config as _shared_validate_and_build_lab_config,
 )
-from ..utils import _is_nonproduction_environment, limiter, settings
+from ..utils import (
+    _is_nonproduction_environment,
+    _require_admin_auth,
+    limiter,
+    settings,
+)
 
 router = APIRouter(prefix="/api/lab", tags=["lab"])
 
@@ -35,13 +40,19 @@ def _require_payload_api_key(payload: dict, api_key: Optional[str]) -> None:
 @limiter.limit("30/minute")
 async def lab_test_chain(request: Request, payload: dict):
     """Validate and test a bounded, server-owned sing-box chain configuration."""
-    if not _is_nonproduction_environment(settings.ENVIRONMENT):
+    is_nonproduction = _is_nonproduction_environment(settings.ENVIRONMENT)
+    if not is_nonproduction:
         if not settings.LAB_LIVE_TEST_ENABLED:
             raise HTTPException(
                 status_code=403,
                 detail="Live lab testing is disabled in production.",
             )
         _require_payload_api_key(payload, settings.ADMIN_API_KEY)
+    else:
+        # A development/test environment is not an authentication boundary.
+        # Use the same explicit opt-in policy as the admin routes so live
+        # network execution is never enabled merely by relabelling ENVIRONMENT.
+        _require_admin_auth(request, settings.ADMIN_API_KEY, True)
 
     config = payload.get("config") if isinstance(payload, dict) else None
     if config is None:
