@@ -21,7 +21,7 @@ permissions:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   MIN_SOURCE_COVERAGE: "0.70"
-  SOURCE_SHARD_PARTS: "6"
+  SOURCE_SHARD_PARTS: "9"
   SING_BOX_VERSION: "1.13.18"
   XRAY_VERSION: "v26.7.28"
   MIHOMO_VERSION: "v1.19.29"
@@ -74,6 +74,7 @@ jobs:
             tests/unit/test_validate_workflows_resilient.py \
             tests/unit/test_prepare_public_candidate.py \
             tests/unit/test_resilient_stage.py \
+            tests/unit/test_active_audit_remediation.py \
             --disable-warnings --maxfail=1
       - name: Validate main release prerequisites
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
@@ -621,6 +622,8 @@ jobs:
             -- bash scripts/install_native_validators.sh
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - name: Run every mandatory release gate
+        env:
+          CS_PUBLIC_KEY: 
         run: |
           set -euo pipefail
           mkdir -p pipeline-evidence
