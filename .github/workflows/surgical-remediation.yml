@@ -129,14 +129,20 @@ jobs:
           rm -f .github/workflows/surgical-remediation.yml
           python scripts/generate_environment_catalog.py
           python scripts/generate_debt_matrix.py
-      - name: Publish only the reviewed file set to the PR branch
+      - name: Export exact modified main workflow
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: surgically-updated-main-${{ github.run_id }}
+          path: .github/workflows/main.yml
+          if-no-files-found: error
+          retention-days: 1
+      - name: Publish reviewed non-workflow files to the PR branch
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           allowed=(
-            .github/workflows/main.yml
             scripts/release_gate.py
             scripts/validate_workflows.py
             tests/unit/test_release_remediation.py
