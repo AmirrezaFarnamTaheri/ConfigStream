@@ -1,30 +1,43 @@
-name: Debt Matrix Export
+name: Debt Matrix Refresh
 
 on:
-  pull_request:
-  workflow_dispatch:
+  push:
+    branches: [agent/fix-active-audit-items]
+    paths:
+      - '.github/workflows/debt-matrix-export.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
-  group: debt-matrix-export-${{ github.ref }}
+  group: debt-matrix-refresh-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  export:
+  refresh:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
+          ref: ${{ github.ref_name }}
       - name: Regenerate debt matrix deterministically
         run: python scripts/generate_debt_matrix.py
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: regenerated-debt-matrix-${{ github.run_id }}
-          path: |
-            docs/DEBT_MATRIX.md
-            docs/debt_matrix.json
-          if-no-files-found: error
-          retention-days: 1
+      - name: Commit exact generated artifacts through the contents API
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for path in docs/DEBT_MATRIX.md docs/debt_matrix.json; do
+            sha="$(gh api "/repos/${GITHUB_REPOSITORY}/contents/${path}?ref=${GITHUB_REF_NAME}" --jq '.sha')"
+            encoded="$(base64 -w0 "$path")"
+            gh api --method PUT \
+              -H 'Accept: application/vnd.github+json' \
+              "/repos/${GITHUB_REPOSITORY}/contents/${path}" \
+              -f message='chore: regenerate debt matrix' \
+              -f content="$encoded" \
+              -f sha="$sha" \
+              -f branch="$GITHUB_REF_NAME" \
+              >/dev/null
+          done
