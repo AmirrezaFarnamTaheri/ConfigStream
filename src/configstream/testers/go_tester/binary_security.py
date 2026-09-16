@@ -11,7 +11,7 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional
-
+from ...config import AppSettings
 _DIGEST_ENV = "CONFIGSTREAM_TESTER_SHA256"
 _ENV_ALLOWLIST = (
     "PATH",
@@ -101,7 +101,7 @@ def initialize_binary_identity(path: Path | str) -> BinaryIdentity:
 
     strict_mode = (
         os.environ.get("CS_STRICT_BINARY_TRUST", "").strip() in ("1", "true", "yes")
-        or os.environ.get("ENVIRONMENT", "").strip().lower() == "production"
+        or (os.environ.get("ENVIRONMENT", "") or AppSettings().ENVIRONMENT).strip().lower() == "production"
     )
     if strict_mode and expected is None:
         raise ValueError(
