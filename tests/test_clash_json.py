@@ -22,6 +22,10 @@ def test_parse_clash_json_valid_vmess():
     assert proxy.port == 443
     assert proxy.uuid == "1234-5678"
     assert proxy.remarks == "Test VMess"
+    assert proxy.details["security"] == "auto"
+    assert proxy.details["alterId"] == 0
+    assert "type" not in proxy.details
+    assert "cipher" not in proxy.details
 
 
 def test_parse_clash_json_invalid_json():
@@ -32,7 +36,7 @@ def test_parse_clash_json_missing_fields():
     assert parse_clash_json(json.dumps({"name": "No Type"})) is None
     assert (
         parse_clash_json(json.dumps({"type": "vmess", "server": "example.com"})) is None
-    )  # Missing name
+    )
 
 
 def test_parse_clash_json_shadowsocks():
@@ -109,3 +113,98 @@ def test_parse_clash_json_wireguard_missing_key():
         }
     )
     assert parse_clash_json(config) is None
+
+
+def test_parse_clash_json_strips_clash_only_details_keys():
+    config = json.dumps(
+        {
+            "name": "Production-shaped SS",
+            "type": "ss",
+            "server": "167.150.100.115",
+            "port": 27755,
+            "cipher": "2022-blake3-aes-256-gcm",
+            "password": "secret",
+            "skip-cert-verify": False,
+            "udp": False,
+        }
+    )
+
+    proxy = parse_clash_json(config)
+
+    assert proxy is not None
+    assert proxy.details == {
+        "server": "167.150.100.115",
+        "port": 27755,
+        "password": "secret",
+        "method": "2022-blake3-aes-256-gcm",
+    }
+    assert not {"name", "type", "cipher", "skip-cert-verify", "udp"} & set(
+        proxy.details
+    )
+
+
+def test_parse_clash_json_maps_supported_transport_aliases():
+    config = json.dumps(
+        {
+            "name": "VMess WS",
+            "type": "vmess",
+            "server": "example.com",
+            "port": 443,
+            "uuid": "1234-5678",
+            "network": "ws",
+            "skip-cert-verify": "false",
+            "client-fingerprint": "chrome",
+            "ws-opts": {"path": "/ws", "headers": {"Host": "cdn.example.com"}},
+        }
+    )
+
+    proxy = parse_clash_json(config)
+
+    assert proxy is not None
+    assert proxy.details["net"] == "ws"
+    assert proxy.details["type"] == "ws"
+    assert proxy.details["skip_cert_verify"] is False
+    assert proxy.details["fp"] == "chrome"
+    assert proxy.details["path"] == "/ws"
+    assert proxy.details["host"] == "cdn.example.com"
+    assert "ws-opts" not in proxy.details
+
+
+def test_parse_clash_json_vless_derives_required_security():
+    proxy = parse_clash_json(
+        json.dumps(
+            {
+                "name": "VLESS TLS",
+                "type": "vless",
+                "server": "example.com",
+                "port": 443,
+                "uuid": "1234-5678",
+                "tls": True,
+            }
+        )
+    )
+
+    assert proxy is not None
+    assert proxy.details["security"] == "tls"
+    assert "type" not in proxy.details
+
+
+def test_parse_clash_json_shadowsocks_plugin_opts_are_schema_string():
+    proxy = parse_clash_json(
+        json.dumps(
+            {
+                "name": "SS plugin",
+                "type": "ss",
+                "server": "ss.example.com",
+                "port": 8388,
+                "cipher": "aes-256-gcm",
+                "password": "secret",
+                "plugin": "v2ray-plugin",
+                "plugin-opts": {"mode": "websocket", "host": "cdn.example.com"},
+            }
+        )
+    )
+
+    assert proxy is not None
+    assert proxy.details["plugin"] == "v2ray-plugin"
+    assert proxy.details["plugin_opts"] == "host=cdn.example.com;mode=websocket"

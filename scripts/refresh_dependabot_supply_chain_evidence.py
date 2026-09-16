@@ -239,7 +239,7 @@ def _create_commit(
         "POST",
         f"/repos/{api.repository}/git/commits",
         payload={
-            "message": "chore(deps): refresh generated dependency evidence",
+            "message": "chore(deps): refresh generated dependency evidence [skip ci]",
             "tree": new_tree_sha,
             "parents": [head_sha],
         },

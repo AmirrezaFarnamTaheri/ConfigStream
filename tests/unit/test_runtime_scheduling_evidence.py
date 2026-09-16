@@ -10,9 +10,12 @@ from scripts.shard_sources import (
     _source_set_sha256,
     load_quarantined_sources,
     load_timing_weights,
+    partition,
+    runtime_shard_parts,
     runtime_source_lines,
     source_timing_id,
 )
+from scripts.source_shard_policy import RUNTIME_SHARD_PARTS
 
 
 def test_runtime_cost_quarantine_is_combined_with_operator_quarantine(
@@ -58,3 +61,44 @@ def test_runtime_timing_weights_accept_compact_vector_schema(tmp_path: Path) -> 
         source_timing_id(ordered[1]): 73,
     }
     assert default_weight == 130
+
+
+def test_runtime_sources_exclude_provably_non_feed_locator_shapes(
+    tmp_path: Path,
+) -> None:
+    sources = tmp_path / "sources"
+    sources.mkdir()
+    eligible = [
+        "https://raw.githubusercontent.com/example/repo/main/sub.txt",
+        "https://github.com/example/repo/raw/main/sub.txt",
+        "https://example.com/subscription",
+        "https://gist.github.com/example/0123456789abcdef/raw/config.txt",
+    ]
+    ineligible = [
+        "http://example.com/insecure",
+        "https://freevpnspy.raw.githubusercontent.com/2024/08/config.yaml",
+        "https://t.me/example_channel",
+        "https://check.torproject.org/torbulkexitlist",
+        "https://gist.github.com/example",
+        "https://github.com/example/repo",
+        "https://github.com/example",
+        "https://github.com/example/repo/blob/main/sub.txt",
+    ]
+    batch = sources / "batch_1.txt"
+    batch.write_text("\n".join([*eligible, *ineligible]) + "\n", encoding="utf-8")
+
+    assert runtime_source_lines(batch, set()) == eligible
+
+
+def test_runtime_shard_parts_enforces_shared_policy_floor() -> None:
+    assert runtime_shard_parts(RUNTIME_SHARD_PARTS - 3) == RUNTIME_SHARD_PARTS
+    assert runtime_shard_parts(RUNTIME_SHARD_PARTS + 2) == RUNTIME_SHARD_PARTS + 2
+
+
+def test_partition_keeps_explicit_historical_part_counts() -> None:
+    urls = [f"https://source-{index}.example/sub" for index in range(12)]
+
+    buckets = partition(urls, RUNTIME_SHARD_PARTS - 3)
+
+    assert len(buckets) == RUNTIME_SHARD_PARTS - 3
+    assert sorted(item for bucket in buckets for item in bucket) == sorted(urls)
