@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
+from ipaddress import ip_address
 import json
 import logging
 import shutil
@@ -9,6 +10,23 @@ from pathlib import Path
 
 # Configure logger for this module
 logger = logging.getLogger(__name__)
+
+
+async def _kill_and_reap(proc: asyncio.subprocess.Process) -> None:
+    """Kill an active scanner child and bound the reap operation."""
+    if proc.returncode is None:
+        try:
+            proc.kill()
+        except ProcessLookupError:
+            pass
+        except OSError as exc:
+            logger.warning("Failed to kill WARP scanner child: %s", type(exc).__name__)
+    try:
+        await asyncio.wait_for(proc.wait(), timeout=5.0)
+    except asyncio.TimeoutError:
+        logger.error("WARP scanner child could not be reaped after termination")
+    except (OSError, RuntimeError) as exc:
+        logger.warning("Failed to reap WARP scanner child: %s", type(exc).__name__)
 
 
 class WarpScannerWorker:
@@ -138,6 +156,10 @@ class WarpScannerWorker:
             )
             return []
 
+        if limit <= 0 or timeout <= 0 or max_latency < 0:
+            logger.error("WARP scan rejected invalid numeric bounds")
+            return []
+
         if not self.available or not self.binary_path:
             logger.warning("Scan requested but binary is unavailable.")
             return []
@@ -197,12 +219,11 @@ class WarpScannerWorker:
                     "WARP scan exceeded overall deadline of %ss; killing scanner.",
                     scan_deadline,
                 )
-                try:
-                    proc.kill()
-                    await proc.wait()
-                except ProcessLookupError:
-                    pass
+                await _kill_and_reap(proc)
                 return []
+            except asyncio.CancelledError:
+                await _kill_and_reap(proc)
+                raise
 
             safe_stderr = SecurityValidator.sanitize_log_message(
                 stderr.decode(errors="replace").strip()
@@ -246,8 +267,18 @@ class WarpScannerWorker:
                     except (TypeError, ValueError):
                         continue
 
-                    if isinstance(ip, str) and ip and latency_value <= max_latency:
-                        clean_ips.append(ip)
+                    if not isinstance(ip, str) or not ip.strip():
+                        continue
+                    try:
+                        ip_address(ip.strip())
+                    except ValueError:
+                        continue
+                    if not 0 <= latency_value <= max_latency:
+                        continue
+
+                    clean_ips.append(ip.strip())
+                    if len(clean_ips) >= limit:
+                        break
 
                 except json.JSONDecodeError:
                     logger.debug("Skipping invalid JSON line from scanner")
@@ -259,6 +290,8 @@ class WarpScannerWorker:
             )
             return clean_ips
 
+        except asyncio.CancelledError:
+            raise
         except (OSError, ValueError, RuntimeError) as exc:
             logger.error(
                 "Critical error during active scan execution: %s",
