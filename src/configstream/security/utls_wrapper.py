@@ -167,18 +167,37 @@ def _write_checksum_sidecar(path: Path, digest: str) -> None:
         temporary.unlink(missing_ok=True)
 
 
+async def _kill_and_reap(proc: asyncio.subprocess.Process) -> None:
+    """Kill a uTLS child if it is still running and bound the reap operation."""
+    if proc.returncode is None:
+        try:
+            proc.kill()
+        except ProcessLookupError:
+            pass
+        except OSError as exc:
+            logger.warning("Failed to kill uTLS child: %s", type(exc).__name__)
+    try:
+        await asyncio.wait_for(proc.wait(), timeout=5.0)
+    except asyncio.TimeoutError:
+        logger.error("uTLS child could not be reaped after termination")
+    except (OSError, RuntimeError) as exc:
+        logger.warning("Failed to reap uTLS child: %s", type(exc).__name__)
+
+
 async def _communicate_bounded(
     proc: asyncio.subprocess.Process,
     *,
     timeout_seconds: float,
 ) -> tuple[bytes, bytes] | None:
-    """Collect a child process result and kill it if the deadline expires."""
+    """Collect a child result; terminate/reap it on timeout or caller cancellation."""
     try:
         return await asyncio.wait_for(proc.communicate(), timeout=timeout_seconds)
     except asyncio.TimeoutError:
-        proc.kill()
-        await proc.wait()
+        await _kill_and_reap(proc)
         return None
+    except asyncio.CancelledError:
+        await _kill_and_reap(proc)
+        raise
 
 
 async def _run_cmd(
