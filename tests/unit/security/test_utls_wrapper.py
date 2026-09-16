@@ -1,20 +1,35 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import hashlib
+from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
+
 from configstream.security.utls_wrapper import (
+    _minimal_subprocess_environment,
+    _verify_binary_checksum,
     ensure_binary_async,
     test_tls_fingerprint as verify_tls_fingerprint,
 )
 
 
 @pytest.mark.asyncio
-async def test_ensure_binary_async_builds_committed_module_without_mutation(tmp_path):
+async def test_ensure_binary_async_builds_committed_module_with_digest_sidecar(
+    tmp_path: Path,
+):
     source = tmp_path / "src" / "go" / "utls_client"
     source.mkdir(parents=True)
     (source / "go.mod").write_text("module utls_client\n", encoding="utf-8")
     (source / "go.sum").write_text("pinned\n", encoding="utf-8")
     binary = tmp_path / "bin" / "utls-client"
-    run = AsyncMock(return_value=True)
+    commands: list[tuple[list[str], Path]] = []
+
+    async def run(cmd: list[str], cwd: Path, **_kwargs) -> bool:
+        commands.append((cmd, cwd))
+        output = Path(cmd[cmd.index("-o") + 1])
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_bytes(b"locally-built-utls")
+        return True
 
     with (
         patch("configstream.security.utls_wrapper.BINARY_PATH", binary),
@@ -23,23 +38,21 @@ async def test_ensure_binary_async_builds_committed_module_without_mutation(tmp_
             "configstream.security.utls_wrapper.shutil.which",
             return_value="/usr/bin/go",
         ),
-        patch("configstream.security.utls_wrapper._run_cmd", run),
+        patch("configstream.security.utls_wrapper._run_cmd", side_effect=run),
     ):
         result = await ensure_binary_async()
 
     assert result is True
-    run.assert_awaited_once()
-    command = run.await_args.args[0]
-    assert command == [
-        "go",
-        "build",
-        "-trimpath",
-        "-mod=readonly",
-        "-o",
-        str(binary),
-        ".",
-    ]
-    assert run.await_args.kwargs == {"cwd": source}
+    assert len(commands) == 1
+    command, cwd = commands[0]
+    assert cwd == source
+    assert command[:5] == ["go", "build", "-trimpath", "-mod=readonly", "-o"]
+    assert command[-1] == "."
+    assert binary.read_bytes() == b"locally-built-utls"
+    sidecar = binary.with_name(binary.name + ".sha256")
+    assert sidecar.read_text(encoding="ascii").strip() == hashlib.sha256(
+        binary.read_bytes()
+    ).hexdigest()
 
 
 @pytest.mark.asyncio
@@ -50,6 +63,35 @@ async def test_ensure_binary_async_fail_no_go():
     ):
         result = await ensure_binary_async()
         assert result is False
+
+
+def test_utls_existing_binary_requires_trusted_digest(tmp_path: Path, monkeypatch):
+    binary = tmp_path / "utls-client"
+    binary.write_bytes(b"existing")
+    binary.chmod(0o700)
+    monkeypatch.delenv("UTLS_CLIENT_SHA256", raising=False)
+
+    assert _verify_binary_checksum(binary) is False
+
+
+def test_utls_minimal_environment_excludes_pipeline_secrets(monkeypatch):
+    secrets = (
+        "CS_PUBLIC_KEY",
+        "CS_IPNS_KEY",
+        "VT_API_KEY",
+        "WARP_KEY_POOL",
+        "CS_SIGNING_PRIVATE_KEY_HEX",
+    )
+    for name in secrets:
+        monkeypatch.setenv(name, "sensitive")
+
+    probe_env = _minimal_subprocess_environment()
+    build_env = _minimal_subprocess_environment(include_go=True)
+
+    assert probe_env["PATH"]
+    assert probe_env["TMPDIR"]
+    assert all(name not in probe_env for name in secrets)
+    assert all(name not in build_env for name in secrets)
 
 
 @pytest.mark.asyncio
@@ -73,6 +115,7 @@ async def test_verify_tls_fingerprint_success():
 
         result = await verify_tls_fingerprint("https://example.com", "1.2.3.4:443")
         assert result is True
+        assert mock_exec.call_args.kwargs["env"] == _minimal_subprocess_environment()
 
 
 @pytest.mark.asyncio
