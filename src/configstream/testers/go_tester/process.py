@@ -78,18 +78,57 @@ class ProcessManager:
         )
         return self._proc
 
-    async def stop(self) -> None:
-        if not self._proc:
-            return
+    async def _kill_and_reap(self, proc: asyncio.subprocess.Process) -> bool:
+        """Kill a tester child and return whether exit was conclusively observed."""
+        if proc.returncode is None:
+            try:
+                with suppress(ProcessLookupError):
+                    proc.kill()
+            except OSError as exc:
+                logger.warning(
+                    "Failed to kill configstream-tester child: %s",
+                    type(exc).__name__,
+                )
         try:
-            self._proc.terminate()
-            await asyncio.wait_for(self._proc.wait(), timeout=5.0)
-        except ProcessLookupError:
-            pass  # Process already exited
+            await asyncio.wait_for(proc.wait(), timeout=5.0)
         except asyncio.TimeoutError:
-            with suppress(ProcessLookupError):
-                self._proc.kill()
-            with suppress(Exception):
-                await self._proc.wait()
+            logger.error("configstream-tester child could not be reaped after kill")
+        except (OSError, RuntimeError) as exc:
+            logger.warning(
+                "Failed to reap configstream-tester child: %s",
+                type(exc).__name__,
+            )
+        return proc.returncode is not None
+
+    async def stop(self) -> None:
+        proc = self._proc
+        if not proc:
+            return
+
+        try:
+            if proc.returncode is None:
+                try:
+                    with suppress(ProcessLookupError):
+                        proc.terminate()
+                except OSError as exc:
+                    logger.warning(
+                        "Failed to terminate configstream-tester child: %s",
+                        type(exc).__name__,
+                    )
+            try:
+                await asyncio.wait_for(proc.wait(), timeout=5.0)
+            except asyncio.TimeoutError:
+                await self._kill_and_reap(proc)
+            except asyncio.CancelledError:
+                await self._kill_and_reap(proc)
+                raise
+            except (OSError, RuntimeError) as exc:
+                logger.warning(
+                    "Failed while waiting for configstream-tester shutdown: %s",
+                    type(exc).__name__,
+                )
+                await self._kill_and_reap(proc)
         finally:
-            self._proc = None
+            # Never drop the only process handle unless exit was actually observed.
+            if proc.returncode is not None:
+                self._proc = None
