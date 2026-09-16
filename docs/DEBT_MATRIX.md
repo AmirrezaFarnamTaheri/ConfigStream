@@ -3,20 +3,20 @@
 ## Executive Summary
 This matrix represents **actionable** technical debt. Noise from test mocks, documentation placeholders, and historical reports has been filtered out.
 
-- Total actionable markers: **252**
-- `BROAD_EXCEPTION`: **241**
+- Total actionable markers: **251**
+- `BROAD_EXCEPTION`: **240**
 - `LARGE_FUNCTION`: **9**
 - `PLACEHOLDER`: **2**
 
 ## Categories
 
 - `other`: **12**
-- `production`: **199**
+- `production`: **198**
 - `tooling`: **41**
 
 ## Actionable Priorities
 
-### P1 - High (199)
+### P1 - High (198)
 - `src/configstream/adapters/loon.py`
 - `src/configstream/adapters/quantumult.py`
 - `src/configstream/adapters/shadowrocket.py`
@@ -27,7 +27,7 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - `src/configstream/backup.py`
 - `src/configstream/bot_cli.py`
 - `src/configstream/cli.py`
-- ... and 49 more files.
+- ... and 48 more files.
 
 ### P2 - Routine (53)
 - `scripts/check_license_headers.py`
@@ -120,7 +120,6 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 | `src/configstream/testers/manager.py` | 2 | BROAD_EXCEPTION |
 | `src/configstream/testers/python.py` | 6 | BROAD_EXCEPTION |
 | `src/configstream/tools/dns_scanner/python/dnsscanner_tui.py` | 25 | BROAD_EXCEPTION |
-| `src/configstream/tools/vwarp/scanner.py` | 1 | BROAD_EXCEPTION |
 | `src/configstream/tools/vwarp/tunnel.py` | 1 | BROAD_EXCEPTION |
 | `src/configstream/tools/warp.py` | 1 | BROAD_EXCEPTION |
 | `src/configstream/utils/__init__.py` | 4 | BROAD_EXCEPTION |
@@ -494,9 +493,6 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - L1685 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 - L1702 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 - L1853 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-
-### `src/configstream/tools/vwarp/scanner.py`
-- L134 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/tools/vwarp/tunnel.py`
 - L124 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`

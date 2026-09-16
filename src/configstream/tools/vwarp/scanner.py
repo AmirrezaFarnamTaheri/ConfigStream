@@ -50,7 +50,12 @@ def _parse_endpoint(value: str) -> Optional[Tuple[str, int]]:
         port = _DEFAULT_SCAN_PORT
     else:
         host, separator, port_text = candidate.rpartition(":")
-        if not separator or not host or not port_text.isdigit() or not is_valid_ip(host):
+        if (
+            not separator
+            or not host
+            or not port_text.isdigit()
+            or not is_valid_ip(host)
+        ):
             return None
         port = int(port_text)
 

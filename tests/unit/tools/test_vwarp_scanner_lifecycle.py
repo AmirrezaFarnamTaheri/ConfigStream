@@ -52,7 +52,9 @@ def _enable_scanner(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.mark.asyncio
-async def test_scan_timeout_kills_and_reaps_child(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_scan_timeout_kills_and_reaps_child(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     _enable_scanner(monkeypatch)
     process = _ScannerProcess()
     monkeypatch.setattr(
