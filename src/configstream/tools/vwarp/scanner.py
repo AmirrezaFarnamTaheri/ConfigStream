@@ -8,7 +8,7 @@ from typing import List, Tuple, Optional
 from configstream.async_utils import safe_wait_for
 from configstream.config import AppSettings
 from configstream.security_validator import SecurityValidator
-from .binary import verify_binary
+from .binary import minimal_vwarp_environment, verify_binary
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +60,10 @@ async def scan_endpoints(
             " ".join(cmd),
         )
         proc = await asyncio.create_subprocess_exec(
-            *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            env=minimal_vwarp_environment(),
         )
 
         try:
