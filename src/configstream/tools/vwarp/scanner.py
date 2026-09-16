@@ -12,6 +12,7 @@ from .binary import minimal_vwarp_environment, verify_binary
 
 logger = logging.getLogger(__name__)
 
+_DEFAULT_SCAN_PORT = 2408
 
 
 def is_valid_ip(host: str) -> bool:
@@ -24,6 +25,38 @@ def is_valid_ip(host: str) -> bool:
     except ValueError:
         return False
     return True
+
+
+def _parse_endpoint(value: str) -> Optional[Tuple[str, int]]:
+    """Parse one scanner endpoint without confusing IPv6 hextets with ports."""
+    candidate = value.strip()
+    if not candidate:
+        return None
+
+    if candidate.startswith("["):
+        bracket_end = candidate.find("]")
+        if bracket_end <= 1:
+            return None
+        host = candidate[1:bracket_end]
+        rest = candidate[bracket_end + 1 :]
+        if not rest:
+            port = _DEFAULT_SCAN_PORT
+        elif rest.startswith(":") and rest[1:].isdigit():
+            port = int(rest[1:])
+        else:
+            return None
+    elif is_valid_ip(candidate):
+        host = candidate
+        port = _DEFAULT_SCAN_PORT
+    else:
+        host, separator, port_text = candidate.rpartition(":")
+        if not separator or not host or not port_text.isdigit() or not is_valid_ip(host):
+            return None
+        port = int(port_text)
+
+    if not is_valid_ip(host) or not 1 <= port <= 65535:
+        return None
+    return host, port
 
 
 async def _kill_and_reap(proc: asyncio.subprocess.Process) -> None:
@@ -98,42 +131,17 @@ async def scan_endpoints(
         if stdout:
             output_text = stdout.decode(errors="ignore")
             for line in output_text.splitlines():
-                if ":" in line and "ms" in line:
-                    clean_ep = line.split()[0].strip()
-                    host = clean_ep
-                    port = 2408  # Default
-
-                    if ":" in clean_ep:
-                        if clean_ep.startswith("["):
-                            bracket_end = clean_ep.find("]")
-                            if bracket_end > 0:
-                                host = clean_ep[1:bracket_end]
-                                rest = clean_ep[bracket_end + 1 :]
-                                if rest.startswith(":"):
-                                    try:
-                                        port = int(rest[1:])
-                                    except ValueError:
-                                        pass
-                            else:
-                                host = clean_ep
-                        else:
-                            parts = clean_ep.rsplit(":", 1)
-                            if len(parts) == 2:
-                                host = parts[0]
-                                try:
-                                    port = int(parts[1])
-                                except ValueError:
-                                    pass
-                            else:
-                                host = clean_ep
-
-                    if is_valid_ip(host):
-                        endpoints.append((host, port))
-                    else:
-                        logger.debug(
-                            "Vwarp scan: skipping non-IP host %s",
-                            SecurityValidator.sanitize_log_message(host),
-                        )
+                if ":" not in line or "ms" not in line:
+                    continue
+                raw_endpoint = line.split()[0].strip()
+                endpoint = _parse_endpoint(raw_endpoint)
+                if endpoint is not None:
+                    endpoints.append(endpoint)
+                else:
+                    logger.debug(
+                        "Vwarp scan: skipping invalid endpoint %s",
+                        SecurityValidator.sanitize_log_message(raw_endpoint),
+                    )
 
         elapsed = time.time() - scan_start
         logger.info(
