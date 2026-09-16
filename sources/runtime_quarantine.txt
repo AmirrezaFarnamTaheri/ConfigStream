@@ -6,3 +6,18 @@
 # exclude it from scheduled runtime work until fresh evidence shows bounded cost.
 
 https://raw.githubusercontent.com/MuRongPIG/Proxy-Master/main/socks4.txt
+
+# Source-quality quarantine from scheduled Actions run 34906490244.
+# These exact locators were conclusively unusable in that production run: they
+# returned a permanent 404, access-denied/HTML pages, an empty successful body,
+# or content that produced zero accepted proxy records. They remain in the
+# canonical admitted inventory for provenance and can be restored after fresh
+# evidence confirms a usable feed. Transient connection/time-out failures are
+# intentionally not listed here.
+https://raw.githubusercontent.com/mohamadfg-dev/telegram-v2ray-configs-collector/main/category/xhttp.txt
+https://www.my-proxy.com/free-proxy-list.html
+https://freeproxy.world/?type=&anonymity=&country=&speed=&port=&uptime=90
+https://www.blackhatworld.com/seo/free-proxies.107026/
+https://rentry.co/free2config_t_h/raw
+https://raw.githubusercontent.com/coldwater-10/V2Hub1/main/Split/Base64/reality
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mci/sub_2.txt
