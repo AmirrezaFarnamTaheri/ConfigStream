@@ -11,7 +11,7 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional
-from ...config import AppSettings
+
 _DIGEST_ENV = "CONFIGSTREAM_TESTER_SHA256"
 _ENV_ALLOWLIST = (
     "PATH",
@@ -101,7 +101,7 @@ def initialize_binary_identity(path: Path | str) -> BinaryIdentity:
 
     strict_mode = (
         os.environ.get("CS_STRICT_BINARY_TRUST", "").strip() in ("1", "true", "yes")
-        or (os.environ.get("ENVIRONMENT", "") or AppSettings().ENVIRONMENT).strip().lower() == "production"
+        or (os.getenv("ENVIRONMENT", "") or _effective_environment()).strip().lower() == "production"
     )
     if strict_mode and expected is None:
         raise ValueError(
@@ -152,3 +152,10 @@ def minimal_subprocess_environment(settings: Any) -> dict[str, str]:
     environment["TMPDIR"] = os.environ.get("TMPDIR") or tempfile.gettempdir()
     environment["GOLOG_LOG_LEVEL"] = "error"
     return environment
+
+
+def _effective_environment() -> str:
+    """Return the same environment mode used by the application settings model."""
+    from ...config import AppSettings
+
+    return str(AppSettings().ENVIRONMENT or "")
