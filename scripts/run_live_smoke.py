@@ -57,7 +57,15 @@ def output_is_usable(output_dir: Path) -> tuple[bool, str]:
             return False, "metadata reports zero final proxies"
     except (TypeError, ValueError):
         return False, "metadata final_count is invalid"
-    return True, f"generated {len(proxies)} proxies"
+
+    working = sum(
+        1
+        for proxy in proxies
+        if isinstance(proxy, dict) and proxy.get("is_working") is True
+    )
+    if working < 1:
+        return False, f"generated {len(proxies)} proxies but none are working"
+    return True, f"generated {len(proxies)} proxies with {working} working"
 
 
 def _run_attempt(

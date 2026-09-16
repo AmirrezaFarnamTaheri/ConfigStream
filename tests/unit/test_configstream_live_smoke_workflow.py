@@ -35,7 +35,7 @@ def test_live_smoke_sources_are_bounded_https_and_admitted() -> None:
     assert all(source.startswith("https://") for source in candidates)
 
 
-def test_live_smoke_output_requires_real_nonempty_pipeline_result(tmp_path: Path) -> None:
+def test_live_smoke_output_requires_actual_working_proxy(tmp_path: Path) -> None:
     output = tmp_path / "output"
     output.mkdir()
     assert run_live_smoke.output_is_usable(output)[0] is False
@@ -45,12 +45,21 @@ def test_live_smoke_output_requires_real_nonempty_pipeline_result(tmp_path: Path
     assert run_live_smoke.output_is_usable(output)[0] is False
 
     (output / "proxies.json").write_text(
-        json.dumps([{"protocol": "socks4"}]) + "\n", encoding="utf-8"
+        json.dumps([{"protocol": "socks4", "is_working": False}]) + "\n",
+        encoding="utf-8",
     )
     (output / "metadata.json").write_text('{"final_count": 1}\n', encoding="utf-8")
     usable, reason = run_live_smoke.output_is_usable(output)
+    assert usable is False
+    assert "none are working" in reason
+
+    (output / "proxies.json").write_text(
+        json.dumps([{"protocol": "socks4", "is_working": True}]) + "\n",
+        encoding="utf-8",
+    )
+    usable, reason = run_live_smoke.output_is_usable(output)
     assert usable is True
-    assert "generated 1 proxies" in reason
+    assert "with 1 working" in reason
 
 
 def test_live_smoke_falls_back_to_second_candidate(tmp_path: Path, monkeypatch) -> None:
@@ -66,12 +75,20 @@ def test_live_smoke_falls_back_to_second_candidate(tmp_path: Path, monkeypatch) 
     def fake_attempt(**kwargs):
         source = str(kwargs["source"])
         attempts.append(source)
-        if source.endswith("/one"):
-            return 1, "first failed\n"
         target = Path(kwargs["output_dir"])
         target.mkdir(parents=True, exist_ok=True)
+        if source.endswith("/one"):
+            (target / "proxies.json").write_text(
+                json.dumps([{"protocol": "socks4", "is_working": False}]) + "\n",
+                encoding="utf-8",
+            )
+            (target / "metadata.json").write_text(
+                '{"final_count": 1}\n', encoding="utf-8"
+            )
+            return 0, "first produced only non-working output\n"
         (target / "proxies.json").write_text(
-            json.dumps([{"protocol": "socks4"}]) + "\n", encoding="utf-8"
+            json.dumps([{"protocol": "socks4", "is_working": True}]) + "\n",
+            encoding="utf-8",
         )
         (target / "metadata.json").write_text(
             '{"final_count": 1}\n', encoding="utf-8"
@@ -92,7 +109,7 @@ def test_live_smoke_falls_back_to_second_candidate(tmp_path: Path, monkeypatch) 
     assert run_live_smoke.run(args) == 0
     assert attempts == ["https://example.test/one", "https://example.test/two"]
     assert selected.read_text(encoding="utf-8").strip().endswith("/two")
-    assert "first failed" in log.read_text(encoding="utf-8")
+    assert "first produced only non-working output" in log.read_text(encoding="utf-8")
 
 
 def test_live_smoke_workflow_is_read_only_bounded_and_full_path() -> None:
