@@ -1,0 +1,110 @@
+name: Audit Finalize
+
+on:
+  push:
+    branches:
+      - agent/fix-active-audit-items
+    paths:
+      - .github/workflows/audit-finalize.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: audit-finalize-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  finalize:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out exact audit branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: agent/fix-active-audit-items
+          fetch-depth: 0
+
+      - name: Apply final audit fixes and regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              text = target.read_text(encoding="utf-8")
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{path}: expected one replacement target, found {count}")
+              target.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          replace_once(
+              "src/configstream/pipeline/fetcher.py",
+              '''    async def fetch(self, source: str) -> FetchResult:\n        return cast(\n            FetchResult,\n            await fetch_from_source(\n                self.client,\n                source,\n                app_settings=self.settings,\n                breaker_manager=self.breaker_manager,\n                timeout_tracker=self.timeout_tracker,\n            ),\n        )''',
+              '''    async def fetch(self, source: str) -> FetchResult:\n        if self.client is not None:\n            return cast(\n                FetchResult,\n                await fetch_from_source(\n                    self.client,\n                    source,\n                    app_settings=self.settings,\n                    breaker_manager=self.breaker_manager,\n                    timeout_tracker=self.timeout_tracker,\n                ),\n            )\n\n        async with get_client() as managed_client:\n            return cast(\n                FetchResult,\n                await fetch_from_source(\n                    managed_client,\n                    source,\n                    app_settings=self.settings,\n                    breaker_manager=self.breaker_manager,\n                    timeout_tracker=self.timeout_tracker,\n                ),\n            )''',
+          )
+
+          replace_once(
+              "src/configstream/tools/vwarp/tunnel.py",
+              '''            await asyncio.sleep(0.5)\n            if self._proc.returncode is not None:\n                stdout, stderr = await self._proc.communicate()\n                logger.error(\n                    "Vwarp failed: %s",\n                    SecurityValidator.sanitize_log_message(\n                        (stdout or b"").decode(errors="replace")\n                        + (stderr or b"").decode(errors="replace")\n                    ),\n                )\n                await self.stop()\n                return False\n\n            if not await self._wait_for_port(bind_addr, port):\n                logger.error("Vwarp Tunnel started but port check timed out.")\n                await self.stop()\n                return False\n\n            async def consume_stream(stream, level):\n                while stream and not stream.at_eof():\n                    line = await stream.readline()\n                    if line:\n                        safe_line = SecurityValidator.sanitize_log_message(\n                            line.decode(errors="ignore")\n                        ).strip()\n                        logger.log(level, "Vwarp: %s", safe_line)\n\n            for stream, level in (\n                (self._proc.stdout, logging.DEBUG),\n                (self._proc.stderr, logging.WARNING),\n            ):\n                task = asyncio.create_task(consume_stream(stream, level))\n                self._stream_tasks.add(task)\n                task.add_done_callback(self._stream_tasks.discard)\n\n            return True''',
+              '''            async def consume_stream(stream, level):\n                if stream is None:\n                    return\n                try:\n                    while True:\n                        chunk = await stream.read(4096)\n                        if not chunk:\n                            return\n                        safe_chunk = SecurityValidator.sanitize_log_message(\n                            chunk.decode(errors="replace")\n                        ).strip()\n                        if safe_chunk:\n                            logger.log(level, "Vwarp: %s", safe_chunk)\n                except asyncio.CancelledError:\n                    raise\n                except (OSError, RuntimeError, ValueError) as exc:\n                    logger.debug(\n                        "Vwarp stream drain failed: %s",\n                        SecurityValidator.sanitize_log_message(str(exc)),\n                    )\n\n            # Drain both pipes immediately. Waiting for readiness before consuming\n            # child output can deadlock a verbose child on a full OS pipe buffer.\n            for stream, level in (\n                (getattr(self._proc, "stdout", None), logging.DEBUG),\n                (getattr(self._proc, "stderr", None), logging.WARNING),\n            ):\n                if stream is None:\n                    continue\n                task = asyncio.create_task(consume_stream(stream, level))\n                self._stream_tasks.add(task)\n                task.add_done_callback(self._stream_tasks.discard)\n\n            await asyncio.sleep(0.5)\n            if self._proc.returncode is not None:\n                logger.error(\n                    "Vwarp exited during startup with status %s.",\n                    self._proc.returncode,\n                )\n                await self.stop()\n                return False\n\n            if not await self._wait_for_port(bind_addr, port):\n                logger.error("Vwarp Tunnel started but port check timed out.")\n                await self.stop()\n                return False\n\n            return True''',
+          )
+
+          replace_once(
+              "SECURITY.md",
+              "- ⚠️ Stego encryption: Obfuscation only (client-side visible key)",
+              "- ⚠️ Stego encryption: Optional confidentiality/obfuscation layer only; public static builds never publish the symmetric key. Private browser-side decryption requires authenticated out-of-band key delivery.",
+          )
+          replace_once(
+              "SECURITY.md",
+              'export STEGO_KEY="your-base64-fernet-key"',
+              'export STEGO_KEY="your-base64-fernet-key"  # Private/server-side stego only; never publish in runtime-config.js',
+          )
+          replace_once(
+              "SECURITY.md",
+              "- [ ] STEGO_KEY rotated regularly (recommend: every 6 hours)",
+              "- [ ] If private stego is enabled, STEGO_KEY is rotated regularly and never included in public runtime config or static artifacts",
+          )
+
+          Path("tests/unit/test_http_fetcher_adapter.py").write_text('''# SPDX-License-Identifier: AGPL-3.0-or-later\nfrom contextlib import asynccontextmanager\nfrom unittest.mock import AsyncMock\n\nimport pytest\n\nfrom configstream.pipeline import fetcher as fetcher_module\nfrom configstream.pipeline.fetcher import HttpFetcher\n\n\n@pytest.mark.asyncio\nasync def test_http_fetcher_default_owns_hardened_client(monkeypatch: pytest.MonkeyPatch) -> None:\n    managed_client = object()\n    expected = object()\n\n    @asynccontextmanager\n    async def managed():\n        yield managed_client\n\n    fetch = AsyncMock(return_value=expected)\n    monkeypatch.setattr(fetcher_module, "get_client", managed)\n    monkeypatch.setattr(fetcher_module, "fetch_from_source", fetch)\n\n    result = await HttpFetcher().fetch("https://example.com/source")\n\n    assert result is expected\n    fetch.assert_awaited_once_with(\n        managed_client,\n        "https://example.com/source",\n        app_settings=None,\n        breaker_manager=None,\n        timeout_tracker=None,\n    )\n\n\n@pytest.mark.asyncio\nasync def test_http_fetcher_preserves_injected_client(monkeypatch: pytest.MonkeyPatch) -> None:\n    injected = object()\n    expected = object()\n    fetch = AsyncMock(return_value=expected)\n    monkeypatch.setattr(fetcher_module, "fetch_from_source", fetch)\n\n    result = await HttpFetcher(client=injected).fetch("https://example.com/source")\n\n    assert result is expected\n    fetch.assert_awaited_once_with(\n        injected,\n        "https://example.com/source",\n        app_settings=None,\n        breaker_manager=None,\n        timeout_tracker=None,\n    )\n''', encoding="utf-8")
+
+          Path("tests/unit/tools/test_vwarp_stream_bounds.py").write_text('''# SPDX-License-Identifier: AGPL-3.0-or-later\nimport asyncio\nfrom unittest.mock import AsyncMock\n\nimport pytest\n\nfrom configstream.tools.vwarp import tunnel as tunnel_module\nfrom configstream.tools.vwarp.tunnel import VwarpTunnel\n\n\nclass _ChunkStream:\n    def __init__(self, chunks: list[bytes]):\n        self._chunks = list(chunks)\n        self.read_sizes: list[int] = []\n\n    async def read(self, size: int) -> bytes:\n        self.read_sizes.append(size)\n        if not self._chunks:\n            return b""\n        chunk = self._chunks.pop(0)\n        if len(chunk) <= size:\n            return chunk\n        self._chunks.insert(0, chunk[size:])\n        return chunk[:size]\n\n\nclass _Process:\n    def __init__(self) -> None:\n        self.returncode = None\n        self.stdout = _ChunkStream([b"x" * 9000, b""])\n        self.stderr = _ChunkStream([b"warning", b""])\n\n    async def wait(self) -> int:\n        return 0 if self.returncode is None else self.returncode\n\n    def terminate(self) -> None:\n        self.returncode = 0\n\n    def kill(self) -> None:\n        self.returncode = -9\n\n\n@pytest.mark.asyncio\nasync def test_start_drains_child_pipes_in_bounded_chunks_before_readiness(\n    monkeypatch: pytest.MonkeyPatch,\n) -> None:\n    process = _Process()\n    tunnel = VwarpTunnel("/trusted/vwarp")\n    real_sleep = asyncio.sleep\n\n    async def fast_sleep(_delay: float) -> None:\n        await real_sleep(0)\n\n    monkeypatch.setattr(\n        tunnel,\n        "_build_tunnel_command",\n        AsyncMock(return_value=["/trusted/vwarp", "--bind", "127.0.0.1:8086"]),\n    )\n    monkeypatch.setattr(\n        tunnel_module.asyncio,\n        "create_subprocess_exec",\n        AsyncMock(return_value=process),\n    )\n    monkeypatch.setattr(tunnel_module.asyncio, "sleep", fast_sleep)\n    monkeypatch.setattr(tunnel, "_wait_for_port", AsyncMock(return_value=True))\n\n    assert await tunnel._start_attempt("127.0.0.1", 8086) is True\n    await real_sleep(0)\n\n    assert process.stdout.read_sizes\n    assert process.stderr.read_sizes\n    assert max(process.stdout.read_sizes) == 4096\n    assert max(process.stderr.read_sizes) == 4096\n\n    process.returncode = 0\n    await tunnel.stop()\n''', encoding="utf-8")
+          PY
+
+      - name: Refresh governed repository evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/generate_environment_catalog.py
+          python scripts/generate_supply_chain_evidence.py
+          python scripts/generate_dependency_inventory.py
+          python scripts/generate_source_admission.py
+          python scripts/generate_debt_matrix.py
+          python scripts/validate_function_size_budget.py --write
+          python scripts/validate_exception_boundaries.py --write
+          python scripts/generate_triage_report.py
+          python scripts/collect_repository_forensics.py
+
+      - name: Commit finalized audit batch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            src/configstream/pipeline/fetcher.py \
+            src/configstream/tools/vwarp/tunnel.py \
+            SECURITY.md \
+            tests/unit/test_http_fetcher_adapter.py \
+            tests/unit/tools/test_vwarp_stream_bounds.py \
+            docs \
+            config \
+            TRIAGE_REPORT.md \
+            src/configstream/data/source-admission.json
+          if git diff --cached --quiet; then
+            echo "No finalization changes to commit."
+            exit 0
+          fi
+          git commit -m "fix(audit): close fetcher and tunnel lifecycle gaps"
+          git push origin HEAD:agent/fix-active-audit-items
