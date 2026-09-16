@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import hashlib
 from pathlib import Path
 
 import pytest
@@ -37,14 +38,15 @@ def test_timestamped_revived_proxy_can_preserve_verified_health() -> None:
 
 
 @pytest.mark.asyncio
-async def test_standalone_process_manager_detects_binary_replacement(
+async def test_standalone_process_manager_rejects_pinned_binary_replacement(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     tester = tmp_path / "configstream-tester"
-    tester.write_bytes(b"first")
+    original = b"first"
+    tester.write_bytes(original)
     tester.chmod(0o700)
     monkeypatch.setenv("CONFIGSTREAM_TESTER_BIN", str(tester))
-    monkeypatch.delenv("CONFIGSTREAM_TESTER_SHA256", raising=False)
+    monkeypatch.setenv("CONFIGSTREAM_TESTER_SHA256", hashlib.sha256(original).hexdigest())
     monkeypatch.delenv("CS_STRICT_BINARY_TRUST", raising=False)
     monkeypatch.delenv("ENVIRONMENT", raising=False)
 
@@ -54,7 +56,7 @@ async def test_standalone_process_manager_detects_binary_replacement(
     tester.write_bytes(b"replaced")
     tester.chmod(0o700)
 
-    with pytest.raises(RuntimeError, match="integrity verification"):
+    with pytest.raises(RuntimeError, match="binary rejected"):
         await manager.ensure_running()
 
 
