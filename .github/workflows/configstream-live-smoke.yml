@@ -61,6 +61,8 @@ jobs:
             main.go
           popd >/dev/null
           test -x configstream-tester
+          sha256sum configstream-tester | awk '{print $1}' > configstream-tester.sha256
+          chmod 0444 configstream-tester.sha256
           echo "CONFIGSTREAM_TESTER_BIN=$PWD/configstream-tester" >> "$GITHUB_ENV"
       - name: Verify bounded live source fixture
         run: |
