@@ -143,7 +143,9 @@ def validate(root: Path) -> list[str]:
     )
     for control in freshness_controls:
         if control not in deploy:
-            errors.append(f"Pages deployment missing source freshness control: {control}")
+            errors.append(
+                f"Pages deployment missing source freshness control: {control}"
+            )
     freshness_position = deploy.find(
         "Require source run to remain current main before publication"
     )
