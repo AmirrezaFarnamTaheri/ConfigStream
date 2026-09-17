@@ -30,7 +30,9 @@ def test_unsigned_pages_are_rejected_by_default(tmp_path: Path) -> None:
 
     errors = validate_pages_signature_policy(tmp_path)
 
-    assert any("unsigned Pages publication is disabled by default" in error for error in errors)
+    assert any(
+        "unsigned Pages publication is disabled by default" in error for error in errors
+    )
 
 
 def test_unsigned_pages_require_explicit_opt_in(tmp_path: Path) -> None:
@@ -46,7 +48,10 @@ def test_signed_pages_cannot_fall_back_to_unsigned_policy(tmp_path: Path) -> Non
 
     errors = validate_pages_signature_policy(tmp_path, allow_unsigned=True)
 
-    assert any("signed artifacts must never be accepted without a trust anchor" in error for error in errors)
+    assert any(
+        "signed artifacts must never be accepted without a trust anchor" in error
+        for error in errors
+    )
 
 
 def test_signed_pages_verify_against_configured_trust_anchor(tmp_path: Path) -> None:
@@ -65,7 +70,9 @@ def test_signed_pages_verify_against_configured_trust_anchor(tmp_path: Path) -> 
     )
 
 
-def test_invalid_configured_public_key_is_not_treated_as_missing(tmp_path: Path) -> None:
+def test_invalid_configured_public_key_is_not_treated_as_missing(
+    tmp_path: Path,
+) -> None:
     _write_manifest(tmp_path, _base_manifest())
 
     errors = validate_pages_signature_policy(

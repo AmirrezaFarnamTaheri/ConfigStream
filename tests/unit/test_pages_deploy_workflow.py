@@ -45,7 +45,7 @@ def test_pages_rechecks_current_main_before_publication() -> None:
     )
     upload = workflow.index("Upload sealed Pages artifact")
     assert freshness < upload
-    assert 'gh api "repos/${REPOSITORY}/branches/main" --jq \'.commit.sha\'' in workflow
+    assert "gh api \"repos/${REPOSITORY}/branches/main\" --jq '.commit.sha'" in workflow
     assert 'if [ "$current_main" != "$EXPECTED_SOURCE_SHA" ]; then' in workflow
     assert "--name source-freshness" in workflow
     assert "--required-stage source-freshness" in workflow
@@ -73,5 +73,5 @@ def test_pages_signature_policy_is_explicit_at_every_trust_boundary() -> None:
         )
         >= 4
     )
-    assert workflow.count("signature_policy_args+=(--public-key \"$CS_PUBLIC_KEY\")") >= 4
+    assert workflow.count('signature_policy_args+=(--public-key "$CS_PUBLIC_KEY")') >= 4
     assert workflow.count("signature_policy_args+=(--allow-unsigned)") >= 4

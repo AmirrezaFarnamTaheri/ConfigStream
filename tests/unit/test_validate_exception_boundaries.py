@@ -16,7 +16,9 @@ def _configure(tmp_path, monkeypatch, source: str, ceiling: int) -> None:
         json.dumps(
             {
                 "total_ceiling": ceiling,
-                "path_ceilings": {"src/configstream/module.py": ceiling} if ceiling else {},
+                "path_ceilings": (
+                    {"src/configstream/module.py": ceiling} if ceiling else {}
+                ),
             }
         ),
         encoding="utf-8",

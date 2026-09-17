@@ -64,7 +64,7 @@ def validate(root: Path) -> list[str]:
         'allowed_workflows = {"Config\'s Stream", "Retest"}' in deploy
     ):
         errors.append("Retest must not be eligible as a Pages deployment source")
-    if 'source_name" = Retest' in deploy or "source_name\" = Retest" in deploy:
+    if 'source_name" = Retest' in deploy:
         errors.append(
             "Pages deployment must not carry a Retest-specific publication bypass"
         )
@@ -135,7 +135,7 @@ def validate(root: Path) -> list[str]:
 
     freshness_controls = (
         "Require source run to remain current main before publication",
-        'gh api "repos/${REPOSITORY}/branches/main" --jq \'.commit.sha\'',
+        "gh api \"repos/${REPOSITORY}/branches/main\" --jq '.commit.sha'",
         "EXPECTED_SOURCE_SHA: ${{ steps.locate.outputs.source_head_sha }}",
         "--name source-freshness",
         "--required-stage source-freshness",
@@ -157,9 +157,9 @@ def validate(root: Path) -> list[str]:
             "Pages source freshness must be checked before the candidate can be uploaded or deployed"
         )
 
-    signature_policy = (
-        root / "scripts/validate_pages_signature_policy.py"
-    ).read_text(encoding="utf-8")
+    signature_policy = (root / "scripts/validate_pages_signature_policy.py").read_text(
+        encoding="utf-8"
+    )
     for control in (
         "--allow-unsigned",
         "--public-key",
@@ -169,7 +169,9 @@ def validate(root: Path) -> list[str]:
         "Signer.verify_manifest_signature",
     ):
         if control not in signature_policy:
-            errors.append(f"Pages signature policy missing fail-closed control: {control}")
+            errors.append(
+                f"Pages signature policy missing fail-closed control: {control}"
+            )
 
     release = (root / ".github/workflows/release.yml").read_text(encoding="utf-8")
     release_provenance_controls = (

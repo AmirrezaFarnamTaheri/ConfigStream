@@ -198,5 +198,7 @@ def test_hugging_face_fallback_only_catches_operational_failures() -> None:
     publisher = (ROOT / "scripts/upload_hf.py").read_text(encoding="utf-8")
 
     assert "except (OSError, subprocess.SubprocessError):" in publisher
-    assert "except (OSError, subprocess.SubprocessError, RuntimeError) as exc:" in publisher
+    assert (
+        "except (OSError, subprocess.SubprocessError, RuntimeError) as exc:" in publisher
+    )
     assert publisher.count("except Exception") == 1
