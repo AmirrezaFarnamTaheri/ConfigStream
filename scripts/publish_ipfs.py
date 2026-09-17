@@ -94,7 +94,7 @@ def pin_to_ipfs(filepath: str, jwt: str) -> str:
     try:
         return _pin_single_file_v3(filepath, jwt)
     except (OSError, httpx.HTTPError, RuntimeError):
-        logging.getLogger(__name__).debug("Pinata v3 unavailable; falling back to the legacy upload API", exc_info=True)
+        logging.getLogger(__name__).debug("Pinata v3 failed; using legacy API", exc_info=True)
         return _pin_to_ipfs_legacy(filepath, jwt)
 
 
