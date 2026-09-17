@@ -124,7 +124,7 @@ jobs:
             fi
           }
           trap restore EXIT
-          python scripts/verify_repository.py
+          python scripts/verify_repository.py --profile static
           restore
           trap - EXIT
       - name: Commit remediation
