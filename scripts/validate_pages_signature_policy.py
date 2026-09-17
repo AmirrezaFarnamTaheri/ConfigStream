@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Enforce the production Pages signing policy for sealed release artifacts."""
+"""Enforce the production Pages signing and source-freshness policy."""
 
 from __future__ import annotations
 
@@ -7,6 +7,8 @@ import json
 import os
 import sys
 from pathlib import Path
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
@@ -24,6 +26,55 @@ def _allow_unsigned_pages() -> bool:
     return os.environ.get("ALLOW_UNSIGNED_PAGES", "").strip().lower() in _TRUTHY
 
 
+def _validate_current_main_source() -> list[str]:
+    """Fail closed when a deploy candidate no longer represents current main.
+
+    ``EXPECTED_SOURCE_SHA`` is set by the Pages deployment workflow after it
+    authenticates the source Config's Stream run. Normal offline/unit use does
+    not set it, so signature validation remains usable outside GitHub Actions.
+    """
+
+    expected = (os.environ.get("EXPECTED_SOURCE_SHA") or "").strip().lower()
+    if not expected:
+        return []
+    if len(expected) != 40 or any(char not in "0123456789abcdef" for char in expected):
+        return ["EXPECTED_SOURCE_SHA is not a valid Git commit SHA"]
+
+    repository = (os.environ.get("GITHUB_REPOSITORY") or "").strip()
+    if not repository or repository.count("/") != 1:
+        return [
+            "EXPECTED_SOURCE_SHA is set but GITHUB_REPOSITORY is unavailable; "
+            "cannot verify deployment freshness"
+        ]
+
+    api_url = (os.environ.get("GITHUB_API_URL") or "https://api.github.com").rstrip("/")
+    request = Request(
+        f"{api_url}/repos/{repository}/branches/main",
+        headers={"Accept": "application/vnd.github+json", "User-Agent": "ConfigStream-Pages"},
+    )
+    token = (os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN") or "").strip()
+    if token:
+        request.add_header("Authorization", f"Bearer {token}")
+
+    try:
+        with urlopen(request, timeout=10) as response:  # nosec B310 - fixed GitHub API origin
+            payload = json.load(response)
+    except (HTTPError, URLError, OSError, json.JSONDecodeError, TimeoutError) as exc:
+        return [f"could not verify current main revision: {type(exc).__name__}"]
+
+    try:
+        current = str(payload["commit"]["sha"]).strip().lower()
+    except (KeyError, TypeError, AttributeError):
+        return ["GitHub main-branch response did not contain a commit SHA"]
+
+    if current != expected:
+        return [
+            "deployment source is stale: "
+            f"source={expected}, current_main={current}; refusing Pages publication"
+        ]
+    return []
+
+
 def validate_pages_signature_policy(root: Path) -> list[str]:
     root = Path(root)
     manifest_path = root / "artifact_manifest.json"
@@ -35,6 +86,10 @@ def validate_pages_signature_policy(root: Path) -> list[str]:
         return [f"invalid artifact_manifest.json: {exc}"]
     if not isinstance(manifest, dict):
         return ["artifact_manifest.json must be a JSON object"]
+
+    freshness_errors = _validate_current_main_source()
+    if freshness_errors:
+        return freshness_errors
 
     raw_public_key = (os.environ.get("CS_PUBLIC_KEY") or "").strip()
     public_key_hex = _public_key_hex_from_env()
