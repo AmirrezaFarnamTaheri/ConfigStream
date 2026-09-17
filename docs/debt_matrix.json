@@ -1,16 +1,16 @@
 {
   "generated_from": "current tracked tree",
   "summary": {
-    "total": 249,
+    "total": 247,
     "markers": {
-      "BROAD_EXCEPTION": 238,
+      "BROAD_EXCEPTION": 236,
       "LARGE_FUNCTION": 9,
       "PLACEHOLDER": 2
     },
     "categories": {
       "other": 12,
       "production": 198,
-      "tooling": 39
+      "tooling": 37
     }
   },
   "entries": [
@@ -281,22 +281,6 @@
     {
       "path": "scripts/upload_gdrive.py",
       "line": 192,
-      "marker": "BROAD_EXCEPTION",
-      "category": "tooling",
-      "priority": "P2 - Routine",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "scripts/upload_hf.py",
-      "line": 89,
-      "marker": "BROAD_EXCEPTION",
-      "category": "tooling",
-      "priority": "P2 - Routine",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "scripts/upload_hf.py",
-      "line": 183,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",

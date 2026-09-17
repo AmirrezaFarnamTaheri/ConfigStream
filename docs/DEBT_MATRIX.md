@@ -3,8 +3,8 @@
 ## Executive Summary
 This matrix represents **actionable** technical debt. Noise from test mocks, documentation placeholders, and historical reports has been filtered out.
 
-- Total actionable markers: **249**
-- `BROAD_EXCEPTION`: **238**
+- Total actionable markers: **247**
+- `BROAD_EXCEPTION`: **236**
 - `LARGE_FUNCTION`: **9**
 - `PLACEHOLDER`: **2**
 
@@ -12,7 +12,7 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 
 - `other`: **12**
 - `production`: **198**
-- `tooling`: **39**
+- `tooling`: **37**
 
 ## Actionable Priorities
 
@@ -29,7 +29,7 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - `src/configstream/cli.py`
 - ... and 48 more files.
 
-### P2 - Routine (51)
+### P2 - Routine (49)
 - `scripts/check_license_headers.py`
 - `scripts/dynamic_reshard.py`
 - `scripts/generate_evidence_bundle.py`
@@ -62,7 +62,7 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 | `scripts/publish_ipfs.py` | 1 | BROAD_EXCEPTION |
 | `scripts/resilient_stage.py` | 2 | BROAD_EXCEPTION |
 | `scripts/upload_gdrive.py` | 3 | BROAD_EXCEPTION |
-| `scripts/upload_hf.py` | 3 | BROAD_EXCEPTION |
+| `scripts/upload_hf.py` | 1 | BROAD_EXCEPTION |
 | `scripts/upload_telegram.py` | 1 | BROAD_EXCEPTION |
 | `scripts/validate_pages_artifact.py` | 1 | BROAD_EXCEPTION |
 | `src/configstream/adapters/loon.py` | 2 | BROAD_EXCEPTION |
@@ -180,8 +180,6 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - L192 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `scripts/upload_hf.py`
-- L89 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
-- L183 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
 - L229 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `scripts/upload_telegram.py`

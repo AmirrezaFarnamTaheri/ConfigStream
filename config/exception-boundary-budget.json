@@ -9,7 +9,7 @@
     "scripts/publish_ipfs.py": 1,
     "scripts/resilient_stage.py": 2,
     "scripts/upload_gdrive.py": 3,
-    "scripts/upload_hf.py": 3,
+    "scripts/upload_hf.py": 1,
     "scripts/upload_telegram.py": 1,
     "scripts/validate_pages_artifact.py": 1,
     "src/configstream/adapters/loon.py": 2,
@@ -76,5 +76,5 @@
     "target_total": 0
   },
   "schema_version": 1,
-  "total_ceiling": 226
+  "total_ceiling": 224
 }
