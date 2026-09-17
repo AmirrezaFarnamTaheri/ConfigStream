@@ -3133,7 +3133,7 @@
       "version": "1.4.0"
     },
     {
-      "bom-ref": "pkg:pypi/anyio@4.12.0",
+      "bom-ref": "pkg:pypi/anyio@4.15.1",
       "name": "anyio",
       "properties": [
         {
@@ -3149,10 +3149,10 @@
           "value": "requirements-prod.txt"
         }
       ],
-      "purl": "pkg:pypi/anyio@4.12.0",
+      "purl": "pkg:pypi/anyio@4.15.1",
       "scope": "required",
       "type": "library",
-      "version": "4.12.0"
+      "version": "4.15.1"
     },
     {
       "bom-ref": "pkg:pypi/async-timeout@5.0.1",
@@ -3243,7 +3243,7 @@
       "version": "7.1.8"
     },
     {
-      "bom-ref": "pkg:pypi/certifi@2025.11.12",
+      "bom-ref": "pkg:pypi/certifi@2026.7.22",
       "name": "certifi",
       "properties": [
         {
@@ -3259,10 +3259,10 @@
           "value": "requirements-prod.txt"
         }
       ],
-      "purl": "pkg:pypi/certifi@2025.11.12",
+      "purl": "pkg:pypi/certifi@2026.7.22",
       "scope": "required",
       "type": "library",
-      "version": "2025.11.12"
+      "version": "2026.7.22"
     },
     {
       "bom-ref": "pkg:pypi/charset-normalizer@3.4.4",
@@ -4123,7 +4123,7 @@
       "version": "3.3.2"
     },
     {
-      "bom-ref": "pkg:pypi/python-dotenv@1.2.2",
+      "bom-ref": "pkg:pypi/python-dotenv@1.2.3",
       "name": "python-dotenv",
       "properties": [
         {
@@ -4139,10 +4139,10 @@
           "value": "requirements-prod.txt"
         }
       ],
-      "purl": "pkg:pypi/python-dotenv@1.2.2",
+      "purl": "pkg:pypi/python-dotenv@1.2.3",
       "scope": "required",
       "type": "library",
-      "version": "1.2.2"
+      "version": "1.2.3"
     },
     {
       "bom-ref": "pkg:pypi/python-slugify@8.0.4",
@@ -4497,7 +4497,7 @@
       "version": "2.7.0"
     },
     {
-      "bom-ref": "pkg:pypi/uvicorn@0.40.0",
+      "bom-ref": "pkg:pypi/uvicorn@0.52.4",
       "name": "uvicorn",
       "properties": [
         {
@@ -4513,10 +4513,10 @@
           "value": "requirements-prod.txt"
         }
       ],
-      "purl": "pkg:pypi/uvicorn@0.40.0",
+      "purl": "pkg:pypi/uvicorn@0.52.4",
       "scope": "required",
       "type": "library",
-      "version": "0.40.0"
+      "version": "0.52.4"
     },
     {
       "bom-ref": "pkg:pypi/uvloop@0.22.1",
