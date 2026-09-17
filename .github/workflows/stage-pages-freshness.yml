@@ -21,6 +21,7 @@ jobs:
       - name: Transform and stage exact workflow bytes
         run: |
           set -euo pipefail
+          # Enforce current-main freshness and suppress rollback before any deployment attempt.
           python scripts/_stage_pages_freshness.py
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
