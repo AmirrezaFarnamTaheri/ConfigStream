@@ -96,7 +96,9 @@ jobs:
               raise SystemExit(f'expected 13 broad boundaries in manager, found {manager_text.count("except Exception")}')
           PY
       - name: Install pinned development dependencies
-        run: python -m pip install --disable-pip-version-check -r requirements-dev.lock
+        run: |
+          python -m pip install --disable-pip-version-check -r requirements-dev.txt
+          python -m pip install --disable-pip-version-check -e . --no-deps
       - name: Run focused regressions
         run: |
           python -m pytest -q \
