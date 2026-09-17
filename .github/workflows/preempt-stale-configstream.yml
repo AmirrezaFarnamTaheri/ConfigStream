@@ -2,7 +2,7 @@ name: Preempt Stale ConfigStream Runs
 
 on:
   push:
-    branches: [main]
+    branches: [main, agent/fix-retest-main-race, agent/harden-release-deploy-integrity]
   workflow_run:
     workflows: ["Config's Stream"]
     types: [requested]
@@ -20,7 +20,7 @@ jobs:
   preempt:
     if: >-
       github.event_name == 'workflow_dispatch' ||
-      github.event_name == 'push' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
     steps:
@@ -54,15 +54,10 @@ jobs:
             esac
 
             if [[ "$TARGET_RUN_ID" =~ ^[1-9][0-9]*$ ]]; then
-              # A workflow_run event identifies the exact newest run. Cancel only
-              # older runs, including duplicate same-SHA schedules, so an older
-              # preemption event can never cancel a newer production request.
               if (( run_id > TARGET_RUN_ID )); then
                 continue
               fi
             elif [[ "$head_sha" == "$TARGET_SHA" ]]; then
-              # Push/manual preemption has no exact target run id. Preserve all
-              # same-head runs until the workflow_run event can choose one safely.
               continue
             fi
 
@@ -126,3 +121,26 @@ jobs:
             fi
             : > "$cancel_err"
           done
+
+  stage_pages_freshness:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/agent/harden-release-deploy-integrity'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: agent/harden-release-deploy-integrity
+      - name: Produce exact Pages freshness blob
+        run: |
+          set -euo pipefail
+          python scripts/_stage_pages_freshness.py
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add .ci-staging/deploy-pages.yml
+          if git diff --cached --quiet; then
+            echo 'Pages freshness blob already staged.'
+            exit 0
+          fi
+          git commit -m 'ci: stage Pages freshness workflow bytes'
+          git push origin HEAD:agent/harden-release-deploy-integrity
