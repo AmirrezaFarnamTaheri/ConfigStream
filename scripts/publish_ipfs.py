@@ -208,6 +208,9 @@ def main():
     )
 
     args = parser.parse_args()
+    # Resolve environment-backed options before any publication side effects.
+    # Keep normalization independent from external network operations.
+    # The final recovery boundary only sanitizes operational failures.
 
     if not os.path.exists(args.file) or not os.access(args.file, os.R_OK):
         print(f"Error: Path not found or not readable: {args.file}")
