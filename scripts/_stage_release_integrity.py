@@ -14,6 +14,12 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
     return text.replace(old, new, 1)
 
 
+def replace_first(text: str, old: str, new: str, label: str) -> str:
+    if old not in text:
+        raise SystemExit(f"{label}: expected at least one match, found 0")
+    return text.replace(old, new, 1)
+
+
 deploy = (ROOT / ".github/workflows/deploy-pages.yml").read_text(encoding="utf-8")
 deploy = replace_once(
     deploy,
@@ -59,7 +65,7 @@ if deploy.count("CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}") < 3:
 (STAGING / "deploy-pages.yml").write_text(deploy, encoding="utf-8")
 
 release = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
-release = replace_once(
+release = replace_first(
     release,
     "      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7\n"
     "        with:\n"
