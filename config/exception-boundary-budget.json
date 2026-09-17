@@ -37,7 +37,6 @@
     "src/configstream/history/storage.py": 2,
     "src/configstream/history/tracker.py": 8,
     "src/configstream/intelligence/vectors.py": 1,
-    "src/configstream/intelligence/washer/core.py": 8,
     "src/configstream/output/metadata.py": 2,
     "src/configstream/output/subscriptions.py": 2,
     "src/configstream/output_handler.py": 9,
@@ -76,5 +75,5 @@
     "target_total": 0
   },
   "schema_version": 1,
-  "total_ceiling": 226
+  "total_ceiling": 218
 }

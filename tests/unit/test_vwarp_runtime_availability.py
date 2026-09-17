@@ -63,3 +63,32 @@ async def test_unmanaged_vwarp_still_requires_binary_and_live_socket(
 
     assert await washer.is_vwarp_available_async() is False
     open_connection.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_vwarp_probe_treats_socket_failure_as_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    washer = ProxyWasher("[]")
+    monkeypatch.setenv("USE_VWARP_TUNNEL", "true")
+    monkeypatch.setattr(
+        "asyncio.open_connection",
+        AsyncMock(side_effect=OSError("connection refused")),
+    )
+
+    assert await washer.is_vwarp_available_async() is False
+
+
+@pytest.mark.asyncio
+async def test_vwarp_probe_surfaces_unexpected_programming_failures(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    washer = ProxyWasher("[]")
+    monkeypatch.setenv("USE_VWARP_TUNNEL", "true")
+    monkeypatch.setattr(
+        "asyncio.open_connection",
+        AsyncMock(side_effect=RuntimeError("unexpected bug")),
+    )
+
+    with pytest.raises(RuntimeError, match="unexpected bug"):
+        await washer.is_vwarp_available_async()

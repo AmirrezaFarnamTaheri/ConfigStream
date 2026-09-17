@@ -151,7 +151,7 @@ Variables: **161**
 | `TLS_TESTS_ENABLED` | yes | `bool` | `true` | no | no | `src/configstream/config.py:118` |
 | `TMPDIR` | no | `direct-only` |  | no | no | `src/configstream/security/utls_wrapper.py:143`<br>`src/configstream/testers/go_tester/binary_security.py:158`<br>`src/configstream/tools/dns_scanner/python/dnsscanner_tui.py:100`<br>`src/configstream/tools/vwarp/binary.py:140` |
 | `UPDATE_INTERVAL_HOURS` | yes | `int` | `4` | no | no | `src/configstream/config.py:126` |
-| `USE_VWARP_TUNNEL` | yes | `bool` | `true` | no | no | `src/configstream/config.py:144`<br>`src/configstream/intelligence/washer/core.py:515`<br>`src/configstream/pipeline/core.py:150`<br>`src/configstream/pipeline/core.py:171`<br>`src/configstream/pipeline/core.py:176`<br>`src/configstream/pipeline/core.py:181`<br>`src/configstream/pipeline/core.py:41`<br>`src/configstream/pipeline/core.py:47`<br>`src/configstream/testers/go_tester/secure_manager.py:69` |
+| `USE_VWARP_TUNNEL` | yes | `bool` | `true` | no | no | `src/configstream/config.py:144`<br>`src/configstream/intelligence/washer/core.py:505`<br>`src/configstream/pipeline/core.py:150`<br>`src/configstream/pipeline/core.py:171`<br>`src/configstream/pipeline/core.py:176`<br>`src/configstream/pipeline/core.py:181`<br>`src/configstream/pipeline/core.py:41`<br>`src/configstream/pipeline/core.py:47`<br>`src/configstream/testers/go_tester/secure_manager.py:69` |
 | `UTLS_CLIENT_SHA256` | no | `direct-only` |  | no | no | `src/configstream/security/utls_wrapper.py:90` |
 | `VERSION_TAG` | no | `direct-only` |  | no | no | `scripts/upload_telegram.py:46` |
 | `VT_API_KEY` | yes | `Optional[str]` | `<redacted>` | no | yes | `src/configstream/config.py:135` |

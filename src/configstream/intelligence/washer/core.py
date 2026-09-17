@@ -110,8 +110,7 @@ class ProxyWasher:
         except (binascii.Error, ValueError):
             try:
                 decoded = base64.b64decode(cleaned, validate=False)
-            except Exception:
-                logging.getLogger(__name__).debug("Suppressed broad exception")
+            except (binascii.Error, ValueError):
                 return None
         if len(decoded) != 32:
             return None
@@ -204,79 +203,70 @@ class ProxyWasher:
 
             # --- STRATEGY 0.5: WARP KEYS & IPs FROM SCRAPER (Priority 1) ---
             if not current_keys or not current_ips:
-                try:
-                    scraper = WarpScraper()
-                    scraped_keys = await scraper.scrape_warp_sources()
+                scraper = WarpScraper()
+                scraped_keys = await scraper.scrape_warp_sources()
 
-                    fresh_endpoints = scraper.get_scraped_endpoints()
-                    new_keys = []
+                fresh_endpoints = scraper.get_scraped_endpoints()
+                new_keys = []
 
-                    for p in scraped_keys:
-                        key_dict = {
-                            "private_key": p.details.get("private_key"),
-                            "peer_public_key": p.details.get("peer_public_key"),
-                            "id": p.uuid,
-                        }
-                        if key_dict["private_key"] and key_dict["peer_public_key"]:
-                            new_keys.append(key_dict)
+                for p in scraped_keys:
+                    key_dict = {
+                        "private_key": p.details.get("private_key"),
+                        "peer_public_key": p.details.get("peer_public_key"),
+                        "id": p.uuid,
+                    }
+                    if key_dict["private_key"] and key_dict["peer_public_key"]:
+                        new_keys.append(key_dict)
 
-                    if fresh_endpoints:
-                        self._clean_ips = []
-                        for ep in fresh_endpoints:
-                            if isinstance(ep, str):
-                                if self._looks_like_ip(ep):
-                                    self._clean_ips.append((ep, 2408))
-                            elif isinstance(ep, tuple) and len(ep) == 2:
-                                if self._looks_like_ip(str(ep[0])):
-                                    self._clean_ips.append(ep)
-                        if self._clean_ips:
-                            logger.info(
-                                f"Loaded {len(self._clean_ips)} clean IPs from Scraper"
-                            )
-
-                    if new_keys:
-                        self._warp_keys = new_keys
+                if fresh_endpoints:
+                    self._clean_ips = []
+                    for ep in fresh_endpoints:
+                        if isinstance(ep, str):
+                            if self._looks_like_ip(ep):
+                                self._clean_ips.append((ep, 2408))
+                        elif isinstance(ep, tuple) and len(ep) == 2:
+                            if self._looks_like_ip(str(ep[0])):
+                                self._clean_ips.append(ep)
+                    if self._clean_ips:
                         logger.info(
-                            f"Loaded {len(new_keys)} WARP keys from community sources"
+                            f"Loaded {len(self._clean_ips)} clean IPs from Scraper"
                         )
-                except Exception as e:
-                    logger.warning(f"WARP scraper failed: {e}")
+
+                if new_keys:
+                    self._warp_keys = new_keys
+                    logger.info(
+                        f"Loaded {len(new_keys)} WARP keys from community sources"
+                    )
 
             # --- STRATEGY 0: VWARP SCANNER (Priority 2 if Scraper insufficient) ---
             if not self._clean_ips:
-                try:
-                    vwarp = VwarpTool()
-                    if await vwarp.is_available():
-                        scanned_ips_vwarp = await vwarp.scan_endpoints()
-                        if scanned_ips_vwarp:
-                            self._clean_ips = list(scanned_ips_vwarp)
-                            logger.info(
-                                f"Loaded {len(scanned_ips_vwarp)} clean IPs from Vwarp"
-                            )
-                    else:
-                        logger.debug("Vwarp binary not found - skipping Vwarp scan.")
-                except Exception as e:
-                    logger.warning(f"Vwarp scanner failed: {e}")
+                vwarp = VwarpTool()
+                if await vwarp.is_available():
+                    scanned_ips_vwarp = await vwarp.scan_endpoints()
+                    if scanned_ips_vwarp:
+                        self._clean_ips = list(scanned_ips_vwarp)
+                        logger.info(
+                            f"Loaded {len(scanned_ips_vwarp)} clean IPs from Vwarp"
+                        )
+                else:
+                    logger.debug("Vwarp binary not found - skipping Vwarp scan.")
 
             # --- STRATEGY 1: ACTIVE SCANNING ---
             if self.scanner.available and not self._clean_ips:
-                try:
-                    logger.info("Attempting active IP scan...")
-                    scanned_ips = await self.scanner.scan_endpoints(
-                        limit=50, timeout=5, max_latency=800
-                    )
+                logger.info("Attempting active IP scan...")
+                scanned_ips = await self.scanner.scan_endpoints(
+                    limit=50, timeout=5, max_latency=800
+                )
 
-                    if scanned_ips and len(scanned_ips) >= 5:
-                        self._clean_ips = [
-                            (ip, 2408)
-                            for ip in scanned_ips
-                            if self._looks_like_ip(str(ip))
-                        ]
-                        logger.info(
-                            f"Active Scan Success: Using {len(self._clean_ips)} fresh IPs."
-                        )
-                except Exception as e:
-                    logger.error(f"Active scan failed: {e}")
+                if scanned_ips and len(scanned_ips) >= 5:
+                    self._clean_ips = [
+                        (ip, 2408)
+                        for ip in scanned_ips
+                        if self._looks_like_ip(str(ip))
+                    ]
+                    logger.info(
+                        f"Active Scan Success: Using {len(self._clean_ips)} fresh IPs."
+                    )
 
             # --- STRATEGY 2: STATIC LISTS ---
             if not self._clean_ips:
@@ -321,9 +311,12 @@ class ProxyWasher:
                                         f"Fetched {len(valid_ips)} clean IPs from {source_url.split('/')[2]}"
                                     )
                                     break  # Stop after one success
-                    except Exception:  # nosec B110
-                        logging.getLogger(__name__).debug("Suppressed broad exception")
-                        pass
+                    except (httpx.HTTPError, OSError) as exc:
+                        logger.debug(
+                            "Static clean-IP source failed for %s: %s",
+                            source_url,
+                            type(exc).__name__,
+                        )
 
             # --- STRATEGY 3: DEFAULTS ---
             if not self._clean_ips:
@@ -338,17 +331,14 @@ class ProxyWasher:
                 logger.info(
                     "No WARP keys found. Attempting to generate a new account..."
                 )
-                try:
-                    new_account = await self.key_gen.generate_account()
-                    if new_account:
-                        self._warp_keys = [new_account]
-                        logger.info("Successfully generated a new WARP account/key.")
-                    else:
-                        logger.error(
-                            "Failed to generate WARP account. Washing disabled."
-                        )
-                except Exception as e:
-                    logger.error(f"Key generation failed: {e}")
+                new_account = await self.key_gen.generate_account()
+                if new_account:
+                    self._warp_keys = [new_account]
+                    logger.info("Successfully generated a new WARP account/key.")
+                else:
+                    logger.error(
+                        "Failed to generate WARP account. Washing disabled."
+                    )
 
     @staticmethod
     def _looks_like_ip(host: str) -> bool:
@@ -551,8 +541,8 @@ class ProxyWasher:
             await writer.wait_closed()
             _ = reader  # keep reference for type checkers
             return True
-        except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception")
+        except (asyncio.TimeoutError, OSError) as exc:
+            logger.debug("Vwarp SOCKS probe unavailable: %s", type(exc).__name__)
             return False
 
     def wash_failed(
@@ -829,9 +819,12 @@ class ProxyWasher:
                     if isinstance(res, dict) and "relay" in res:
                         if float(res.get("total_distance", 99999)) < 15000:
                             is_optimal = True
-            except Exception:  # nosec B110
-                logging.getLogger(__name__).debug("Suppressed broad exception")
-                pass
+            except (KeyError, TypeError, ValueError) as exc:
+                logger.debug(
+                    "Relay optimization skipped for %s: %s",
+                    relay.id,
+                    type(exc).__name__,
+                )
 
             flag = get_flag_emoji(relay.country_code or "XX")
             lat_str = f"{int(relay.latency)}ms" if relay.latency else "N/A"
