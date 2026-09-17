@@ -3,8 +3,8 @@
 ## Executive Summary
 This matrix represents **actionable** technical debt. Noise from test mocks, documentation placeholders, and historical reports has been filtered out.
 
-- Total actionable markers: **251**
-- `BROAD_EXCEPTION`: **240**
+- Total actionable markers: **249**
+- `BROAD_EXCEPTION`: **238**
 - `LARGE_FUNCTION`: **9**
 - `PLACEHOLDER`: **2**
 
@@ -12,7 +12,7 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 
 - `other`: **12**
 - `production`: **198**
-- `tooling`: **41**
+- `tooling`: **39**
 
 ## Actionable Priorities
 
@@ -29,7 +29,7 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - `src/configstream/cli.py`
 - ... and 48 more files.
 
-### P2 - Routine (53)
+### P2 - Routine (51)
 - `scripts/check_license_headers.py`
 - `scripts/dynamic_reshard.py`
 - `scripts/generate_evidence_bundle.py`
@@ -59,7 +59,7 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 | `scripts/merge_batches.py` | 4 | BROAD_EXCEPTION |
 | `scripts/prepare_public_candidate.py` | 1 | BROAD_EXCEPTION |
 | `scripts/prune_sources.py` | 4 | BROAD_EXCEPTION |
-| `scripts/publish_ipfs.py` | 3 | BROAD_EXCEPTION |
+| `scripts/publish_ipfs.py` | 1 | BROAD_EXCEPTION |
 | `scripts/resilient_stage.py` | 2 | BROAD_EXCEPTION |
 | `scripts/upload_gdrive.py` | 3 | BROAD_EXCEPTION |
 | `scripts/upload_hf.py` | 3 | BROAD_EXCEPTION |
@@ -168,9 +168,7 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - L155 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `scripts/publish_ipfs.py`
-- L96 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
-- L122 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
-- L248 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
+- L251 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `scripts/resilient_stage.py`
 - L140 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`

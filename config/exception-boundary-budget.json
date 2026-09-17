@@ -6,7 +6,7 @@
     "scripts/merge_batches.py": 4,
     "scripts/prepare_public_candidate.py": 1,
     "scripts/prune_sources.py": 4,
-    "scripts/publish_ipfs.py": 3,
+    "scripts/publish_ipfs.py": 1,
     "scripts/resilient_stage.py": 2,
     "scripts/upload_gdrive.py": 3,
     "scripts/upload_hf.py": 3,
@@ -76,5 +76,5 @@
     "target_total": 0
   },
   "schema_version": 1,
-  "total_ceiling": 228
+  "total_ceiling": 226
 }
