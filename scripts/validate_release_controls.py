@@ -48,6 +48,27 @@ def validate(root: Path) -> list[str]:
         errors.append("release gate has no promotion path")
 
     deploy = (root / ".github/workflows/deploy-pages.yml").read_text(encoding="utf-8")
+
+    # Pages may consume only the canonical production pipeline. Retest rewrites
+    # output contracts but does not execute the release-gate/native/promotion
+    # sequence above, so it must never be a production deployment source.
+    if 'workflows: ["Config\'s Stream"]' not in deploy:
+        errors.append(
+            "Pages workflow_run trigger must listen only to the canonical Config's Stream workflow"
+        )
+    if 'allowed_workflows = {"Config\'s Stream"}' not in deploy:
+        errors.append(
+            "Pages source allowlist must contain only the canonical Config's Stream workflow"
+        )
+    if 'workflows: ["Config\'s Stream", "Retest"]' in deploy or (
+        'allowed_workflows = {"Config\'s Stream", "Retest"}' in deploy
+    ):
+        errors.append("Retest must not be eligible as a Pages deployment source")
+    if 'source_name" = Retest' in deploy or "source_name\" = Retest" in deploy:
+        errors.append(
+            "Pages deployment must not carry a Retest-specific publication bypass"
+        )
+
     snapshot_controls = (
         "python scripts/snapshot_pages_release.py",
         "last-known-good",
@@ -95,7 +116,9 @@ def validate(root: Path) -> list[str]:
             "Pages rollback signature policy must run when snapshotting and when verifying restoration"
         )
     if 'verify_args+=(--public-key "$CS_PUBLIC_KEY")' not in deploy:
-        errors.append("signed Pages deployment must pass the configured public key to smoke verification")
+        errors.append(
+            "signed Pages deployment must pass the configured public key to smoke verification"
+        )
     if "without signature validation" in deploy:
         errors.append(
             "Pages deployment must not use an implicit missing-key unsigned fallback"
@@ -148,7 +171,7 @@ def main() -> int:
             print(f"  - {error}")
         return 1
     print(
-        "OK: native validation, explicit Pages signature policy, main-history provenance, rollback, and frontend fail-closed controls are intact"
+        "OK: canonical source, native validation, explicit Pages signature policy, main-history provenance, rollback, and frontend fail-closed controls are intact"
     )
     return 0
 
