@@ -48,6 +48,27 @@ def validate(root: Path) -> list[str]:
         errors.append("release gate has no promotion path")
 
     deploy = (root / ".github/workflows/deploy-pages.yml").read_text(encoding="utf-8")
+
+    # Pages may consume only the canonical production pipeline. Retest rewrites
+    # output contracts but does not execute the release-gate/native/promotion
+    # sequence above, so it must never be a production deployment source.
+    if 'workflows: ["Config\'s Stream"]' not in deploy:
+        errors.append(
+            "Pages workflow_run trigger must listen only to the canonical Config's Stream workflow"
+        )
+    if 'allowed_workflows = {"Config\'s Stream"}' not in deploy:
+        errors.append(
+            "Pages source allowlist must contain only the canonical Config's Stream workflow"
+        )
+    if 'workflows: ["Config\'s Stream", "Retest"]' in deploy or (
+        'allowed_workflows = {"Config\'s Stream", "Retest"}' in deploy
+    ):
+        errors.append("Retest must not be eligible as a Pages deployment source")
+    if 'source_name" = Retest' in deploy or "source_name\" = Retest" in deploy:
+        errors.append(
+            "Pages deployment must not carry a Retest-specific publication bypass"
+        )
+
     snapshot_controls = (
         "python scripts/snapshot_pages_release.py",
         "last-known-good",
@@ -72,6 +93,63 @@ def validate(root: Path) -> list[str]:
                 f"Pages deployment missing rollback restoration control: {control}"
             )
 
+    public_key_binding = "CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}"
+    if deploy.count(public_key_binding) < 4:
+        errors.append(
+            "Pages deployment must bind CS_PUBLIC_KEY at candidate, rollback-snapshot, deployed-candidate, and restored-rollback verification boundaries"
+        )
+
+    unsigned_policy_binding = (
+        "ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'false' }}"
+    )
+    if deploy.count(unsigned_policy_binding) < 4:
+        errors.append(
+            "Pages deployment must bind the explicit unsigned-mode policy at every verification boundary"
+        )
+
+    if deploy.count("validate_pages_signature_policy.py output") < 2:
+        errors.append(
+            "Pages candidate signature policy must run before deployment and again before post-deploy verification"
+        )
+    if deploy.count("validate_pages_signature_policy.py last-known-good") < 2:
+        errors.append(
+            "Pages rollback signature policy must run when snapshotting and when verifying restoration"
+        )
+    if 'verify_args+=(--public-key "$CS_PUBLIC_KEY")' not in deploy:
+        errors.append(
+            "signed Pages deployment must pass the configured public key to smoke verification"
+        )
+    if "without signature validation" in deploy:
+        errors.append(
+            "Pages deployment must not use an implicit missing-key unsigned fallback"
+        )
+
+    signature_policy = (
+        root / "scripts/validate_pages_signature_policy.py"
+    ).read_text(encoding="utf-8")
+    for control in (
+        "ALLOW_UNSIGNED_PAGES",
+        "signed artifacts must never be accepted without a trust anchor",
+        "unsigned Pages publication is disabled by default",
+        "CS_PUBLIC_KEY is configured but is not a valid Ed25519 public key",
+    ):
+        if control not in signature_policy:
+            errors.append(f"Pages signature policy missing fail-closed control: {control}")
+
+    release = (root / ".github/workflows/release.yml").read_text(encoding="utf-8")
+    release_provenance_controls = (
+        "fetch-depth: 0",
+        "git fetch --no-tags origin main:refs/remotes/origin/main",
+        'git rev-list -n 1 "$GITHUB_REF_NAME"',
+        'git merge-base --is-ancestor "$tag_commit" refs/remotes/origin/main',
+        "Release tag must point to a commit reachable from main",
+    )
+    for control in release_provenance_controls:
+        if control not in release:
+            errors.append(
+                f"tagged release missing main-history provenance control: {control}"
+            )
+
     frontend = (root / "frontend/assets/js/artifact-state.js").read_text(
         encoding="utf-8"
     )
@@ -93,7 +171,7 @@ def main() -> int:
             print(f"  - {error}")
         return 1
     print(
-        "OK: native validation, transactional promotion, rollback, and frontend fail-closed controls are intact"
+        "OK: canonical source, native validation, explicit Pages signature policy, main-history provenance, rollback, and frontend fail-closed controls are intact"
     )
     return 0
 

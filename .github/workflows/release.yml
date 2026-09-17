@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          fetch-depth: 1
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
@@ -32,6 +32,12 @@ jobs:
       - name: Validate repository contracts and release state
         run: |
           set -euo pipefail
+          git fetch --no-tags origin main:refs/remotes/origin/main
+          tag_commit="$(git rev-list -n 1 "$GITHUB_REF_NAME")"
+          if [ -z "$tag_commit" ] || ! git merge-base --is-ancestor "$tag_commit" refs/remotes/origin/main; then
+            echo "Release tag must point to a commit reachable from main" >&2
+            exit 1
+          fi
           python scripts/verify_repository.py --profile static
           python scripts/validate_status.py
           python scripts/validate_versions.py
