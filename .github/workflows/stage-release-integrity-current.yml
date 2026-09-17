@@ -21,7 +21,7 @@ jobs:
       - name: Transform and stage exact workflow bytes
         run: |
           set -euo pipefail
-          # The transformer asserts explicit unsigned policy, signed verification, rollback, and tag provenance.
+          # Secure-by-default signed policy with explicit unsigned opt-out and rollback parity.
           python scripts/_stage_release_integrity.py
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
