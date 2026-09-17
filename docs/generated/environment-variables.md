@@ -3,7 +3,7 @@
 Generated from `AppSettings` and direct Python `os.environ`/`os.getenv` references.
 Sensitive defaults are never rendered.
 
-Variables: **161**
+Variables: **162**
 
 | Variable | Settings field | Type | Default | Required | Sensitive | Sources |
 |---|---:|---|---|---:|---:|---|
@@ -16,6 +16,7 @@ Variables: **161**
 | `ALLOW_ACTIVE_SCANNING` | yes | `bool` | `false` | no | no | `src/configstream/config.py:151` |
 | `ALLOW_PRIVATE_IPS` | yes | `bool` | `false` | no | no | `src/configstream/config.py:129` |
 | `ALLOW_UNAUTHENTICATED_ADMIN` | no | `direct-only` |  | no | no | `src/configstream/server/utils.py:219` |
+| `ALLOW_UNSIGNED_PAGES` | no | `direct-only` |  | no | no | `scripts/validate_pages_signature_policy.py:24` |
 | `BATCH_NUMBER` | yes | `str` | `""` | no | no | `src/configstream/config.py:127` |
 | `BATCH_SIZE` | yes | `int` | `50` | no | no | `src/configstream/config.py:67` |
 | `BATCH_TIME_LIMIT_GRACE_SECONDS` | yes | `int` | `2700` | no | no | `src/configstream/config.py:33` |
@@ -37,7 +38,7 @@ Variables: **161**
 | `CONFIGSTREAM_TESTER_BIN` | yes | `Optional[str]` |  | no | no | `src/configstream/config.py:141`<br>`src/configstream/testers/go_tester/process.py:20` |
 | `CONFIG_STREAM_KEY` | yes | `Optional[str]` |  | no | no | `scripts/audit_pipeline_outputs.py:323`<br>`src/configstream/config.py:138` |
 | `CORS_ALLOW_CREDENTIALS` | yes | `bool` | `false` | no | no | `src/configstream/config.py:164` |
-| `CS_PUBLIC_KEY` | no | `direct-only` |  | no | no | `scripts/release_gate.py:365`<br>`scripts/snapshot_pages_release.py:416`<br>`scripts/validate_pages_artifact.py:202`<br>`scripts/verify_pages_deployment.py:471` |
+| `CS_PUBLIC_KEY` | no | `direct-only` |  | no | no | `scripts/release_gate.py:365`<br>`scripts/snapshot_pages_release.py:416`<br>`scripts/validate_pages_artifact.py:202`<br>`scripts/validate_pages_signature_policy.py:39`<br>`scripts/verify_pages_deployment.py:471` |
 | `CS_SIGNING_PRIVATE_KEY_HEX` | no | `direct-only` | `<redacted>` | no | yes | `scripts/refresh_shard_contract.py:55`<br>`scripts/release_gate.py:380`<br>`src/configstream/output/metadata.py:518` |
 | `CS_STRICT_BINARY_TRUST` | no | `direct-only` |  | no | no | `src/configstream/testers/go_tester/binary_security.py:107` |
 | `DEDUP_IGNORE_PROTOCOL` | yes | `bool` | `false` | no | no | `src/configstream/config.py:153` |

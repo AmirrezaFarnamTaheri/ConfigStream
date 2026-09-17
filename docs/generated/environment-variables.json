@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "source_digest": "29005d97a3040155c62d1a7ff98eaddfa34a2b60a3c8721b17c6ac5cc19dafc6",
-  "variable_count": 161,
+  "source_digest": "2d928181ff67d587c088c42a4ce3d7d1670ca7e6335ad8fca116087ff30b8cee",
+  "variable_count": 162,
   "variables": [
     {
       "declared_in_settings": true,
@@ -99,6 +99,17 @@
       "sensitive": false,
       "sources": [
         "src/configstream/server/utils.py:219"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "ALLOW_UNSIGNED_PAGES",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/validate_pages_signature_policy.py:24"
       ],
       "type": null
     },
@@ -348,6 +359,7 @@
         "scripts/release_gate.py:365",
         "scripts/snapshot_pages_release.py:416",
         "scripts/validate_pages_artifact.py:202",
+        "scripts/validate_pages_signature_policy.py:39",
         "scripts/verify_pages_deployment.py:471"
       ],
       "type": null
