@@ -135,6 +135,8 @@ def test_preemption_workflow_is_narrow_and_race_safe() -> None:
     assert "actions: write" in workflow
     assert "contents: read" in workflow
     assert "pull_request:" not in workflow
+    assert "\n  push:\n" not in workflow
+    assert "github.event_name == 'push'" not in workflow
     assert "TARGET_SHA" in workflow
     assert "TARGET_RUN_ID" in workflow
     assert "run_id > TARGET_RUN_ID" in workflow
