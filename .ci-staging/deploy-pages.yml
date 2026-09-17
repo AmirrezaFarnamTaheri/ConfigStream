@@ -372,8 +372,14 @@ jobs:
         id: verify_rollback
         if: always() && env.SMOKE_OK != 'true' && env.HAS_LKG == 'true' && steps.rollback_artifact.outcome == 'success'
         continue-on-error: true
+        env:
+          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
         run: |
           set -euo pipefail
+          if [ -z "${CS_PUBLIC_KEY:-}" ]; then
+            echo "CS_PUBLIC_KEY must be configured for Pages rollback verification" >&2
+            exit 1
+          fi
           page_url="${{ steps.rollback_deployment.outputs.page_url }}"
           if [ -z "$page_url" ]; then
             repo_name="${GITHUB_REPOSITORY#*/}"
@@ -383,7 +389,7 @@ jobs:
             --name verify-rollback \
             --report-dir deploy-evidence/stages \
             --timeout 600 \
-            -- python scripts/verify_pages_deployment.py "$page_url" --report-file deploy-evidence/rollback-smoke-report.json
+            -- python scripts/verify_pages_deployment.py "$page_url" --public-key "$CS_PUBLIC_KEY" --report-file deploy-evidence/rollback-smoke-report.json
           rollback_status=$(python -c 'import json; print(json.load(open("deploy-evidence/stages/verify-rollback.json", encoding="utf-8"))["status"])')
           test "$rollback_status" = success
       - name: Record rollback action outcomes
