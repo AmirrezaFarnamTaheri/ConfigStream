@@ -58,10 +58,46 @@ deploy = replace_once(
     "            verify_args+=(--public-key \"$CS_PUBLIC_KEY\")\n",
     "post-deploy fail-closed signature check",
 )
+deploy = replace_once(
+    deploy,
+    "      - name: Verify rollback restoration\n"
+    "        id: verify_rollback\n"
+    "        if: always() && env.SMOKE_OK != 'true' && env.HAS_LKG == 'true' && steps.rollback_artifact.outcome == 'success'\n"
+    "        continue-on-error: true\n"
+    "        run: |\n",
+    "      - name: Verify rollback restoration\n"
+    "        id: verify_rollback\n"
+    "        if: always() && env.SMOKE_OK != 'true' && env.HAS_LKG == 'true' && steps.rollback_artifact.outcome == 'success'\n"
+    "        continue-on-error: true\n"
+    "        env:\n"
+    "          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}\n"
+    "        run: |\n",
+    "rollback public-key binding",
+)
+deploy = replace_once(
+    deploy,
+    "          set -euo pipefail\n"
+    "          page_url=\"${{ steps.rollback_deployment.outputs.page_url }}\"\n"
+    "          if [ -z \"$page_url\" ]; then\n",
+    "          set -euo pipefail\n"
+    "          if [ -z \"${CS_PUBLIC_KEY:-}\" ]; then\n"
+    "            echo \"CS_PUBLIC_KEY must be configured for Pages rollback verification\" >&2\n"
+    "            exit 1\n"
+    "          fi\n"
+    "          page_url=\"${{ steps.rollback_deployment.outputs.page_url }}\"\n"
+    "          if [ -z \"$page_url\" ]; then\n",
+    "rollback fail-closed signature check",
+)
+deploy = replace_once(
+    deploy,
+    "            -- python scripts/verify_pages_deployment.py \"$page_url\" --report-file deploy-evidence/rollback-smoke-report.json\n",
+    "            -- python scripts/verify_pages_deployment.py \"$page_url\" --public-key \"$CS_PUBLIC_KEY\" --report-file deploy-evidence/rollback-smoke-report.json\n",
+    "rollback signature verification command",
+)
 if "without signature validation" in deploy:
     raise SystemExit("optional Pages signature fallback remains")
-if deploy.count("CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}") < 3:
-    raise SystemExit("expected public key at pre-deploy, snapshot, and post-deploy boundaries")
+if deploy.count("CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}") < 4:
+    raise SystemExit("expected public key at candidate, snapshot, deployed-candidate, and rollback boundaries")
 (STAGING / "deploy-pages.yml").write_text(deploy, encoding="utf-8")
 
 release = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
