@@ -146,3 +146,12 @@ def test_direct_go_tester_manager_import_uses_verified_launcher() -> None:
     from configstream.testers.go_tester.secure_manager import GoBatchTester as verified
 
     assert direct is verified
+
+
+@pytest.mark.asyncio
+async def test_streaming_go_tester_base_is_fail_closed() -> None:
+    from configstream.testers.go_tester.manager import _StreamingGoBatchTester
+
+    tester = object.__new__(_StreamingGoBatchTester)
+    with pytest.raises(RuntimeError, match="cannot launch a process"):
+        await tester._ensure_process()

@@ -8,7 +8,6 @@ import uuid
 import time
 import os
 import re
-import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Dict, Any, Optional, cast, Set, Tuple
@@ -16,7 +15,6 @@ from typing import List, Dict, Any, Optional, cast, Set, Tuple
 from ...config import AppSettings
 from ...models import Proxy
 from ...converters import to_singbox_outbound
-from ...constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
 from ...async_utils import safe_wait_for
 from ...intelligence.evasion import enrich_outbound_with_evasion
 from ...security_validator import SecurityValidator
@@ -59,7 +57,7 @@ _ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-9;]*m")
 GO_TESTER_STREAM_LIMIT = 8 * 1024 * 1024
 
 
-class GoBatchTester:
+class _StreamingGoBatchTester:
     def __init__(
         self,
         binary_path: str = "configstream-tester",
@@ -274,95 +272,16 @@ class GoBatchTester:
         logger.info("Go Batch Tester shutdown complete.")
 
     async def _ensure_process(self) -> None:
-        """Ensure the Go process is running."""
-        # Wait for any pending restart to complete before proceeding
-        if self._restart_task and not self._restart_task.done():
-            try:
-                await safe_wait_for(self._restart_task, timeout=15.0)
-            except Exception:  # nosec B110
-                logging.getLogger(__name__).debug("Suppressed broad exception")
-                pass
-            self._restart_task = None
+        """The streaming base deliberately cannot launch an executable.
 
-        if self._proc and self._proc.returncode is None:
-            return
-
-        async with self._lock:
-            if self._proc and self._proc.returncode is None:
-                return
-
-            if self._stopping:
-                return
-
-            cmd = [self.binary_path, "-workers", str(self.workers)]
-            timeout_sec = max(1, int(self.timeout))
-            cmd.extend(["-timeout", f"{timeout_sec}s"])
-
-            # NOTE: Avoid module-level AppSettings() instances; settings should be created
-            # lazily to respect runtime env changes (important for tests).
-            settings = AppSettings()
-            if settings.TEST_URLS:
-                urls_map = settings.TEST_URLS
-                if os.environ.get("CI") == "true":
-                    preferred = ("cloudflare", "gstatic", "google")
-                    urls_map = {
-                        k: v for k, v in urls_map.items() if k in preferred and v
-                    }
-                    if not urls_map:
-                        urls_map = settings.TEST_URLS
-                urls = ",".join(str(u) for u in urls_map.values())
-                cmd.extend(["-urls", urls])
-
-            logger.info(f"Starting Go Tester Daemon: {' '.join(cmd)}")
-
-            try:
-                # Prepare environment
-                env = os.environ.copy()
-                env["GOLOG_LOG_LEVEL"] = "error"
-                # Ensure temp dir is accessible
-                env["TMPDIR"] = os.environ.get("TMPDIR") or tempfile.gettempdir()
-                env["PATH"] = os.environ.get("PATH", "/usr/bin:/bin")
-                # Use modern WireGuard outbound only (no deprecated compatibility flags).
-
-                # Force traffic through the Vwarp tunnel if available.
-                # Check environment directly as it might be set dynamically by pipeline.py
-                # or fallback to AppSettings if set globally
-                # Respect explicit disable via environment variable
-                env_vwarp = os.environ.get("USE_VWARP_TUNNEL")
-                if env_vwarp == "false":
-                    use_vwarp = False
-                elif env_vwarp == "true":
-                    use_vwarp = True
-                else:
-                    use_vwarp = settings.USE_VWARP_TUNNEL
-
-                if use_vwarp:
-                    # Using Vwarp tunnel configuration from constants
-                    env["ALL_PROXY"] = (
-                        f"socks5://{VWARP_BIND_ADDRESS}:{VWARP_SOCKS5_PORT}"
-                    )
-                    logger.info(
-                        f"Go Tester using Vwarp tunnel at socks5://{VWARP_BIND_ADDRESS}:{VWARP_SOCKS5_PORT}"
-                    )
-
-                self._proc = await asyncio.create_subprocess_exec(  # type: ignore
-                    *cmd,
-                    stdin=asyncio.subprocess.PIPE,
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE,
-                    env=env,
-                    limit=GO_TESTER_STREAM_LIMIT,
-                )
-
-                # Start background readers
-                loop = asyncio.get_running_loop()
-                self._read_task = loop.create_task(self._read_loop())
-                self._read_task.add_done_callback(self._silence_task)
-                self._stderr_task = loop.create_task(self._read_stderr_loop())
-                self._stderr_task.add_done_callback(self._silence_task)
-            except Exception as e:
-                logger.error(f"Failed to start Go Tester Daemon: {e}")
-                self._proc = None
+        Process creation is a security boundary owned by secure_manager.GoBatchTester,
+        which verifies executable identity and constructs a minimal child environment.
+        Keeping the transport base fail-closed prevents future imports or refactors from
+        accidentally bypassing those controls.
+        """
+        raise RuntimeError(
+            "streaming Go tester base cannot launch a process; use the verified launcher"
+        )
 
     @staticmethod
     async def _cancel_task(task: Optional[asyncio.Task]) -> None:

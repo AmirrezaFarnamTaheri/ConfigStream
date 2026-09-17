@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "29005d97a3040155c62d1a7ff98eaddfa34a2b60a3c8721b17c6ac5cc19dafc6",
+  "source_digest": "e9395c958194ce254818c3e500211269d9802c6c95ca5064463ebcf57b159694",
   "variable_count": 161,
   "variables": [
     {
@@ -208,8 +208,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/testers/go_tester/manager.py:306",
-        "src/configstream/testers/go_tester/secure_manager.py:108",
+        "src/configstream/testers/go_tester/secure_manager.py:105",
         "src/configstream/warp_scanner.py:59",
         "src/configstream/warp_scanner.py:82"
       ],
@@ -1200,8 +1199,7 @@
       "sensitive": false,
       "sources": [
         "scripts/native_client_checks.py:92",
-        "src/configstream/testers/go_tester/manager.py:324",
-        "src/configstream/testers/go_tester/manager.py:91"
+        "src/configstream/testers/go_tester/manager.py:89"
       ],
       "type": null
     },
@@ -1648,7 +1646,6 @@
       "sources": [
         "src/configstream/security/utls_wrapper.py:143",
         "src/configstream/testers/go_tester/binary_security.py:158",
-        "src/configstream/testers/go_tester/manager.py:323",
         "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py:100",
         "src/configstream/tools/vwarp/binary.py:140"
       ],
@@ -1680,8 +1677,7 @@
         "src/configstream/pipeline/core.py:181",
         "src/configstream/pipeline/core.py:41",
         "src/configstream/pipeline/core.py:47",
-        "src/configstream/testers/go_tester/manager.py:331",
-        "src/configstream/testers/go_tester/secure_manager.py:72"
+        "src/configstream/testers/go_tester/secure_manager.py:69"
       ],
       "type": "bool"
     },

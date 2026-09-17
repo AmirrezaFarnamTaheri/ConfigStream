@@ -25,7 +25,7 @@ Variables: **161**
 | `CANARY_URL` | yes | `str` | `""` | no | no | `src/configstream/config.py:95` |
 | `CF_TOKEN` | no | `direct-only` | `<redacted>` | no | yes | `scripts/publish_ipfs.py:190` |
 | `CF_ZONE_ID` | no | `direct-only` |  | no | no | `scripts/publish_ipfs.py:195` |
-| `CI` | no | `direct-only` |  | no | no | `src/configstream/testers/go_tester/manager.py:306`<br>`src/configstream/testers/go_tester/secure_manager.py:108`<br>`src/configstream/warp_scanner.py:59`<br>`src/configstream/warp_scanner.py:82` |
+| `CI` | no | `direct-only` |  | no | no | `src/configstream/testers/go_tester/secure_manager.py:105`<br>`src/configstream/warp_scanner.py:59`<br>`src/configstream/warp_scanner.py:82` |
 | `CIRCUIT_BREAKER_ENABLED` | yes | `bool` | `true` | no | no | `src/configstream/config.py:106` |
 | `CIRCUIT_OPEN_SEC` | yes | `int` | `120` | no | no | `src/configstream/config.py:116` |
 | `CIRCUIT_TRIP_5XX_RATE` | yes | `float` | `0.2` | no | no | `src/configstream/config.py:115` |
@@ -111,7 +111,7 @@ Variables: **161**
 | `OPTIMAL_RELAY_ORIGIN` | yes | `str` | `"IR"` | no | no | `src/configstream/config.py:62` |
 | `OUTPUT_DIR` | no | `direct-only` |  | no | no | `src/configstream/server/utils.py:56` |
 | `PARENT_RELEASE_DIGEST` | no | `direct-only` |  | no | no | `scripts/finalize_release.py:297` |
-| `PATH` | no | `direct-only` |  | no | no | `scripts/native_client_checks.py:92`<br>`src/configstream/testers/go_tester/manager.py:324`<br>`src/configstream/testers/go_tester/manager.py:91` |
+| `PATH` | no | `direct-only` |  | no | no | `scripts/native_client_checks.py:92`<br>`src/configstream/testers/go_tester/manager.py:89` |
 | `PER_HOST_MAX_CONCURRENCY` | yes | `int` | `16` | no | no | `src/configstream/config.py:111` |
 | `PINATA_JWT` | no | `direct-only` |  | no | no | `scripts/publish_ipfs.py:180` |
 | `PLAYWRIGHT_BROWSER_CHANNEL` | no | `direct-only` |  | no | no | `scripts/run_test_profile.py:82` |
@@ -149,9 +149,9 @@ Variables: **161**
 | `TEST_TIMEOUT` | yes | `int` | `15` | no | no | `src/configstream/config.py:27` |
 | `TEST_URLS` | yes | `dict[str, str]` | `"<structured default>"` | no | no | `src/configstream/config.py:16` |
 | `TLS_TESTS_ENABLED` | yes | `bool` | `true` | no | no | `src/configstream/config.py:118` |
-| `TMPDIR` | no | `direct-only` |  | no | no | `src/configstream/security/utls_wrapper.py:143`<br>`src/configstream/testers/go_tester/binary_security.py:158`<br>`src/configstream/testers/go_tester/manager.py:323`<br>`src/configstream/tools/dns_scanner/python/dnsscanner_tui.py:100`<br>`src/configstream/tools/vwarp/binary.py:140` |
+| `TMPDIR` | no | `direct-only` |  | no | no | `src/configstream/security/utls_wrapper.py:143`<br>`src/configstream/testers/go_tester/binary_security.py:158`<br>`src/configstream/tools/dns_scanner/python/dnsscanner_tui.py:100`<br>`src/configstream/tools/vwarp/binary.py:140` |
 | `UPDATE_INTERVAL_HOURS` | yes | `int` | `4` | no | no | `src/configstream/config.py:126` |
-| `USE_VWARP_TUNNEL` | yes | `bool` | `true` | no | no | `src/configstream/config.py:144`<br>`src/configstream/intelligence/washer/core.py:515`<br>`src/configstream/pipeline/core.py:150`<br>`src/configstream/pipeline/core.py:171`<br>`src/configstream/pipeline/core.py:176`<br>`src/configstream/pipeline/core.py:181`<br>`src/configstream/pipeline/core.py:41`<br>`src/configstream/pipeline/core.py:47`<br>`src/configstream/testers/go_tester/manager.py:331`<br>`src/configstream/testers/go_tester/secure_manager.py:72` |
+| `USE_VWARP_TUNNEL` | yes | `bool` | `true` | no | no | `src/configstream/config.py:144`<br>`src/configstream/intelligence/washer/core.py:515`<br>`src/configstream/pipeline/core.py:150`<br>`src/configstream/pipeline/core.py:171`<br>`src/configstream/pipeline/core.py:176`<br>`src/configstream/pipeline/core.py:181`<br>`src/configstream/pipeline/core.py:41`<br>`src/configstream/pipeline/core.py:47`<br>`src/configstream/testers/go_tester/secure_manager.py:69` |
 | `UTLS_CLIENT_SHA256` | no | `direct-only` |  | no | no | `src/configstream/security/utls_wrapper.py:90` |
 | `VERSION_TAG` | no | `direct-only` |  | no | no | `scripts/upload_telegram.py:46` |
 | `VT_API_KEY` | yes | `Optional[str]` | `<redacted>` | no | yes | `src/configstream/config.py:135` |

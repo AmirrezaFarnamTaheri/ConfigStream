@@ -56,7 +56,7 @@
     "src/configstream/security_validator.py": 1,
     "src/configstream/serialize.py": 1,
     "src/configstream/server/ws.py": 1,
-    "src/configstream/testers/go_tester/manager.py": 15,
+    "src/configstream/testers/go_tester/manager.py": 13,
     "src/configstream/testers/go_tester/rpc.py": 2,
     "src/configstream/testers/lab_chain_tester.py": 4,
     "src/configstream/testers/manager.py": 2,
@@ -76,5 +76,5 @@
     "target_total": 0
   },
   "schema_version": 1,
-  "total_ceiling": 228
+  "total_ceiling": 226
 }

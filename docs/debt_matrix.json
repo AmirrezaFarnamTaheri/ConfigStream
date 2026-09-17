@@ -1,15 +1,15 @@
 {
   "generated_from": "current tracked tree",
   "summary": {
-    "total": 251,
+    "total": 249,
     "markers": {
-      "BROAD_EXCEPTION": 240,
+      "BROAD_EXCEPTION": 238,
       "LARGE_FUNCTION": 9,
       "PLACEHOLDER": 2
     },
     "categories": {
       "other": 12,
-      "production": 198,
+      "production": 196,
       "tooling": 41
     }
   },
@@ -1440,7 +1440,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 72,
+      "line": 70,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1448,7 +1448,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 191,
+      "line": 189,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1456,7 +1456,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 227,
+      "line": 225,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1464,7 +1464,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 251,
+      "line": 249,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1472,7 +1472,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 282,
+      "line": 306,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1480,7 +1480,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 363,
+      "line": 318,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1488,7 +1488,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 387,
+      "line": 372,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1496,7 +1496,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 399,
+      "line": 376,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1504,7 +1504,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 453,
+      "line": 439,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1512,23 +1512,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 457,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 520,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 524,
+      "line": 443,
       "marker": "LARGE_FUNCTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1536,7 +1520,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 647,
+      "line": 566,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1544,7 +1528,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 713,
+      "line": 632,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1552,7 +1536,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 741,
+      "line": 660,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1560,7 +1544,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 952,
+      "line": 871,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",

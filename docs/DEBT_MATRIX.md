@@ -3,20 +3,20 @@
 ## Executive Summary
 This matrix represents **actionable** technical debt. Noise from test mocks, documentation placeholders, and historical reports has been filtered out.
 
-- Total actionable markers: **251**
-- `BROAD_EXCEPTION`: **240**
+- Total actionable markers: **249**
+- `BROAD_EXCEPTION`: **238**
 - `LARGE_FUNCTION`: **9**
 - `PLACEHOLDER`: **2**
 
 ## Categories
 
 - `other`: **12**
-- `production`: **198**
+- `production`: **196**
 - `tooling`: **41**
 
 ## Actionable Priorities
 
-### P1 - High (198)
+### P1 - High (196)
 - `src/configstream/adapters/loon.py`
 - `src/configstream/adapters/quantumult.py`
 - `src/configstream/adapters/shadowrocket.py`
@@ -114,7 +114,7 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 | `src/configstream/serialize.py` | 1 | BROAD_EXCEPTION |
 | `src/configstream/server/ws.py` | 1 | BROAD_EXCEPTION |
 | `src/configstream/signer.py` | 1 | PLACEHOLDER |
-| `src/configstream/testers/go_tester/manager.py` | 16 | BROAD_EXCEPTION, LARGE_FUNCTION |
+| `src/configstream/testers/go_tester/manager.py` | 14 | BROAD_EXCEPTION, LARGE_FUNCTION |
 | `src/configstream/testers/go_tester/rpc.py` | 2 | BROAD_EXCEPTION |
 | `src/configstream/testers/lab_chain_tester.py` | 4 | BROAD_EXCEPTION |
 | `src/configstream/testers/manager.py` | 2 | BROAD_EXCEPTION |
@@ -428,22 +428,20 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - L30 [`PLACEHOLDER`] **P1 - High**: `if not candidate or "PLACEHOLDER" in candidate or "79e/79e/" in candidate:`
 
 ### `src/configstream/testers/go_tester/manager.py`
-- L72 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L191 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L227 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L251 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L282 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L363 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L387 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L399 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L453 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L457 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L520 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L524 [`LARGE_FUNCTION`] **P1 - High**: `Function test_batch spans 332 lines (threshold: 300).`
-- L647 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L713 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L741 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L952 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L70 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L189 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L225 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L249 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L306 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L318 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L372 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L376 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L439 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L443 [`LARGE_FUNCTION`] **P1 - High**: `Function test_batch spans 332 lines (threshold: 300).`
+- L566 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L632 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L660 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L871 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/testers/go_tester/rpc.py`
 - L53 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`

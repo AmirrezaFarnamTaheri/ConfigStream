@@ -4,9 +4,9 @@ Unit tests for GoBatchTester IPC drain timeout and orphan process prevention.
 
 Task 1 of the Post-Audit Remediation Plan.
 
-Strategy: import the base streaming class directly from manager.py (bypassing
-the binary-identity verification in secure_manager.py), and patch
-_ensure_process to a no-op so test_batch can reach the drain() path.
+Strategy: import the private streaming transport base directly from manager.py.
+The base cannot launch a subprocess; tests patch _ensure_process so IPC methods
+can be exercised without crossing the verified process-launch boundary.
 """
 
 import asyncio
@@ -14,8 +14,8 @@ from typing import Any
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-# Import the *base* streaming class to avoid binary discovery in secure_manager
-from configstream.testers.go_tester.manager import GoBatchTester as _BaseTester
+# Import the private transport base; it is intentionally incapable of spawning.
+from configstream.testers.go_tester.manager import _StreamingGoBatchTester as _BaseTester
 from configstream.models import Proxy
 
 # ---------------------------------------------------------------------------

@@ -12,10 +12,7 @@ from ...config import AppSettings
 from ...constants import VWARP_BIND_ADDRESS, VWARP_SOCKS5_PORT
 from ...async_utils import safe_wait_for
 from ...models import Proxy
-from .manager import (
-    GO_TESTER_STREAM_LIMIT,
-    GoBatchTester as _StreamingGoBatchTester,
-)
+from .manager import GO_TESTER_STREAM_LIMIT, _StreamingGoBatchTester
 
 from .binary_security import (
     BinaryIdentity,
