@@ -8,6 +8,7 @@ import pytest
 
 from configstream.signer import Signer
 from scripts.release_gate import _sign_promoted_manifest
+from scripts import validate_pages_signature_policy as policy
 from scripts.validate_pages_signature_policy import validate_pages_signature_policy
 
 
@@ -27,11 +28,26 @@ def _base_manifest() -> dict[str, object]:
     }
 
 
+class _GitHubResponse:
+    def __init__(self, sha: str) -> None:
+        self._payload = json.dumps({"commit": {"sha": sha}}).encode()
+
+    def __enter__(self) -> "_GitHubResponse":
+        return self
+
+    def __exit__(self, *_args: object) -> None:
+        return None
+
+    def read(self, *_args: object, **_kwargs: object) -> bytes:
+        return self._payload
+
+
 def test_unsigned_pages_are_rejected_by_default(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.delenv("CS_PUBLIC_KEY", raising=False)
     monkeypatch.delenv("ALLOW_UNSIGNED_PAGES", raising=False)
+    monkeypatch.delenv("EXPECTED_SOURCE_SHA", raising=False)
     _write_manifest(tmp_path, _base_manifest())
 
     errors = validate_pages_signature_policy(tmp_path)
@@ -44,6 +60,7 @@ def test_unsigned_pages_require_explicit_opt_in(
 ) -> None:
     monkeypatch.delenv("CS_PUBLIC_KEY", raising=False)
     monkeypatch.setenv("ALLOW_UNSIGNED_PAGES", "true")
+    monkeypatch.delenv("EXPECTED_SOURCE_SHA", raising=False)
     _write_manifest(tmp_path, _base_manifest())
 
     assert validate_pages_signature_policy(tmp_path) == []
@@ -54,6 +71,7 @@ def test_signed_pages_cannot_fall_back_to_unsigned_policy(
 ) -> None:
     monkeypatch.delenv("CS_PUBLIC_KEY", raising=False)
     monkeypatch.setenv("ALLOW_UNSIGNED_PAGES", "true")
+    monkeypatch.delenv("EXPECTED_SOURCE_SHA", raising=False)
     manifest = _base_manifest()
     _sign_promoted_manifest(manifest, "11" * 32)
     _write_manifest(tmp_path, manifest)
@@ -70,6 +88,7 @@ def test_signed_pages_verify_against_configured_trust_anchor(
     signer = Signer(private_key)
     monkeypatch.setenv("CS_PUBLIC_KEY", signer.get_public_key_hex())
     monkeypatch.delenv("ALLOW_UNSIGNED_PAGES", raising=False)
+    monkeypatch.delenv("EXPECTED_SOURCE_SHA", raising=False)
     manifest = _base_manifest()
     _sign_promoted_manifest(manifest, private_key)
     _write_manifest(tmp_path, manifest)
@@ -82,8 +101,43 @@ def test_invalid_configured_public_key_is_not_treated_as_missing(
 ) -> None:
     monkeypatch.setenv("CS_PUBLIC_KEY", "not-a-valid-ed25519-key")
     monkeypatch.setenv("ALLOW_UNSIGNED_PAGES", "true")
+    monkeypatch.delenv("EXPECTED_SOURCE_SHA", raising=False)
     _write_manifest(tmp_path, _base_manifest())
 
     errors = validate_pages_signature_policy(tmp_path)
 
     assert errors == ["CS_PUBLIC_KEY is configured but is not a valid Ed25519 public key"]
+
+
+def test_pages_reject_stale_configstream_source(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_sha = "11" * 20
+    current_sha = "22" * 20
+    monkeypatch.delenv("CS_PUBLIC_KEY", raising=False)
+    monkeypatch.setenv("ALLOW_UNSIGNED_PAGES", "true")
+    monkeypatch.setenv("EXPECTED_SOURCE_SHA", source_sha)
+    monkeypatch.setenv("GITHUB_REPOSITORY", "AmirrezaFarnamTaheri/ConfigStream")
+    monkeypatch.setattr(policy, "urlopen", lambda *_args, **_kwargs: _GitHubResponse(current_sha))
+    _write_manifest(tmp_path, _base_manifest())
+
+    errors = validate_pages_signature_policy(tmp_path)
+
+    assert errors == [
+        "deployment source is stale: "
+        f"source={source_sha}, current_main={current_sha}; refusing Pages publication"
+    ]
+
+
+def test_pages_accept_current_main_configstream_source(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_sha = "11" * 20
+    monkeypatch.delenv("CS_PUBLIC_KEY", raising=False)
+    monkeypatch.setenv("ALLOW_UNSIGNED_PAGES", "true")
+    monkeypatch.setenv("EXPECTED_SOURCE_SHA", source_sha)
+    monkeypatch.setenv("GITHUB_REPOSITORY", "AmirrezaFarnamTaheri/ConfigStream")
+    monkeypatch.setattr(policy, "urlopen", lambda *_args, **_kwargs: _GitHubResponse(source_sha))
+    _write_manifest(tmp_path, _base_manifest())
+
+    assert validate_pages_signature_policy(tmp_path) == []
