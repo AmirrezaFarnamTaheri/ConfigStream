@@ -179,6 +179,7 @@ jobs:
         env:
           EXPECTED_SOURCE_SHA: ${{ steps.locate.outputs.source_head_sha }}
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
+          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'false' }}
         run: |
           set -euo pipefail
           if [ "${HAS_OUTPUT:-false}" != true ]; then
@@ -197,10 +198,7 @@ jobs:
             --timeout 600 \
             -- bash -lc '
               set -euo pipefail
-              if [ -z "${CS_PUBLIC_KEY:-}" ]; then
-                echo "CS_PUBLIC_KEY must be configured for Pages artifact verification" >&2
-                exit 1
-              fi
+              python scripts/validate_pages_signature_policy.py output
               before=$(find output -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d" " -f1)
               python scripts/validate_frontend_placeholders.py --strict output
               python scripts/validate_pages_artifact.py output
@@ -236,6 +234,7 @@ jobs:
         continue-on-error: true
         env:
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
+          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'false' }}
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
@@ -249,6 +248,7 @@ jobs:
             "$page_url" \
             last-known-good \
             --report-file deploy-evidence/last-known-good-snapshot.json
+          python scripts/validate_pages_signature_policy.py last-known-good
       - name: Record last-known-good availability
         if: always()
         run: |
@@ -321,6 +321,7 @@ jobs:
           EXPECTED_SOURCE_SHA: ${{ steps.locate.outputs.source_head_sha }}
           EXPECTED_SOURCE_RUN_ID: ${{ steps.locate.outputs.source_run_id }}
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
+          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'false' }}
         run: |
           set -euo pipefail
           page_url="${{ steps.deployment.outputs.page_url }}"
@@ -331,11 +332,10 @@ jobs:
               --expected-run-id "$EXPECTED_SOURCE_RUN_ID"
               --expected-digest "$manifest_digest"
             )
-            if [ -z "${CS_PUBLIC_KEY:-}" ]; then
-              echo "CS_PUBLIC_KEY must be configured for Pages deployment verification" >&2
-              exit 1
+            python scripts/validate_pages_signature_policy.py output
+            if [ -n "${CS_PUBLIC_KEY:-}" ]; then
+              verify_args+=(--public-key "$CS_PUBLIC_KEY")
             fi
-            verify_args+=(--public-key "$CS_PUBLIC_KEY")
             python scripts/resilient_stage.py run \
               --name smoke-pages \
               --report-dir deploy-evidence/stages \
@@ -374,11 +374,13 @@ jobs:
         continue-on-error: true
         env:
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
+          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'false' }}
         run: |
           set -euo pipefail
-          if [ -z "${CS_PUBLIC_KEY:-}" ]; then
-            echo "CS_PUBLIC_KEY must be configured for Pages rollback verification" >&2
-            exit 1
+          python scripts/validate_pages_signature_policy.py last-known-good
+          verify_args=()
+          if [ -n "${CS_PUBLIC_KEY:-}" ]; then
+            verify_args+=(--public-key "$CS_PUBLIC_KEY")
           fi
           page_url="${{ steps.rollback_deployment.outputs.page_url }}"
           if [ -z "$page_url" ]; then
@@ -389,7 +391,7 @@ jobs:
             --name verify-rollback \
             --report-dir deploy-evidence/stages \
             --timeout 600 \
-            -- python scripts/verify_pages_deployment.py "$page_url" --public-key "$CS_PUBLIC_KEY" --report-file deploy-evidence/rollback-smoke-report.json
+            -- python scripts/verify_pages_deployment.py "$page_url" "${verify_args[@]}" --report-file deploy-evidence/rollback-smoke-report.json
           rollback_status=$(python -c 'import json; print(json.load(open("deploy-evidence/stages/verify-rollback.json", encoding="utf-8"))["status"])')
           test "$rollback_status" = success
       - name: Record rollback action outcomes
