@@ -51,7 +51,8 @@ def validate(root: Path) -> list[str]:
 
     # Pages may consume only the canonical production pipeline. Retest rewrites
     # output contracts but does not execute the release-gate/native/promotion
-    # sequence above, so it must never be a production deployment source.
+    # sequence above, so it must never appear anywhere in the production Pages
+    # workflow as a trigger, source allowlist entry, or special-case bypass.
     if 'workflows: ["Config\'s Stream"]' not in deploy:
         errors.append(
             "Pages workflow_run trigger must listen only to the canonical Config's Stream workflow"
@@ -60,14 +61,8 @@ def validate(root: Path) -> list[str]:
         errors.append(
             "Pages source allowlist must contain only the canonical Config's Stream workflow"
         )
-    if 'workflows: ["Config\'s Stream", "Retest"]' in deploy or (
-        'allowed_workflows = {"Config\'s Stream", "Retest"}' in deploy
-    ):
-        errors.append("Retest must not be eligible as a Pages deployment source")
-    if 'source_name" = Retest' in deploy or "source_name\" = Retest" in deploy:
-        errors.append(
-            "Pages deployment must not carry a Retest-specific publication bypass"
-        )
+    if "Retest" in deploy:
+        errors.append("Retest must not appear in the Pages deployment workflow")
 
     snapshot_controls = (
         "python scripts/snapshot_pages_release.py",
