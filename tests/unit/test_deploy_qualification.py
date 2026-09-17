@@ -40,8 +40,14 @@ def test_live_pages_smoke_receives_candidate_identity_and_public_key() -> None:
     assert '--expected-run-id "$EXPECTED_SOURCE_RUN_ID"' in workflow
     assert '--expected-digest "$manifest_digest"' in workflow
     assert "CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}" in workflow
-    assert 'if [ -n "${CS_PUBLIC_KEY:-}" ]; then' in workflow
     assert (
-        "verifying deployment identity and integrity without signature validation"
+        "ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'false' }}" in workflow
+    )
+    assert 'if [ -n "${CS_PUBLIC_KEY:-}" ]; then' in workflow
+    assert 'signature_policy_args+=(--public-key "$CS_PUBLIC_KEY")' in workflow
+    assert 'if [ "${ALLOW_UNSIGNED_PAGES:-false}" = true ]; then' in workflow
+    assert "signature_policy_args+=(--allow-unsigned)" in workflow
+    assert (
+        'python scripts/validate_pages_signature_policy.py output "${signature_policy_args[@]}"'
         in workflow
     )

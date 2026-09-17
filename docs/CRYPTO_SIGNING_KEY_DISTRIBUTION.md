@@ -60,21 +60,36 @@ This document describes the current Ed25519 signing pipeline, frontend verificat
 
 - **Manifest private key**: runtime signing helpers accept `CS_SIGNING_PRIVATE_KEY_HEX` and retain `CONFIGSTREAM_SIGNING_PRIVATE_KEY_HEX` as a legacy direct-invocation alias. The production workflow exposes the canonical secret name only.
 - **Public/private binding**: release preflight rejects malformed key material and rejects a configured `CS_PUBLIC_KEY` that does not match the signing private key. Promotion re-signs the final manifest, verifies the produced signature immediately, and—when `CS_PUBLIC_KEY` is configured—verifies the signature against that configured distribution key before publication can continue.
-- **Final release verification**: the final artifact contract receives `CS_PUBLIC_KEY`, so a signed release is cryptographically checked against the configured distribution trust anchor rather than only validating signature shape or file hashes.
+- **Pages trust boundary**: artifact generation and Pages deployment are intentionally separate trust decisions. Signed Pages publication requires an independently configured matching `CS_PUBLIC_KEY` secret. The deployment workflow checks the candidate, last-known-good snapshot, deployed candidate, and restored rollback against the same policy.
+- **Explicit unsigned policy**: `ALLOW_UNSIGNED_PAGES=true` is a repository Variable that permits genuinely unsigned Pages artifacts. It defaults to false when absent. It never authorizes a signed artifact whose public trust anchor is missing or invalid.
+- **Final release verification**: the final artifact contract receives `CS_PUBLIC_KEY` when configured, so signed releases are cryptographically checked against the configured distribution trust anchor rather than only validating signature shape or file hashes.
 - **Frontend allowlist**: runtime-config generation deliberately ignores unrelated secrets that may exist in the CI environment. Only the public Ed25519 verification key and public IPNS routing key are selected for browser publication.
 - **Archive scanning**: Pages-artifact validation scans deployable archives for forbidden secret markers and other credential-like material.
 - **Telemetry scrubbing**: pipeline-event validation checks for credential markers such as bearer/authorization material and known placeholder secret strings.
 
 ### 4.1 Production GitHub Actions bootstrap
 
-The production release path supports both unsigned and signed publication. The `Validate main release prerequisites` step runs for non-pull-request executions on `refs/heads/main` before release fan-out and validates any configured signing material.
+The canonical generation path supports unsigned and signed artifacts, but Pages publication is secure-by-default and requires an explicit trust decision.
 
-1. **Unsigned mode**: when neither `CS_SIGNING_PRIVATE_KEY_HEX` nor `CS_PUBLIC_KEY` is configured, release preflight may proceed in explicit unsigned mode. Artifact hashes, source-coverage gates, native-client checks, release gating, and publication controls still apply.
-2. **Signed mode**: provision `CS_SIGNING_PRIVATE_KEY_HEX` through the authorized GitHub Actions secret path. Never echo or serialize the private key into artifacts or logs.
-3. **Optional explicit public key**: `CS_PUBLIC_KEY` may accompany the private key. If omitted, the browser verification key is derived from the private key. If supplied, preflight and promotion require it to match the signing key.
-4. **No public-key-only signed configuration**: a public key without signing material is rejected because the release could advertise a trust anchor while being unable to produce matching signatures.
-5. **Legacy alias migration**: direct/external callers may still use `CONFIGSTREAM_SIGNING_PRIVATE_KEY_HEX`; GitHub Actions should use `CS_SIGNING_PRIVATE_KEY_HEX`.
-6. **Public runtime config is not a secret store**: do not add `STEGO_KEY`, `CONFIG_STREAM_KEY`, API tokens, signing keys, or any other confidential value to `runtime-config.js`.
+1. **Signed mode (recommended)**: provision `CS_SIGNING_PRIVATE_KEY_HEX` and the exact matching `CS_PUBLIC_KEY` as GitHub Actions repository secrets. The private key is used for signing; the public key independently authenticates what the Pages workflow receives and what it later observes over the network.
+2. **Unsigned generation**: when neither signing value is configured, release preflight may generate an unsigned canonical artifact. Artifact hashes, source-coverage gates, native-client checks, release gating, and publication controls still apply.
+3. **Unsigned Pages publication is explicit**: to intentionally publish that unsigned artifact through GitHub Pages, create the repository Variable `ALLOW_UNSIGNED_PAGES=true`. If the variable is absent or false, unsigned Pages deployment fails closed before production mutation.
+4. **No signed-to-unsigned downgrade**: if `artifact_manifest.json` contains `manifest_signature`, Pages requires a valid `CS_PUBLIC_KEY`. `ALLOW_UNSIGNED_PAGES=true` cannot convert a signed artifact into an unsigned trust decision.
+5. **No public-key-only signing configuration**: main release preflight rejects `CS_PUBLIC_KEY` without signing material because the canonical release would advertise a trust anchor while being unable to produce matching signatures.
+6. **Derived browser key vs deployment trust anchor**: artifact generation can derive the browser verification key from `CS_SIGNING_PRIVATE_KEY_HEX`, but Pages deliberately uses the separately configured `CS_PUBLIC_KEY` secret as an independent trust anchor. For signed Pages operation, configure both values.
+7. **Legacy alias migration**: direct/external callers may still use `CONFIGSTREAM_SIGNING_PRIVATE_KEY_HEX`; GitHub Actions should use `CS_SIGNING_PRIVATE_KEY_HEX`.
+8. **Public runtime config is not a secret store**: do not add `STEGO_KEY`, `CONFIG_STREAM_KEY`, API tokens, signing keys, or any other confidential value to `runtime-config.js`.
+
+### 4.2 Pages verification boundaries
+
+The Pages workflow applies the same policy at four points so one stage cannot silently weaken another:
+
+1. **Candidate before upload**: validate the sealed manifest before any Pages artifact is uploaded.
+2. **Last-known-good snapshot**: validate the currently deployed snapshot before accepting it as rollback material.
+3. **Candidate after deployment**: verify the deployed release identity/integrity and pass `CS_PUBLIC_KEY` to remote verification when signed mode is active.
+4. **Rollback after restoration**: re-check the last-known-good policy and verify the restored site with the same public trust anchor when signed mode is active.
+
+This means a missing key, invalid key, invalid signature, or implicit unsigned fallback cannot be hidden by a later deployment or rollback step.
 
 ## 5. Remaining hardening considerations
 

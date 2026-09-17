@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   workflow_run:
-    workflows: ["Config's Stream", "Retest"]
+    workflows: ["Config's Stream"]
     types: [completed]
     branches: [main]
   workflow_dispatch:
@@ -45,7 +45,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
-          EVENT_NAME: ${{ github.event_name }}
           TRIGGER_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || inputs.run_id }}
         run: |
           set -euo pipefail
@@ -55,18 +54,11 @@ jobs:
             exit 1
           fi
 
-          source_name=$(gh api "repos/${REPOSITORY}/actions/runs/${selected}" --jq '.name')
           artifact_count=$(gh api "repos/${REPOSITORY}/actions/runs/${selected}/artifacts?per_page=100" \
             --jq '[.artifacts[] | select(.name == "pipeline-output" and .expired == false)] | length')
 
           if [ "$artifact_count" -gt 0 ]; then
             echo "has_candidate=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          if [ "$EVENT_NAME" = workflow_run ] && [ "$source_name" = Retest ]; then
-            echo "has_candidate=false" >> "$GITHUB_OUTPUT"
-            echo "Retest run $selected completed successfully without pipeline-output; deployment is intentionally skipped." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
 
@@ -125,7 +117,7 @@ jobs:
           from pathlib import Path
 
           payload = json.loads(Path("deploy-evidence/source-run.json").read_text(encoding="utf-8"))
-          allowed_workflows = {"Config's Stream", "Retest"}
+          allowed_workflows = {"Config's Stream"}
           if payload.get("conclusion") != "success":
               raise SystemExit("source run did not succeed")
           if payload.get("head_branch") != "main":
@@ -178,6 +170,8 @@ jobs:
         if: always()
         env:
           EXPECTED_SOURCE_SHA: ${{ steps.locate.outputs.source_head_sha }}
+          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
+          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'false' }}
         run: |
           set -euo pipefail
           if [ "${HAS_OUTPUT:-false}" != true ]; then
@@ -196,6 +190,14 @@ jobs:
             --timeout 600 \
             -- bash -lc '
               set -euo pipefail
+              signature_policy_args=()
+              if [ -n "${CS_PUBLIC_KEY:-}" ]; then
+                signature_policy_args+=(--public-key "$CS_PUBLIC_KEY")
+              fi
+              if [ "${ALLOW_UNSIGNED_PAGES:-false}" = true ]; then
+                signature_policy_args+=(--allow-unsigned)
+              fi
+              python scripts/validate_pages_signature_policy.py output "${signature_policy_args[@]}"
               before=$(find output -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d" " -f1)
               python scripts/validate_frontend_placeholders.py --strict output
               python scripts/validate_pages_artifact.py output
@@ -231,6 +233,7 @@ jobs:
         continue-on-error: true
         env:
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
+          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'false' }}
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
@@ -244,6 +247,14 @@ jobs:
             "$page_url" \
             last-known-good \
             --report-file deploy-evidence/last-known-good-snapshot.json
+          signature_policy_args=()
+          if [ -n "${CS_PUBLIC_KEY:-}" ]; then
+            signature_policy_args+=(--public-key "$CS_PUBLIC_KEY")
+          fi
+          if [ "${ALLOW_UNSIGNED_PAGES:-false}" = true ]; then
+            signature_policy_args+=(--allow-unsigned)
+          fi
+          python scripts/validate_pages_signature_policy.py last-known-good "${signature_policy_args[@]}"
       - name: Record last-known-good availability
         if: always()
         run: |
@@ -268,6 +279,59 @@ jobs:
             echo "DEPLOY_READY=false" >> "$GITHUB_ENV"
             python scripts/resilient_stage.py record --name rollback-baseline --status failed --exit-code 1 --report-dir deploy-evidence/stages --description "Deployment blocked because no verified rollback baseline is available"
           fi
+      - name: Require source run to remain current main before publication
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          EXPECTED_SOURCE_SHA: ${{ steps.locate.outputs.source_head_sha }}
+        run: |
+          set -euo pipefail
+          if [ "${DEPLOY_READY:-false}" != true ] || [ "${ROLLBACK_READY:-false}" != true ]; then
+            echo "DEPLOY_READY=false" >> "$GITHUB_ENV"
+            python scripts/resilient_stage.py record \
+              --name source-freshness \
+              --status failed \
+              --exit-code 1 \
+              --report-dir deploy-evidence/stages \
+              --description "Freshness gate could not pass because earlier deployment prerequisites failed"
+            exit 0
+          fi
+          if [ -z "${EXPECTED_SOURCE_SHA:-}" ]; then
+            echo "DEPLOY_READY=false" >> "$GITHUB_ENV"
+            python scripts/resilient_stage.py record \
+              --name source-freshness \
+              --status failed \
+              --exit-code 1 \
+              --report-dir deploy-evidence/stages \
+              --description "Freshness gate has no authenticated source SHA"
+            exit 0
+          fi
+          if ! current_main=$(gh api "repos/${REPOSITORY}/branches/main" --jq '.commit.sha'); then
+            echo "DEPLOY_READY=false" >> "$GITHUB_ENV"
+            python scripts/resilient_stage.py record \
+              --name source-freshness \
+              --status failed \
+              --exit-code 1 \
+              --report-dir deploy-evidence/stages \
+              --description "Could not resolve the current main revision"
+            exit 0
+          fi
+          if [ "$current_main" != "$EXPECTED_SOURCE_SHA" ]; then
+            echo "DEPLOY_READY=false" >> "$GITHUB_ENV"
+            python scripts/resilient_stage.py record \
+              --name source-freshness \
+              --status failed \
+              --exit-code 1 \
+              --report-dir deploy-evidence/stages \
+              --description "Source run is stale: ${EXPECTED_SOURCE_SHA} is not current main ${current_main}"
+            exit 0
+          fi
+          python scripts/resilient_stage.py record \
+            --name source-freshness \
+            --status success \
+            --report-dir deploy-evidence/stages \
+            --description "Authenticated source revision is still current main"
       - name: Upload last-known-good rollback artifact
         id: rollback_artifact
         if: env.HAS_LKG == 'true'
@@ -316,6 +380,7 @@ jobs:
           EXPECTED_SOURCE_SHA: ${{ steps.locate.outputs.source_head_sha }}
           EXPECTED_SOURCE_RUN_ID: ${{ steps.locate.outputs.source_run_id }}
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
+          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'false' }}
         run: |
           set -euo pipefail
           page_url="${{ steps.deployment.outputs.page_url }}"
@@ -326,11 +391,15 @@ jobs:
               --expected-run-id "$EXPECTED_SOURCE_RUN_ID"
               --expected-digest "$manifest_digest"
             )
+            signature_policy_args=()
             if [ -n "${CS_PUBLIC_KEY:-}" ]; then
+              signature_policy_args+=(--public-key "$CS_PUBLIC_KEY")
               verify_args+=(--public-key "$CS_PUBLIC_KEY")
-            else
-              echo "CS_PUBLIC_KEY is not configured; verifying deployment identity and integrity without signature validation"
             fi
+            if [ "${ALLOW_UNSIGNED_PAGES:-false}" = true ]; then
+              signature_policy_args+=(--allow-unsigned)
+            fi
+            python scripts/validate_pages_signature_policy.py output "${signature_policy_args[@]}"
             python scripts/resilient_stage.py run \
               --name smoke-pages \
               --report-dir deploy-evidence/stages \
@@ -358,17 +427,30 @@ jobs:
           fi
       - name: Restore last-known-good Pages release
         id: rollback_deployment
-        if: always() && env.SMOKE_OK != 'true' && env.HAS_LKG == 'true' && steps.rollback_artifact.outcome == 'success'
+        if: always() && env.SMOKE_OK != 'true' && env.HAS_LKG == 'true' && steps.rollback_artifact.outcome == 'success' && (steps.deployment.outcome == 'success' || steps.deployment.outcome == 'failure')
         continue-on-error: true
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5
         with:
           artifact_name: github-pages-last-known-good
       - name: Verify rollback restoration
         id: verify_rollback
-        if: always() && env.SMOKE_OK != 'true' && env.HAS_LKG == 'true' && steps.rollback_artifact.outcome == 'success'
+        if: always() && env.SMOKE_OK != 'true' && env.HAS_LKG == 'true' && steps.rollback_artifact.outcome == 'success' && (steps.deployment.outcome == 'success' || steps.deployment.outcome == 'failure')
         continue-on-error: true
+        env:
+          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
+          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'false' }}
         run: |
           set -euo pipefail
+          signature_policy_args=()
+          verify_args=()
+          if [ -n "${CS_PUBLIC_KEY:-}" ]; then
+            signature_policy_args+=(--public-key "$CS_PUBLIC_KEY")
+            verify_args+=(--public-key "$CS_PUBLIC_KEY")
+          fi
+          if [ "${ALLOW_UNSIGNED_PAGES:-false}" = true ]; then
+            signature_policy_args+=(--allow-unsigned)
+          fi
+          python scripts/validate_pages_signature_policy.py last-known-good "${signature_policy_args[@]}"
           page_url="${{ steps.rollback_deployment.outputs.page_url }}"
           if [ -z "$page_url" ]; then
             repo_name="${GITHUB_REPOSITORY#*/}"
@@ -378,7 +460,7 @@ jobs:
             --name verify-rollback \
             --report-dir deploy-evidence/stages \
             --timeout 600 \
-            -- python scripts/verify_pages_deployment.py "$page_url" --report-file deploy-evidence/rollback-smoke-report.json
+            -- python scripts/verify_pages_deployment.py "$page_url" "${verify_args[@]}" --report-file deploy-evidence/rollback-smoke-report.json
           rollback_status=$(python -c 'import json; print(json.load(open("deploy-evidence/stages/verify-rollback.json", encoding="utf-8"))["status"])')
           test "$rollback_status" = success
       - name: Record rollback action outcomes
@@ -421,6 +503,7 @@ jobs:
             --required-stage locate-pipeline-output \
             --required-stage verify-sealed-pages-artifact \
             --required-stage rollback-baseline \
+            --required-stage source-freshness \
             --required-stage upload-pages-artifact \
             --required-stage deploy-pages \
             --required-stage smoke-pages \

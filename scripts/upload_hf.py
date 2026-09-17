@@ -86,8 +86,8 @@ def _git_lfs_available() -> bool:
     try:
         _run(["git", "lfs", "version"])
         return True
-    except Exception:
-        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+    except (OSError, subprocess.SubprocessError):
+        logger.debug("Git LFS is unavailable", exc_info=True)
         return False
 
 
@@ -180,7 +180,7 @@ def upload_to_hf(
             )
             logger.info("Git LFS mirror sync complete: %s", url)
             return
-        except Exception as exc:
+        except (OSError, subprocess.SubprocessError, RuntimeError) as exc:
             logger.warning("Git LFS sync failed; falling back to API upload: %s", exc)
 
     api = HfApi(token=token)

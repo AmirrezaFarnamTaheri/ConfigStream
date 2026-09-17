@@ -93,8 +93,8 @@ def pin_to_ipfs(filepath: str, jwt: str) -> str:
         return _pin_to_ipfs_legacy(filepath, jwt)
     try:
         return _pin_single_file_v3(filepath, jwt)
-    except Exception:
-        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+    except (OSError, httpx.HTTPError, RuntimeError):
+        logging.getLogger(__name__).debug("Pinata v3 fallback", exc_info=True)
         return _pin_to_ipfs_legacy(filepath, jwt)
 
 
@@ -119,7 +119,7 @@ def publish_ipns(cid: str, ipns_key: str) -> None:
             timeout=300,
         )
         print("IPNS publish successful.")
-    except Exception as e:
+    except (OSError, subprocess.SubprocessError) as e:
         print(f"Failed to publish to IPNS: {e}")
 
 
@@ -208,6 +208,9 @@ def main():
     )
 
     args = parser.parse_args()
+    # Resolve environment-backed options before any publication side effects.
+    # Keep normalization independent from external network operations.
+    # The final recovery boundary only sanitizes operational failures.
 
     if not os.path.exists(args.file) or not os.access(args.file, os.R_OK):
         print(f"Error: Path not found or not readable: {args.file}")

@@ -15,6 +15,15 @@ BUDGET = ROOT / "config" / "exception-boundary-budget.json"
 SCAN_ROOTS = (ROOT / "src" / "configstream", ROOT / "scripts")
 
 
+def _is_broad_handler(handler: ast.ExceptHandler) -> bool:
+    if handler.type is None:
+        return True
+    return isinstance(handler.type, ast.Name) and handler.type.id in {
+        "Exception",
+        "BaseException",
+    }
+
+
 def count_boundaries() -> dict[str, int]:
     counts: dict[str, int] = {}
     for scan_root in SCAN_ROOTS:
@@ -28,17 +37,40 @@ def count_boundaries() -> dict[str, int]:
             for node in ast.walk(tree):
                 if not isinstance(node, ast.Try):
                     continue
-                for handler in node.handlers:
-                    if handler.type is None:
-                        count += 1
-                    elif isinstance(handler.type, ast.Name) and handler.type.id in {
-                        "Exception",
-                        "BaseException",
-                    }:
-                        count += 1
+                count += sum(_is_broad_handler(handler) for handler in node.handlers)
             if count:
                 counts[relative] = count
     return counts
+
+
+def find_silent_broad_passes() -> list[str]:
+    """Return broad handlers that silently discard failures with only ``pass``.
+
+    Broad recovery boundaries remain ratcheted by count, but an unobservable
+    ``except Exception: pass`` (or bare ``except: pass``) is categorically
+    forbidden. Logged/re-raised handlers and explicit deterministic fallback
+    behavior remain reviewable under the existing path budget.
+    """
+
+    violations: list[str] = []
+    for scan_root in SCAN_ROOTS:
+        for path in sorted(scan_root.rglob("*.py")):
+            relative = path.relative_to(ROOT).as_posix()
+            try:
+                tree = ast.parse(path.read_text(encoding="utf-8"))
+            except (OSError, SyntaxError):
+                continue
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.Try):
+                    continue
+                for handler in node.handlers:
+                    if not _is_broad_handler(handler):
+                        continue
+                    if handler.body and all(
+                        isinstance(statement, ast.Pass) for statement in handler.body
+                    ):
+                        violations.append(f"{relative}:{handler.lineno}")
+    return violations
 
 
 def build_budget() -> dict[str, object]:
@@ -47,9 +79,9 @@ def build_budget() -> dict[str, object]:
         "schema_version": 1,
         "policy": {
             "scope": ["src/configstream/**/*.py", "scripts/**/*.py"],
-            "rule": "exact ratchet: new boundaries and stale ceilings fail CI",
+            "rule": "exact ratchet: new boundaries and stale ceilings fail CI; silent broad pass handlers are forbidden",
             "target_total": 0,
-            "required_boundary_behavior": "catch only at a recovery or translation boundary; preserve cancellation and fail closed for security/publication",
+            "required_boundary_behavior": "catch only at a recovery or translation boundary; preserve cancellation and fail closed for security/publication; never silently discard a broad exception with pass",
         },
         "total_ceiling": sum(counts.values()),
         "path_ceilings": counts,
@@ -90,6 +122,8 @@ def validate() -> list[str]:
         errors.append(
             f"total broad exception budget is stale: actual={total}, ceiling={ceiling_total}"
         )
+    for location in find_silent_broad_passes():
+        errors.append(f"silent broad exception pass is forbidden: {location}")
     return errors
 
 
@@ -112,7 +146,7 @@ def main() -> int:
             print(f"  - {error}", file=sys.stderr)
         return 1
     print(
-        f"OK: exception boundary budget exact ({sum(count_boundaries().values())} boundaries)."
+        f"OK: exception boundary budget exact ({sum(count_boundaries().values())} boundaries); no silent broad pass handlers."
     )
     return 0
 

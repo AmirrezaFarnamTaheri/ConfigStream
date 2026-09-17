@@ -135,6 +135,8 @@ def test_preemption_workflow_is_narrow_and_race_safe() -> None:
     assert "actions: write" in workflow
     assert "contents: read" in workflow
     assert "pull_request:" not in workflow
+    assert "\n  push:\n" not in workflow
+    assert "github.event_name == 'push'" not in workflow
     assert "TARGET_SHA" in workflow
     assert "TARGET_RUN_ID" in workflow
     assert "run_id > TARGET_RUN_ID" in workflow
@@ -182,3 +184,22 @@ def test_byow_bridge_bounds_and_serializes_websocket_writes() -> None:
     assert "pendingMessages = Math.max(0, pendingMessages - 1)" in worker
     assert "queuedBytes = Math.max(0, queuedBytes - chunk.byteLength)" in worker
     assert ".then(() => writeChunk(chunk))" in worker
+
+
+def test_ipfs_fallback_only_catches_operational_failures() -> None:
+    publisher = (ROOT / "scripts/publish_ipfs.py").read_text(encoding="utf-8")
+
+    assert "except (OSError, httpx.HTTPError, RuntimeError):" in publisher
+    assert "except (OSError, subprocess.SubprocessError) as e:" in publisher
+    assert publisher.count("except Exception") == 1
+
+
+def test_hugging_face_fallback_only_catches_operational_failures() -> None:
+    publisher = (ROOT / "scripts/upload_hf.py").read_text(encoding="utf-8")
+
+    assert "except (OSError, subprocess.SubprocessError):" in publisher
+    assert (
+        "except (OSError, subprocess.SubprocessError, RuntimeError) as exc:"
+        in publisher
+    )
+    assert publisher.count("except Exception") == 1
