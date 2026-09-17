@@ -21,6 +21,7 @@ jobs:
       - name: Regenerate governed evidence
         run: |
           set -euo pipefail
+          # Regenerate all line-sensitive governance artifacts on the final permanent tree.
           python scripts/generate_environment_catalog.py
           python scripts/generate_debt_matrix.py
           git diff --check
