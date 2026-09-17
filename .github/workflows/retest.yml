@@ -2,8 +2,9 @@ name: Retest
 
 on:
   schedule:
-    - cron: "0 */4 * * *"
-    - cron: "30 1-23/4 * * *" # Alternating every 2h (4h base with 30m offset)
+    # Main runs every four hours at minute 0. Retest runs halfway between
+    # main cycles so the normal schedule does not contend for the same window.
+    - cron: "0 2-22/4 * * *"
   workflow_dispatch:
 
 # Concurrency: only one retest run active at a time.
@@ -118,42 +119,32 @@ jobs:
           FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "Checking for active main-branch pipeline runs..."
-          ACTIVE_RUN=$(gh run list \
-            --workflow="main.yml" \
-            --branch=main \
-            --status="in_progress" \
-            --json databaseId,startedAt,status \
-            --limit 1 \
-            --jq '.[0] | select(.status == "in_progress")')
+          set -euo pipefail
+          echo "Checking for queued or active main-branch pipeline runs..."
+          active="$(mktemp)"
+          trap 'rm -f "$active"' EXIT
 
+          for status in queued in_progress; do
+            gh api --paginate \
+              -H 'Accept: application/vnd.github+json' \
+              "/repos/${GITHUB_REPOSITORY}/actions/workflows/main.yml/runs?branch=main&status=${status}&per_page=100" \
+              --jq '.workflow_runs[] | [.id, .status, .created_at] | @tsv' >> "$active"
+          done
+
+          ACTIVE_RUN="$(sort -u "$active" | head -n 1)"
           if [ -z "$ACTIVE_RUN" ]; then
-            echo "No active main pipeline run found. Proceeding with retest."
+            echo "No queued or active main pipeline run found. Proceeding with retest."
             echo "should_cancel=false" >> "$GITHUB_OUTPUT"
           else
-            START_TIME=$(echo "$ACTIVE_RUN" | jq -r '.startedAt')
-            START_EPOCH=$(date -d "$START_TIME" +%s)
-            NOW_EPOCH=$(date +%s)
-            ELAPSED=$((NOW_EPOCH - START_EPOCH))
-            ELAPSED_HOURS=$((ELAPSED / 3600))
-
-            echo "Active main pipeline found. Started at: $START_TIME"
-            echo "Elapsed time: ${ELAPSED}s (${ELAPSED_HOURS}h)"
-
-            if [ $ELAPSED -lt 5400 ]; then
-              echo "Pipeline started less than 1.5 hours ago. Cancelling retest to avoid conflicts."
-              echo "should_cancel=true" >> "$GITHUB_OUTPUT"
-            else
-              echo "Pipeline has been running for more than 1.5 hours. Proceeding with retest."
-              echo "should_cancel=false" >> "$GITHUB_OUTPUT"
-            fi
+            echo "Main pipeline has priority over Retest: $ACTIVE_RUN"
+            echo "should_cancel=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Exit if pipeline is running
+      - name: Exit if pipeline is queued or running
         if: steps.check_pipeline.outputs.should_cancel == 'true'
         run: |
-          echo "Retest cancelled: main pipeline is currently running and started less than 1.5 hours ago."
-          echo "The next retest will run at the next scheduled window."
+          echo "Retest skipped: a main pipeline run is queued or active."
+          echo "The next retest will run at the next eligible window."
           exit 0
 
       - name: Download latest successful main pipeline output
@@ -191,10 +182,10 @@ jobs:
         if: steps.check_pipeline.outputs.should_cancel != 'true'
         run: |
           if [ ! -s output/proxies.json ]; then
-            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "skip=true" >> "$GITHUB_OUTPUT"
             echo "No previous output/proxies.json or file is empty; skipping retest."
           else
-            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Retest last export
