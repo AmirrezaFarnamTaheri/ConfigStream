@@ -110,6 +110,7 @@ jobs:
         run: |
           python scripts/generate_environment_catalog.py
           python scripts/generate_debt_matrix.py
+          python scripts/generate_triage_report.py
       - name: Verify final repository contracts
         shell: bash
         run: |
@@ -141,7 +142,8 @@ jobs:
             docs/DEBT_MATRIX.md \
             docs/debt_matrix.json \
             docs/generated/environment-variables.md \
-            docs/generated/environment-variables.json
+            docs/generated/environment-variables.json \
+            TRIAGE_REPORT.md
           if git diff --cached --quiet; then
             echo 'No remediation changes to commit'
             exit 1
