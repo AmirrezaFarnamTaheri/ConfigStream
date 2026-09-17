@@ -1,0 +1,29 @@
+name: Stage Current Release Integrity Updates
+
+on:
+  push:
+    branches: [agent/harden-release-deploy-integrity]
+    paths:
+      - '.github/workflows/stage-release-integrity-current.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: stage-release-integrity-current
+  cancel-in-progress: true
+
+jobs:
+  stage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Transform and stage exact workflow bytes
+        run: |
+          set -euo pipefail
+          python scripts/_stage_release_integrity.py
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add .ci-staging/deploy-pages.yml .ci-staging/release.yml
+          git commit -m 'ci: stage audited release workflow bytes'
+          git push
