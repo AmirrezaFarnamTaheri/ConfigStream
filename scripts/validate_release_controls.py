@@ -84,6 +84,7 @@ def validate(root: Path) -> list[str]:
         "Upload last-known-good rollback artifact",
         "Restore last-known-good Pages release",
         "steps.rollback_artifact.outcome == 'success'",
+        "steps.deployment.outcome == 'success' || steps.deployment.outcome == 'failure'",
         "verify-rollback",
         "rollback-smoke-report.json",
     )
@@ -115,6 +116,14 @@ def validate(root: Path) -> list[str]:
         errors.append(
             "Pages rollback signature policy must run when snapshotting and when verifying restoration"
         )
+    if 'signature_policy_args+=(--public-key "$CS_PUBLIC_KEY")' not in deploy:
+        errors.append(
+            "signed Pages policy validation must receive the configured public key explicitly"
+        )
+    if "signature_policy_args+=(--allow-unsigned)" not in deploy:
+        errors.append(
+            "unsigned Pages publication must require an explicit policy argument"
+        )
     if 'verify_args+=(--public-key "$CS_PUBLIC_KEY")' not in deploy:
         errors.append(
             "signed Pages deployment must pass the configured public key to smoke verification"
@@ -124,14 +133,40 @@ def validate(root: Path) -> list[str]:
             "Pages deployment must not use an implicit missing-key unsigned fallback"
         )
 
+    freshness_controls = (
+        "Require source run to remain current main before publication",
+        'gh api "repos/${REPOSITORY}/branches/main" --jq \'.commit.sha\'',
+        "EXPECTED_SOURCE_SHA: ${{ steps.locate.outputs.source_head_sha }}",
+        "--name source-freshness",
+        "--required-stage source-freshness",
+        "Authenticated source revision is still current main",
+    )
+    for control in freshness_controls:
+        if control not in deploy:
+            errors.append(f"Pages deployment missing source freshness control: {control}")
+    freshness_position = deploy.find(
+        "Require source run to remain current main before publication"
+    )
+    candidate_upload_position = deploy.find("Upload sealed Pages artifact")
+    if (
+        freshness_position < 0
+        or candidate_upload_position < 0
+        or freshness_position > candidate_upload_position
+    ):
+        errors.append(
+            "Pages source freshness must be checked before the candidate can be uploaded or deployed"
+        )
+
     signature_policy = (
         root / "scripts/validate_pages_signature_policy.py"
     ).read_text(encoding="utf-8")
     for control in (
-        "ALLOW_UNSIGNED_PAGES",
+        "--allow-unsigned",
+        "--public-key",
         "signed artifacts must never be accepted without a trust anchor",
         "unsigned Pages publication is disabled by default",
-        "CS_PUBLIC_KEY is configured but is not a valid Ed25519 public key",
+        "configured Pages public key is not a valid Ed25519 public key",
+        "Signer.verify_manifest_signature",
     ):
         if control not in signature_policy:
             errors.append(f"Pages signature policy missing fail-closed control: {control}")
@@ -171,7 +206,7 @@ def main() -> int:
             print(f"  - {error}")
         return 1
     print(
-        "OK: canonical source, native validation, explicit Pages signature policy, main-history provenance, rollback, and frontend fail-closed controls are intact"
+        "OK: canonical source, native validation, explicit Pages signature policy, current-main freshness, main-history provenance, rollback, and frontend fail-closed controls are intact"
     )
     return 0
 
