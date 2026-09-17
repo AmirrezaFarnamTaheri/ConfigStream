@@ -72,6 +72,40 @@ def validate(root: Path) -> list[str]:
                 f"Pages deployment missing rollback restoration control: {control}"
             )
 
+    public_key_binding = "CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}"
+    if deploy.count(public_key_binding) < 3:
+        errors.append(
+            "Pages deployment must bind CS_PUBLIC_KEY at pre-deploy, rollback-snapshot, and post-deploy verification boundaries"
+        )
+    pages_signature_controls = (
+        "CS_PUBLIC_KEY must be configured for Pages artifact verification",
+        "CS_PUBLIC_KEY must be configured for Pages deployment verification",
+        'verify_args+=(--public-key "$CS_PUBLIC_KEY")',
+    )
+    for control in pages_signature_controls:
+        if control not in deploy:
+            errors.append(
+                f"Pages deployment missing fail-closed signature verification control: {control}"
+            )
+    if "without signature validation" in deploy:
+        errors.append(
+            "Pages deployment must not fall back to unsigned production verification"
+        )
+
+    release = (root / ".github/workflows/release.yml").read_text(encoding="utf-8")
+    release_provenance_controls = (
+        "fetch-depth: 0",
+        "git fetch --no-tags origin main:refs/remotes/origin/main",
+        'git rev-list -n 1 "$GITHUB_REF_NAME"',
+        'git merge-base --is-ancestor "$tag_commit" refs/remotes/origin/main',
+        "Release tag must point to a commit reachable from main",
+    )
+    for control in release_provenance_controls:
+        if control not in release:
+            errors.append(
+                f"tagged release missing main-history provenance control: {control}"
+            )
+
     frontend = (root / "frontend/assets/js/artifact-state.js").read_text(
         encoding="utf-8"
     )
@@ -93,7 +127,7 @@ def main() -> int:
             print(f"  - {error}")
         return 1
     print(
-        "OK: native validation, transactional promotion, rollback, and frontend fail-closed controls are intact"
+        "OK: native validation, signed deployment, main-history provenance, rollback, and frontend fail-closed controls are intact"
     )
     return 0
 
