@@ -199,6 +199,7 @@ def test_hugging_face_fallback_only_catches_operational_failures() -> None:
 
     assert "except (OSError, subprocess.SubprocessError):" in publisher
     assert (
-        "except (OSError, subprocess.SubprocessError, RuntimeError) as exc:" in publisher
+        "except (OSError, subprocess.SubprocessError, RuntimeError) as exc:"
+        in publisher
     )
     assert publisher.count("except Exception") == 1
