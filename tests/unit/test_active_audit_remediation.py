@@ -184,3 +184,11 @@ def test_byow_bridge_bounds_and_serializes_websocket_writes() -> None:
     assert "pendingMessages = Math.max(0, pendingMessages - 1)" in worker
     assert "queuedBytes = Math.max(0, queuedBytes - chunk.byteLength)" in worker
     assert ".then(() => writeChunk(chunk))" in worker
+
+
+def test_ipfs_fallback_only_catches_operational_failures() -> None:
+    publisher = (ROOT / "scripts/publish_ipfs.py").read_text(encoding="utf-8")
+
+    assert "except (OSError, httpx.HTTPError, RuntimeError):" in publisher
+    assert "except (OSError, subprocess.SubprocessError) as e:" in publisher
+    assert publisher.count("except Exception") == 1
