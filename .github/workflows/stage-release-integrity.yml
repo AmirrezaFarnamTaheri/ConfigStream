@@ -1,0 +1,135 @@
+name: Stage Release Integrity Updates
+
+on:
+  push:
+    branches: [agent/harden-release-deploy-integrity]
+    paths:
+      - '.github/workflows/stage-release-integrity.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  stage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Build audited workflow replacements
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          root = Path('.')
+          staging = root / '.ci-staging'
+          staging.mkdir(exist_ok=True)
+
+          deploy = (root / '.github/workflows/deploy-pages.yml').read_text(encoding='utf-8')
+          expected_sha_expr = '$' + '{{ steps.locate.outputs.source_head_sha }}'
+          public_key_expr = '$' + '{{ secrets.CS_PUBLIC_KEY }}'
+
+          old = (
+              '        env:\n'
+              f'          EXPECTED_SOURCE_SHA: {expected_sha_expr}\n'
+              '        run: |\n'
+          )
+          new = (
+              '        env:\n'
+              f'          EXPECTED_SOURCE_SHA: {expected_sha_expr}\n'
+              f'          CS_PUBLIC_KEY: {public_key_expr}\n'
+              '        run: |\n'
+          )
+          if deploy.count(old) != 1:
+              raise SystemExit(f'expected one pre-deploy verification env block, found {deploy.count(old)}')
+          deploy = deploy.replace(old, new, 1)
+
+          old = (
+              "              set -euo pipefail\n"
+              "              before=$(find output -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d\" \" -f1)\n"
+          )
+          new = (
+              "              set -euo pipefail\n"
+              "              if [ -z \"${CS_PUBLIC_KEY:-}\" ]; then\n"
+              "                echo \"CS_PUBLIC_KEY must be configured for Pages artifact verification\" >&2\n"
+              "                exit 1\n"
+              "              fi\n"
+              "              before=$(find output -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d\" \" -f1)\n"
+          )
+          if deploy.count(old) != 1:
+              raise SystemExit(f'expected one sealed-artifact verification block, found {deploy.count(old)}')
+          deploy = deploy.replace(old, new, 1)
+
+          old = (
+              '            if [ -n "${CS_PUBLIC_KEY:-}" ]; then\n'
+              '              verify_args+=(--public-key "$CS_PUBLIC_KEY")\n'
+              '            else\n'
+              '              echo "CS_PUBLIC_KEY is not configured; verifying deployment identity and integrity without signature validation"\n'
+              '            fi\n'
+          )
+          new = (
+              '            if [ -z "${CS_PUBLIC_KEY:-}" ]; then\n'
+              '              echo "CS_PUBLIC_KEY must be configured for Pages deployment verification" >&2\n'
+              '              exit 1\n'
+              '            fi\n'
+              '            verify_args+=(--public-key "$CS_PUBLIC_KEY")\n'
+          )
+          if deploy.count(old) != 1:
+              raise SystemExit(f'expected one optional Pages signature block, found {deploy.count(old)}')
+          deploy = deploy.replace(old, new, 1)
+
+          if 'without signature validation' in deploy:
+              raise SystemExit('optional Pages signature fallback still present')
+          if deploy.count(public_key_expr) < 3:
+              raise SystemExit('expected public key on pre-deploy, snapshot, and smoke verification boundaries')
+          (staging / 'deploy-pages.yml').write_text(deploy, encoding='utf-8')
+
+          release = (root / '.github/workflows/release.yml').read_text(encoding='utf-8')
+          old = (
+              '      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7\n'
+              '        with:\n'
+              '          fetch-depth: 1\n'
+              '          persist-credentials: false\n'
+          )
+          new = old.replace('fetch-depth: 1', 'fetch-depth: 0')
+          if release.count(old) < 1:
+              raise SystemExit('release verification checkout block not found')
+          release = release.replace(old, new, 1)
+
+          old = (
+              '      - name: Validate repository contracts and release state\n'
+              '        run: |\n'
+              '          set -euo pipefail\n'
+              '          python scripts/verify_repository.py --profile static\n'
+          )
+          new = (
+              '      - name: Validate repository contracts and release state\n'
+              '        run: |\n'
+              '          set -euo pipefail\n'
+              '          git fetch --no-tags origin main:refs/remotes/origin/main\n'
+              '          tag_commit="$(git rev-list -n 1 "$GITHUB_REF_NAME")"\n'
+              '          if [ -z "$tag_commit" ] || ! git merge-base --is-ancestor "$tag_commit" refs/remotes/origin/main; then\n'
+              '            echo "Release tag must point to a commit reachable from main" >&2\n'
+              '            exit 1\n'
+              '          fi\n'
+              '          python scripts/verify_repository.py --profile static\n'
+          )
+          if release.count(old) != 1:
+              raise SystemExit(f'expected one release validation block, found {release.count(old)}')
+          release = release.replace(old, new, 1)
+          for token in (
+              'fetch-depth: 0',
+              'git fetch --no-tags origin main:refs/remotes/origin/main',
+              'git rev-list -n 1 "$GITHUB_REF_NAME"',
+              'git merge-base --is-ancestor "$tag_commit" refs/remotes/origin/main',
+          ):
+              if token not in release:
+                  raise SystemExit(f'missing release ancestry control: {token}')
+          (staging / 'release.yml').write_text(release, encoding='utf-8')
+          PY
+
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add .ci-staging/deploy-pages.yml .ci-staging/release.yml
+          git commit -m 'ci: stage audited release workflow bytes'
+          git push
