@@ -141,7 +141,29 @@ def test_preemption_workflow_is_narrow_and_race_safe() -> None:
     assert 'elif [[ "$head_sha" == "$TARGET_SHA" ]]' in workflow
     assert "/actions/runs/${run_id}/cancel" in workflow
     assert 'if [[ "$state" != "completed" ]]' in workflow
+    assert "Cancel active Retest runs before main execution" in workflow
+    assert "if: github.event_name == 'workflow_run'" in workflow
+    assert (
+        "/actions/workflows/retest.yml/runs?branch=main&status=${status}&per_page=100"
+        in workflow
+    )
+    assert "Failed to cancel still-active Retest run" in workflow
     assert ">/dev/null || true" not in workflow
+
+
+def test_retest_workflow_never_competes_with_main_pipeline() -> None:
+    workflow = (ROOT / ".github/workflows/retest.yml").read_text(encoding="utf-8")
+
+    assert 'cron: "0 2-22/4 * * *"' in workflow
+    assert 'cron: "0 */4 * * *"' not in workflow
+    assert "for status in queued in_progress" in workflow
+    assert (
+        "/actions/workflows/main.yml/runs?branch=main&status=${status}&per_page=100"
+        in workflow
+    )
+    assert "Main pipeline has priority over Retest" in workflow
+    assert "should_cancel=true" in workflow
+    assert "Pipeline has been running for more than 1.5 hours" not in workflow
 
 
 def test_byow_bridge_bounds_and_serializes_websocket_writes() -> None:
