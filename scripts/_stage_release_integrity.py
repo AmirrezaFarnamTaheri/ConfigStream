@@ -21,6 +21,9 @@ def replace_first(text: str, old: str, new: str, label: str) -> str:
 
 
 deploy = (ROOT / ".github/workflows/deploy-pages.yml").read_text(encoding="utf-8")
+
+# Candidate verification receives both the trust anchor and the explicit
+# unsigned-mode policy. Missing policy defaults to fail-closed.
 deploy = replace_once(
     deploy,
     "        env:\n"
@@ -29,20 +32,61 @@ deploy = replace_once(
     "        env:\n"
     "          EXPECTED_SOURCE_SHA: ${{ steps.locate.outputs.source_head_sha }}\n"
     "          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}\n"
+    "          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'false' }}\n"
     "        run: |\n",
-    "pre-deploy public-key binding",
+    "pre-deploy signature-policy binding",
 )
 deploy = replace_once(
     deploy,
     "              set -euo pipefail\n"
     "              before=$(find output -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d\" \" -f1)\n",
     "              set -euo pipefail\n"
-    "              if [ -z \"${CS_PUBLIC_KEY:-}\" ]; then\n"
-    "                echo \"CS_PUBLIC_KEY must be configured for Pages artifact verification\" >&2\n"
-    "                exit 1\n"
-    "              fi\n"
+    "              python scripts/validate_pages_signature_policy.py output\n"
     "              before=$(find output -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d\" \" -f1)\n",
-    "pre-deploy fail-closed signature check",
+    "pre-deploy signature policy",
+)
+
+# A last-known-good snapshot must satisfy the same trust policy before it is
+# eligible as rollback material.
+deploy = replace_once(
+    deploy,
+    "        env:\n"
+    "          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}\n"
+    "          GH_TOKEN: ${{ github.token }}\n"
+    "        run: |\n",
+    "        env:\n"
+    "          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}\n"
+    "          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'false' }}\n"
+    "          GH_TOKEN: ${{ github.token }}\n"
+    "        run: |\n",
+    "snapshot signature-policy binding",
+)
+deploy = replace_once(
+    deploy,
+    "          python scripts/snapshot_pages_release.py \\\n"
+    "            \"$page_url\" \\\n"
+    "            last-known-good \\\n"
+    "            --report-file deploy-evidence/last-known-good-snapshot.json\n",
+    "          python scripts/snapshot_pages_release.py \\\n"
+    "            \"$page_url\" \\\n"
+    "            last-known-good \\\n"
+    "            --report-file deploy-evidence/last-known-good-snapshot.json\n"
+    "          python scripts/validate_pages_signature_policy.py last-known-good\n",
+    "snapshot signature policy",
+)
+
+# Candidate smoke verification authenticates signed releases. Explicit unsigned
+# mode is allowed only after the local sealed manifest policy check succeeds.
+deploy = replace_once(
+    deploy,
+    "          EXPECTED_SOURCE_RUN_ID: ${{ steps.locate.outputs.source_run_id }}\n"
+    "          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}\n"
+    "        run: |\n",
+    "          EXPECTED_SOURCE_RUN_ID: ${{ steps.locate.outputs.source_run_id }}\n"
+    "          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}\n"
+    "          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'false' }}\n"
+    "        run: |\n",
+    "post-deploy signature-policy binding",
 )
 deploy = replace_once(
     deploy,
@@ -51,13 +95,15 @@ deploy = replace_once(
     "            else\n"
     "              echo \"CS_PUBLIC_KEY is not configured; verifying deployment identity and integrity without signature validation\"\n"
     "            fi\n",
-    "            if [ -z \"${CS_PUBLIC_KEY:-}\" ]; then\n"
-    "              echo \"CS_PUBLIC_KEY must be configured for Pages deployment verification\" >&2\n"
-    "              exit 1\n"
-    "            fi\n"
-    "            verify_args+=(--public-key \"$CS_PUBLIC_KEY\")\n",
-    "post-deploy fail-closed signature check",
+    "            python scripts/validate_pages_signature_policy.py output\n"
+    "            if [ -n \"${CS_PUBLIC_KEY:-}\" ]; then\n"
+    "              verify_args+=(--public-key \"$CS_PUBLIC_KEY\")\n"
+    "            fi\n",
+    "post-deploy signature policy",
 )
+
+# Rollback verification uses the same signed/explicit-unsigned decision as the
+# candidate it is restoring.
 deploy = replace_once(
     deploy,
     "      - name: Verify rollback restoration\n"
@@ -71,33 +117,40 @@ deploy = replace_once(
     "        continue-on-error: true\n"
     "        env:\n"
     "          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}\n"
+    "          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'false' }}\n"
     "        run: |\n",
-    "rollback public-key binding",
+    "rollback signature-policy binding",
 )
 deploy = replace_once(
     deploy,
     "          set -euo pipefail\n"
-    "          page_url=\"${{ steps.rollback_deployment.outputs.page_url }}\"\n"
-    "          if [ -z \"$page_url\" ]; then\n",
+    "          page_url=\"${{ steps.rollback_deployment.outputs.page_url }}\"\n",
     "          set -euo pipefail\n"
-    "          if [ -z \"${CS_PUBLIC_KEY:-}\" ]; then\n"
-    "            echo \"CS_PUBLIC_KEY must be configured for Pages rollback verification\" >&2\n"
-    "            exit 1\n"
+    "          python scripts/validate_pages_signature_policy.py last-known-good\n"
+    "          verify_args=()\n"
+    "          if [ -n \"${CS_PUBLIC_KEY:-}\" ]; then\n"
+    "            verify_args+=(--public-key \"$CS_PUBLIC_KEY\")\n"
     "          fi\n"
-    "          page_url=\"${{ steps.rollback_deployment.outputs.page_url }}\"\n"
-    "          if [ -z \"$page_url\" ]; then\n",
-    "rollback fail-closed signature check",
+    "          page_url=\"${{ steps.rollback_deployment.outputs.page_url }}\"\n",
+    "rollback signature policy",
 )
 deploy = replace_once(
     deploy,
     "            -- python scripts/verify_pages_deployment.py \"$page_url\" --report-file deploy-evidence/rollback-smoke-report.json\n",
-    "            -- python scripts/verify_pages_deployment.py \"$page_url\" --public-key \"$CS_PUBLIC_KEY\" --report-file deploy-evidence/rollback-smoke-report.json\n",
+    "            -- python scripts/verify_pages_deployment.py \"$page_url\" \"${verify_args[@]}\" --report-file deploy-evidence/rollback-smoke-report.json\n",
     "rollback signature verification command",
 )
+
 if "without signature validation" in deploy:
-    raise SystemExit("optional Pages signature fallback remains")
+    raise SystemExit("implicit unsigned Pages fallback remains")
 if deploy.count("CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}") < 4:
     raise SystemExit("expected public key at candidate, snapshot, deployed-candidate, and rollback boundaries")
+if deploy.count("ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'false' }}") < 4:
+    raise SystemExit("expected explicit unsigned policy at all Pages verification boundaries")
+if deploy.count("validate_pages_signature_policy.py output") < 2:
+    raise SystemExit("candidate signature policy must run before deploy and post-deploy smoke")
+if deploy.count("validate_pages_signature_policy.py last-known-good") < 2:
+    raise SystemExit("rollback signature policy must run at snapshot and restoration verification")
 (STAGING / "deploy-pages.yml").write_text(deploy, encoding="utf-8")
 
 release = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
