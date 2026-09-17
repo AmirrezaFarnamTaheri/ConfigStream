@@ -83,3 +83,46 @@ jobs:
             fi
             : > "$cancel_err"
           done
+
+      - name: Cancel active Retest runs before main execution
+        if: github.event_name == 'workflow_run'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          cancel_err="$(mktemp)"
+          trap 'rm -f "$tmp" "$cancel_err"' EXIT
+
+          for status in queued in_progress; do
+            gh api --paginate \
+              -H 'Accept: application/vnd.github+json' \
+              "/repos/${GITHUB_REPOSITORY}/actions/workflows/retest.yml/runs?branch=main&status=${status}&per_page=100" \
+              --jq '.workflow_runs[] | [.id, .event, .status] | @tsv' >> "$tmp"
+          done
+
+          sort -u "$tmp" | while IFS=$'\t' read -r run_id event status; do
+            [[ "$run_id" =~ ^[0-9]+$ ]] || continue
+            case "$event" in
+              schedule|workflow_dispatch) ;;
+              *) continue ;;
+            esac
+
+            echo "Cancelling active Retest run ${run_id} (${event}, ${status}) because main has priority"
+            if ! gh api --method POST \
+              -H 'Accept: application/vnd.github+json' \
+              "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/cancel" \
+              >/dev/null 2>"$cancel_err"; then
+              state="$(gh api \
+                -H 'Accept: application/vnd.github+json' \
+                "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}" \
+                --jq '.status' 2>/dev/null || printf 'unknown')"
+              if [[ "$state" != "completed" ]]; then
+                cat "$cancel_err" >&2
+                echo "Failed to cancel still-active Retest run ${run_id}" >&2
+                exit 1
+              fi
+            fi
+            : > "$cancel_err"
+          done
