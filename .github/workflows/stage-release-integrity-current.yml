@@ -21,7 +21,7 @@ jobs:
       - name: Transform and stage exact workflow bytes
         run: |
           set -euo pipefail
-          # The transformer asserts every security-sensitive replacement target.
+          # The transformer asserts candidate, deployment, rollback, and tag-provenance edits.
           python scripts/_stage_release_integrity.py
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
