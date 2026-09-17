@@ -78,7 +78,7 @@ Direct declarations: **67**
 | npm | `picomatch` | `^4.0.5` | `package.json` |
 | npm | `playwright` | `^1.63.0` | `package.json` |
 | npm | `postcss` | `^8.5.28` | `package.json` |
-| npm | `vite` | `^8.1.5` | `package.json` |
+| npm | `vite` | `^8.3.0` | `package.json` |
 | go-tester | `github.com/sagernet/sing` | `v0.4.3` | `src/go/tester/go.mod` |
 | go-tester | `github.com/sagernet/sing-box` | `v1.9.7` | `src/go/tester/go.mod` |
 | go-tester | `golang.org/x/crypto` | `v0.56.0` | `src/go/tester/go.mod` |

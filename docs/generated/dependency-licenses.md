@@ -2,8 +2,8 @@
 
 Only licenses declared in checked-in package manifests/locks are reported. Unknown does not imply unlicensed.
 
-Components: **195**
-Manifest-declared licenses: **48**
+Components: **189**
+Manifest-declared licenses: **42**
 Unknown licenses requiring external resolution: **147**
 
 | Ecosystem | Package | Version | Scope | License evidence |
@@ -80,54 +80,48 @@ Unknown licenses requiring external resolution: **147**
 | go | `google.golang.org/grpc` | `1.63.2` | development | unknown |
 | go | `google.golang.org/protobuf` | `1.33.0` | development | unknown |
 | go | `lukechampine.com/blake3` | `1.3.0` | development | unknown |
-| npm | `@emnapi/core` | `1.11.1` | optional | `MIT` |
-| npm | `@emnapi/runtime` | `1.11.1` | optional | `MIT` |
-| npm | `@emnapi/wasi-threads` | `1.2.2` | optional | `MIT` |
-| npm | `@napi-rs/wasm-runtime` | `1.1.6` | optional | `MIT` |
-| npm | `@oxc-project/types` | `0.139.0` | development | `MIT` |
-| npm | `@rolldown/binding-android-arm64` | `1.1.5` | optional | `MIT` |
-| npm | `@rolldown/binding-darwin-arm64` | `1.1.5` | optional | `MIT` |
-| npm | `@rolldown/binding-darwin-x64` | `1.1.5` | optional | `MIT` |
-| npm | `@rolldown/binding-freebsd-x64` | `1.1.5` | optional | `MIT` |
-| npm | `@rolldown/binding-linux-arm-gnueabihf` | `1.1.5` | optional | `MIT` |
-| npm | `@rolldown/binding-linux-arm64-gnu` | `1.1.5` | optional | `MIT` |
-| npm | `@rolldown/binding-linux-arm64-musl` | `1.1.5` | optional | `MIT` |
-| npm | `@rolldown/binding-linux-ppc64-gnu` | `1.1.5` | optional | `MIT` |
-| npm | `@rolldown/binding-linux-s390x-gnu` | `1.1.5` | optional | `MIT` |
-| npm | `@rolldown/binding-linux-x64-gnu` | `1.1.5` | optional | `MIT` |
-| npm | `@rolldown/binding-linux-x64-musl` | `1.1.5` | optional | `MIT` |
-| npm | `@rolldown/binding-openharmony-arm64` | `1.1.5` | optional | `MIT` |
-| npm | `@rolldown/binding-wasm32-wasi` | `1.1.5` | optional | `MIT` |
-| npm | `@rolldown/binding-win32-arm64-msvc` | `1.1.5` | optional | `MIT` |
-| npm | `@rolldown/binding-win32-x64-msvc` | `1.1.5` | optional | `MIT` |
+| npm | `@oxc-project/types` | `0.149.0` | development | `MIT` |
+| npm | `@rolldown/binding-android-arm-eabi` | `1.2.8` | optional | `MIT` |
+| npm | `@rolldown/binding-android-arm64` | `1.2.8` | optional | `MIT` |
+| npm | `@rolldown/binding-darwin-arm64` | `1.2.8` | optional | `MIT` |
+| npm | `@rolldown/binding-darwin-x64` | `1.2.8` | optional | `MIT` |
+| npm | `@rolldown/binding-freebsd-x64` | `1.2.8` | optional | `MIT` |
+| npm | `@rolldown/binding-linux-arm-gnueabihf` | `1.2.8` | optional | `MIT` |
+| npm | `@rolldown/binding-linux-arm64-gnu` | `1.2.8` | optional | `MIT` |
+| npm | `@rolldown/binding-linux-arm64-musl` | `1.2.8` | optional | `MIT` |
+| npm | `@rolldown/binding-linux-ppc64-gnu` | `1.2.8` | optional | `MIT` |
+| npm | `@rolldown/binding-linux-s390x-gnu` | `1.2.8` | optional | `MIT` |
+| npm | `@rolldown/binding-linux-x64-gnu` | `1.2.8` | optional | `MIT` |
+| npm | `@rolldown/binding-linux-x64-musl` | `1.2.8` | optional | `MIT` |
+| npm | `@rolldown/binding-openharmony-arm64` | `1.2.8` | optional | `MIT` |
+| npm | `@rolldown/binding-win32-arm64-msvc` | `1.2.8` | optional | `MIT` |
+| npm | `@rolldown/binding-win32-x64-msvc` | `1.2.8` | optional | `MIT` |
 | npm | `@rolldown/pluginutils` | `1.0.1` | development | `MIT` |
-| npm | `@tybys/wasm-util` | `0.10.3` | optional | `MIT` |
 | npm | `detect-libc` | `2.1.2` | development | `Apache-2.0` |
 | npm | `fdir` | `6.5.0` | development | `MIT` |
-| npm | `lightningcss` | `1.32.0` | development | `MPL-2.0` |
-| npm | `lightningcss-android-arm64` | `1.32.0` | optional | `MPL-2.0` |
-| npm | `lightningcss-darwin-arm64` | `1.32.0` | optional | `MPL-2.0` |
-| npm | `lightningcss-darwin-x64` | `1.32.0` | optional | `MPL-2.0` |
-| npm | `lightningcss-freebsd-x64` | `1.32.0` | optional | `MPL-2.0` |
-| npm | `lightningcss-linux-arm-gnueabihf` | `1.32.0` | optional | `MPL-2.0` |
-| npm | `lightningcss-linux-arm64-gnu` | `1.32.0` | optional | `MPL-2.0` |
-| npm | `lightningcss-linux-arm64-musl` | `1.32.0` | optional | `MPL-2.0` |
-| npm | `lightningcss-linux-x64-gnu` | `1.32.0` | optional | `MPL-2.0` |
-| npm | `lightningcss-linux-x64-musl` | `1.32.0` | optional | `MPL-2.0` |
-| npm | `lightningcss-win32-arm64-msvc` | `1.32.0` | optional | `MPL-2.0` |
-| npm | `lightningcss-win32-x64-msvc` | `1.32.0` | optional | `MPL-2.0` |
+| npm | `lightningcss` | `1.33.0` | development | `MPL-2.0` |
+| npm | `lightningcss-android-arm64` | `1.33.0` | optional | `MPL-2.0` |
+| npm | `lightningcss-darwin-arm64` | `1.33.0` | optional | `MPL-2.0` |
+| npm | `lightningcss-darwin-x64` | `1.33.0` | optional | `MPL-2.0` |
+| npm | `lightningcss-freebsd-x64` | `1.33.0` | optional | `MPL-2.0` |
+| npm | `lightningcss-linux-arm-gnueabihf` | `1.33.0` | optional | `MPL-2.0` |
+| npm | `lightningcss-linux-arm64-gnu` | `1.33.0` | optional | `MPL-2.0` |
+| npm | `lightningcss-linux-arm64-musl` | `1.33.0` | optional | `MPL-2.0` |
+| npm | `lightningcss-linux-x64-gnu` | `1.33.0` | optional | `MPL-2.0` |
+| npm | `lightningcss-linux-x64-musl` | `1.33.0` | optional | `MPL-2.0` |
+| npm | `lightningcss-win32-arm64-msvc` | `1.33.0` | optional | `MPL-2.0` |
+| npm | `lightningcss-win32-x64-msvc` | `1.33.0` | optional | `MPL-2.0` |
 | npm | `nanoid` | `3.3.18` | development | `MIT` |
 | npm | `picocolors` | `1.1.1` | development | `ISC` |
-| npm | `picomatch` | `4.0.5` | development | `MIT` |
+| npm | `picomatch` | `4.0.7` | development | `MIT` |
 | npm | `playwright` | `1.63.0` | development | `Apache-2.0` |
 | npm | `playwright-core` | `1.63.0` | development | `Apache-2.0` |
 | npm | `postcss` | `8.5.28` | development | `MIT` |
-| npm | `rolldown` | `1.1.5` | development | `MIT` |
+| npm | `rolldown` | `1.2.8` | development | `MIT` |
 | npm | `source-map-js` | `1.2.1` | development | `BSD-3-Clause` |
 | npm | `tinyglobby` | `0.2.17` | development | `MIT` |
-| npm | `tslib` | `2.8.1` | optional | `0BSD` |
 | npm | `vite` | `2.3.3` | optional | `MIT` |
-| npm | `vite` | `8.1.5` | development | `MIT` |
+| npm | `vite` | `8.3.0` | development | `MIT` |
 | python | `aiodns` | `3.6.1` | required | unknown |
 | python | `aiofiles` | `25.1.0` | required | unknown |
 | python | `aiohappyeyeballs` | `2.7.1` | required | unknown |
