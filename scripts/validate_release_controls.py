@@ -73,14 +73,16 @@ def validate(root: Path) -> list[str]:
             )
 
     public_key_binding = "CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}"
-    if deploy.count(public_key_binding) < 3:
+    if deploy.count(public_key_binding) < 4:
         errors.append(
-            "Pages deployment must bind CS_PUBLIC_KEY at pre-deploy, rollback-snapshot, and post-deploy verification boundaries"
+            "Pages deployment must bind CS_PUBLIC_KEY at candidate, rollback-snapshot, deployed-candidate, and restored-rollback verification boundaries"
         )
     pages_signature_controls = (
         "CS_PUBLIC_KEY must be configured for Pages artifact verification",
         "CS_PUBLIC_KEY must be configured for Pages deployment verification",
+        "CS_PUBLIC_KEY must be configured for Pages rollback verification",
         'verify_args+=(--public-key "$CS_PUBLIC_KEY")',
+        '--public-key "$CS_PUBLIC_KEY" --report-file deploy-evidence/rollback-smoke-report.json',
     )
     for control in pages_signature_controls:
         if control not in deploy:
@@ -127,7 +129,7 @@ def main() -> int:
             print(f"  - {error}")
         return 1
     print(
-        "OK: native validation, signed deployment, main-history provenance, rollback, and frontend fail-closed controls are intact"
+        "OK: native validation, signed deployment and rollback, main-history provenance, and frontend fail-closed controls are intact"
     )
     return 0
 
