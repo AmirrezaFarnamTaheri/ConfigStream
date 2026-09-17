@@ -77,22 +77,41 @@ def validate(root: Path) -> list[str]:
         errors.append(
             "Pages deployment must bind CS_PUBLIC_KEY at candidate, rollback-snapshot, deployed-candidate, and restored-rollback verification boundaries"
         )
-    pages_signature_controls = (
-        "CS_PUBLIC_KEY must be configured for Pages artifact verification",
-        "CS_PUBLIC_KEY must be configured for Pages deployment verification",
-        "CS_PUBLIC_KEY must be configured for Pages rollback verification",
-        'verify_args+=(--public-key "$CS_PUBLIC_KEY")',
-        '--public-key "$CS_PUBLIC_KEY" --report-file deploy-evidence/rollback-smoke-report.json',
+
+    unsigned_policy_binding = (
+        "ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'false' }}"
     )
-    for control in pages_signature_controls:
-        if control not in deploy:
-            errors.append(
-                f"Pages deployment missing fail-closed signature verification control: {control}"
-            )
+    if deploy.count(unsigned_policy_binding) < 4:
+        errors.append(
+            "Pages deployment must bind the explicit unsigned-mode policy at every verification boundary"
+        )
+
+    if deploy.count("validate_pages_signature_policy.py output") < 2:
+        errors.append(
+            "Pages candidate signature policy must run before deployment and again before post-deploy verification"
+        )
+    if deploy.count("validate_pages_signature_policy.py last-known-good") < 2:
+        errors.append(
+            "Pages rollback signature policy must run when snapshotting and when verifying restoration"
+        )
+    if 'verify_args+=(--public-key "$CS_PUBLIC_KEY")' not in deploy:
+        errors.append("signed Pages deployment must pass the configured public key to smoke verification")
     if "without signature validation" in deploy:
         errors.append(
-            "Pages deployment must not fall back to unsigned production verification"
+            "Pages deployment must not use an implicit missing-key unsigned fallback"
         )
+
+    signature_policy = (
+        root / "scripts/validate_pages_signature_policy.py"
+    ).read_text(encoding="utf-8")
+    for control in (
+        "ALLOW_UNSIGNED_PAGES",
+        "signed artifacts must never be accepted without a trust anchor",
+        "unsigned Pages publication is disabled by default",
+        "CS_PUBLIC_KEY is configured but is not a valid Ed25519 public key",
+    ):
+        if control not in signature_policy:
+            errors.append(f"Pages signature policy missing fail-closed control: {control}")
 
     release = (root / ".github/workflows/release.yml").read_text(encoding="utf-8")
     release_provenance_controls = (
@@ -129,7 +148,7 @@ def main() -> int:
             print(f"  - {error}")
         return 1
     print(
-        "OK: native validation, signed deployment and rollback, main-history provenance, and frontend fail-closed controls are intact"
+        "OK: native validation, explicit Pages signature policy, main-history provenance, rollback, and frontend fail-closed controls are intact"
     )
     return 0
 
