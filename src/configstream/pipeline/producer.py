@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 
 from configstream.models import Proxy
 from configstream.config import AppSettings
+from configstream.candidate_budget import select_source_candidates
 from configstream.backpressure import (
     BackpressurePolicy,
     enqueue as enqueue_with_policy,
@@ -183,6 +184,77 @@ async def _report_unusable_content(
         duration_ms=response_time * 1000,
         failure_modes=drop_stats,
     )
+
+
+async def _validate_and_budget_remote_source(
+    loop: asyncio.AbstractEventLoop,
+    anomaly_detector: AnomalyDetector,
+    settings: AppSettings,
+    source: str,
+    safe_source: str,
+    lines: List[str],
+    drop_stats: dict[str, int],
+    raw_count: int,
+    enable_anomaly_detection: bool,
+) -> tuple[List[str], bool, str]:
+    """Score a full remote source, then bound candidates before testing."""
+
+    if enable_anomaly_detection:
+        try:
+            is_safe, reason = await loop.run_in_executor(
+                None, anomaly_detector.is_safe, source, raw_count
+            )
+        except Exception as ad_err:
+            safe_err = SecurityValidator.sanitize_log_message(str(ad_err))
+            logger.warning(
+                "Anomaly check failed for %s (%s); failing open",
+                safe_source,
+                safe_err,
+            )
+            is_safe, reason = (
+                True,
+                f"Anomaly detector error (Fail Open): {safe_err}",
+            )
+    else:
+        is_safe, reason = True, "Anomaly detection disabled"
+
+    if not is_safe:
+        return lines, False, reason
+
+    logger.debug(
+        "Anomaly check passed for %s (Count: %d)",
+        safe_source,
+        raw_count,
+    )
+    if enable_anomaly_detection:
+        try:
+            await loop.run_in_executor(None, anomaly_detector.record, source, raw_count)
+        except Exception as rec_err:
+            safe_rec_err = SecurityValidator.sanitize_log_message(str(rec_err))
+            logger.debug("Anomaly record failed for %s: %s", safe_source, safe_rec_err)
+
+    selected, exact_duplicate_drops, budget_drops = select_source_candidates(
+        lines,
+        source=source,
+        limit=int(settings.MAX_REMOTE_TEST_CANDIDATES_PER_SOURCE),
+    )
+    if exact_duplicate_drops:
+        drop_stats["source_exact_duplicate"] = (
+            int(drop_stats.get("source_exact_duplicate", 0)) + exact_duplicate_drops
+        )
+    if budget_drops:
+        drop_stats["source_candidate_budget"] = (
+            int(drop_stats.get("source_candidate_budget", 0)) + budget_drops
+        )
+        logger.warning(
+            "Source candidate budget applied: "
+            "source=%s parsed=%d retained=%d dropped=%d",
+            safe_source,
+            raw_count,
+            len(selected),
+            budget_drops,
+        )
+    return selected, True, reason
 
 
 def _is_direct_proxy(candidate: str) -> bool:
@@ -506,46 +578,23 @@ async def source_producer(
                             )
                             continue
 
-                        # Offload anomaly check to executor to avoid blocking on DB/ML
-                        if enable_anomaly_detection:
-                            try:
-                                is_safe, reason = await loop.run_in_executor(
-                                    None, anomaly_detector.is_safe, source, count
-                                )
-                            except Exception as ad_err:
-                                safe_err = SecurityValidator.sanitize_log_message(
-                                    str(ad_err)
-                                )
-                                logger.warning(
-                                    f"Anomaly check failed for {safe_source} ({safe_err}); failing open"
-                                )
-                                is_safe, reason = (
-                                    True,
-                                    f"Anomaly detector error (Fail Open): {safe_err}",
-                                )
-                        else:
-                            is_safe, reason = True, "Anomaly detection disabled"
+                        lines, is_safe, reason = (
+                            await _validate_and_budget_remote_source(
+                                loop,
+                                anomaly_detector,
+                                settings,
+                                source,
+                                safe_source,
+                                lines,
+                                drop_stats,
+                                count,
+                                enable_anomaly_detection,
+                            )
+                        )
 
                         if is_safe:
                             if lines:
-                                logger.debug(
-                                    f"Anomaly check passed for {safe_source} (Count: {count})"
-                                )
-                                # Offload record to executor
-                                if enable_anomaly_detection:
-                                    try:
-                                        await loop.run_in_executor(
-                                            None, anomaly_detector.record, source, count
-                                        )
-                                    except Exception as rec_err:
-                                        safe_rec_err = (
-                                            SecurityValidator.sanitize_log_message(
-                                                str(rec_err)
-                                            )
-                                        )
-                                        logger.debug(
-                                            f"Anomaly record failed for {safe_source}: {safe_rec_err}"
-                                        )
+
                                 # Prepare metadata and fetch time
                                 resp_time = getattr(res, "response_time", None)
                                 fetch_time = (
@@ -574,7 +623,8 @@ async def source_producer(
                                 if event_stream:
                                     event_stream.emit(
                                         "fetch_success",
-                                        f"Fetched {count} proxies from {safe_source} (Fetch: {fetch_time})",
+                                        f"Fetched {count} proxies from {safe_source}; "
+                                        f"retained {len(lines)} for testing (Fetch: {fetch_time})",
                                     )
                         else:
                             logger.warning(

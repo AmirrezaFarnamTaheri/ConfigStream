@@ -1216,7 +1216,7 @@
     },
     {
       "path": "src/configstream/pipeline/producer.py",
-      "line": 65,
+      "line": 66,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1224,7 +1224,7 @@
     },
     {
       "path": "src/configstream/pipeline/producer.py",
-      "line": 123,
+      "line": 124,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1232,7 +1232,7 @@
     },
     {
       "path": "src/configstream/pipeline/producer.py",
-      "line": 154,
+      "line": 155,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1240,15 +1240,31 @@
     },
     {
       "path": "src/configstream/pipeline/producer.py",
-      "line": 226,
+      "line": 207,
+      "marker": "BROAD_EXCEPTION",
+      "category": "production",
+      "priority": "P1 - High",
+      "text": "Broad exception boundary requires semantic review and structured outcome."
+    },
+    {
+      "path": "src/configstream/pipeline/producer.py",
+      "line": 232,
+      "marker": "BROAD_EXCEPTION",
+      "category": "production",
+      "priority": "P1 - High",
+      "text": "Broad exception boundary requires semantic review and structured outcome."
+    },
+    {
+      "path": "src/configstream/pipeline/producer.py",
+      "line": 298,
       "marker": "LARGE_FUNCTION",
       "category": "production",
       "priority": "P1 - High",
-      "text": "Function source_producer spans 463 lines (threshold: 300)."
+      "text": "Function source_producer spans 441 lines (threshold: 300)."
     },
     {
       "path": "src/configstream/pipeline/producer.py",
-      "line": 515,
+      "line": 640,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1256,23 +1272,7 @@
     },
     {
       "path": "src/configstream/pipeline/producer.py",
-      "line": 540,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/pipeline/producer.py",
-      "line": 590,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/pipeline/producer.py",
-      "line": 634,
+      "line": 684,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1448,7 +1448,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 191,
+      "line": 202,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1456,7 +1456,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 227,
+      "line": 238,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1464,7 +1464,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 251,
+      "line": 262,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1472,7 +1472,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 282,
+      "line": 293,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1480,7 +1480,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 363,
+      "line": 374,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1488,7 +1488,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 387,
+      "line": 398,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1496,7 +1496,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 399,
+      "line": 410,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1504,7 +1504,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 453,
+      "line": 464,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1512,7 +1512,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 457,
+      "line": 468,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1520,7 +1520,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 520,
+      "line": 531,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1528,7 +1528,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 524,
+      "line": 535,
       "marker": "LARGE_FUNCTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1536,7 +1536,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 647,
+      "line": 658,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1544,7 +1544,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 713,
+      "line": 724,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1552,7 +1552,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 741,
+      "line": 752,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1560,7 +1560,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 952,
+      "line": 971,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",

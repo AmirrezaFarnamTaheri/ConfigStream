@@ -74,7 +74,8 @@ class GoBatchTester:
             w = 20
         self.workers = max(1, w)
         self.timeout = timeout
-        env_path = AppSettings().CONFIGSTREAM_TESTER_BIN
+        settings = AppSettings()
+        env_path = settings.CONFIGSTREAM_TESTER_BIN
 
         # Priority: Env Var > Absolute Path arg > PATH lookup
         resolved = None
@@ -129,13 +130,23 @@ class GoBatchTester:
 
         # Consecutive timeout tracking for systemic failure detection
         self._consecutive_timeouts: int = 0
-        self._max_consecutive_timeouts: int = 5
+        self._max_consecutive_timeouts: int = max(
+            1, int(settings.GO_TESTER_MAX_CONSECUTIVE_TIMEOUTS)
+        )
 
         if not self.available:
             logger.error(
                 f"CRITICAL: Go batch tester binary not found (searched: {binary_path}, env: {env_path}, PATH). "
                 "No proxies will be tested via the high-performance path!"
             )
+
+    def _result_timeout_seconds(self, input_count: int) -> float:
+        """Bound IPC result wait by tester worker waves, not raw batch size."""
+
+        count = max(1, int(input_count))
+        waves = max(1, math.ceil(count / max(1, self.workers)))
+        per_wave_seconds = max(1.0, float(self.timeout))
+        return min(300.0, max(60.0, waves * per_wave_seconds + 30.0))
 
     async def start(self) -> None:
         """Start the long-lived tester process."""
@@ -664,10 +675,10 @@ class GoBatchTester:
             return proxies
 
         # Wait for results
-        # Set a total timeout relative to batch size
-        # Keep a 60s base buffer so Python timeout exceeds Go worker timeout
-        # and gives Python breathing room, especially for WireGuard-heavy batches
-        total_timeout = min(300, len(inputs) * 2 + 60)
+        # Bound the Python-side IPC wait by the number of tester worker
+        # waves. A 500-record batch with high worker concurrency must not pay
+        # the same five-minute systemic-failure penalty as a low-worker batch.
+        total_timeout = self._result_timeout_seconds(len(inputs))
 
         completed_pairs: List[Tuple[str, Any]] = []
         timed_out = False
@@ -933,11 +944,19 @@ class GoBatchTester:
             stdin.write(payload_str.encode())
             await safe_wait_for(stdin.drain(), timeout=15.0)
         except asyncio.TimeoutError:
+            self._consecutive_timeouts += 1
             logger.error(
-                "IPC drain timed out writing custom configs to Go Tester Daemon."
+                "IPC drain timed out writing custom configs to Go Tester Daemon "
+                "(consecutive: %d/%d).",
+                self._consecutive_timeouts,
+                self._max_consecutive_timeouts,
             )
             await self._cleanup_pending(list(reverse_map.keys()), futures)
-            await self._restart_daemon()
+            if self._consecutive_timeouts >= self._max_consecutive_timeouts:
+                self.available = False
+                await self.close()
+            else:
+                await self._restart_daemon()
             return {}
         except asyncio.CancelledError:
             await self._cleanup_pending(list(reverse_map.keys()), futures)
@@ -958,13 +977,20 @@ class GoBatchTester:
         try:
             completed = await safe_wait_for(
                 asyncio.gather(*futures, return_exceptions=True),
-                timeout=max(120, min(300, len(inputs) * 2 + 40)),
+                timeout=self._result_timeout_seconds(len(inputs)),
             )
         except asyncio.CancelledError:
             await self._cleanup_pending(list(reverse_map.keys()), futures)
             raise
         except asyncio.TimeoutError:
-            # Cleanup under lock to prevent race with _read_loop
+            self._consecutive_timeouts += 1
+            logger.error(
+                "Timed out waiting for custom-config results from Go Tester Daemon "
+                "(consecutive: %d/%d).",
+                self._consecutive_timeouts,
+                self._max_consecutive_timeouts,
+            )
+            # Cleanup under lock to prevent race with _read_loop.
             async with self._lock:
                 for req_id in reverse_map.keys():
                     self._pending_futures.pop(req_id, None)
@@ -972,8 +998,20 @@ class GoBatchTester:
                 if not f.done():
                     f.cancel()
             await self._consume_futures(futures)
+            if self._consecutive_timeouts >= self._max_consecutive_timeouts:
+                self.available = False
+                await self.close()
+            else:
+                try:
+                    await safe_wait_for(self._restart_daemon(), timeout=30.0)
+                except (asyncio.TimeoutError, OSError, RuntimeError) as exc:
+                    logger.warning(
+                        "Custom-config daemon restart failed after timeout: %s",
+                        type(exc).__name__,
+                    )
             return {}
 
+        self._consecutive_timeouts = 0
         results = {}
         for res in completed:
             if isinstance(res, dict):

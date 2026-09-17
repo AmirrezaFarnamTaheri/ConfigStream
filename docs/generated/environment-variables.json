@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "source_digest": "29005d97a3040155c62d1a7ff98eaddfa34a2b60a3c8721b17c6ac5cc19dafc6",
-  "variable_count": 161,
+  "source_digest": "731e74987a522dda7713f3423f07a93a8312c26eb9136cb56233f77698fe658a",
+  "variable_count": 163,
   "variables": [
     {
       "declared_in_settings": true,
@@ -10,7 +10,7 @@
       "required": false,
       "sensitive": true,
       "sources": [
-        "src/configstream/config.py:136"
+        "src/configstream/config.py:138"
       ],
       "type": "Optional[str]"
     },
@@ -21,7 +21,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:108"
+        "src/configstream/config.py:110"
       ],
       "type": "bool"
     },
@@ -32,7 +32,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:109"
+        "src/configstream/config.py:111"
       ],
       "type": "int"
     },
@@ -43,7 +43,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:110"
+        "src/configstream/config.py:112"
       ],
       "type": "int"
     },
@@ -54,7 +54,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:160"
+        "src/configstream/config.py:162"
       ],
       "type": "str"
     },
@@ -65,7 +65,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:163"
+        "src/configstream/config.py:165"
       ],
       "type": "str"
     },
@@ -76,7 +76,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:151"
+        "src/configstream/config.py:153"
       ],
       "type": "bool"
     },
@@ -87,7 +87,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:129"
+        "src/configstream/config.py:131"
       ],
       "type": "bool"
     },
@@ -109,7 +109,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:127"
+        "src/configstream/config.py:129"
       ],
       "type": "str"
     },
@@ -120,13 +120,13 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:67"
+        "src/configstream/config.py:68"
       ],
       "type": "int"
     },
     {
       "declared_in_settings": true,
-      "default": 2700,
+      "default": 900,
       "name": "BATCH_TIME_LIMIT_GRACE_SECONDS",
       "required": false,
       "sensitive": false,
@@ -153,7 +153,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:84"
+        "src/configstream/config.py:86"
       ],
       "type": "str"
     },
@@ -164,7 +164,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:69"
+        "src/configstream/config.py:70"
       ],
       "type": "int"
     },
@@ -175,7 +175,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:95"
+        "src/configstream/config.py:97"
       ],
       "type": "str"
     },
@@ -208,7 +208,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/testers/go_tester/manager.py:306",
+        "src/configstream/testers/go_tester/manager.py:317",
         "src/configstream/testers/go_tester/secure_manager.py:108",
         "src/configstream/warp_scanner.py:59",
         "src/configstream/warp_scanner.py:82"
@@ -222,7 +222,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:106"
+        "src/configstream/config.py:108"
       ],
       "type": "bool"
     },
@@ -233,7 +233,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:116"
+        "src/configstream/config.py:118"
       ],
       "type": "int"
     },
@@ -244,7 +244,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:115"
+        "src/configstream/config.py:117"
       ],
       "type": "float"
     },
@@ -255,7 +255,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:114"
+        "src/configstream/config.py:116"
       ],
       "type": "int"
     },
@@ -299,7 +299,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:131"
+        "src/configstream/config.py:133"
       ],
       "type": "Optional[str]"
     },
@@ -310,7 +310,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:141",
+        "src/configstream/config.py:143",
         "src/configstream/testers/go_tester/process.py:20"
       ],
       "type": "Optional[str]"
@@ -323,7 +323,7 @@
       "sensitive": false,
       "sources": [
         "scripts/audit_pipeline_outputs.py:323",
-        "src/configstream/config.py:138"
+        "src/configstream/config.py:140"
       ],
       "type": "Optional[str]"
     },
@@ -334,7 +334,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:164"
+        "src/configstream/config.py:166"
       ],
       "type": "bool"
     },
@@ -383,7 +383,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:153"
+        "src/configstream/config.py:155"
       ],
       "type": "bool"
     },
@@ -394,7 +394,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:97"
+        "src/configstream/config.py:99"
       ],
       "type": "bool"
     },
@@ -405,7 +405,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:99"
+        "src/configstream/config.py:101"
       ],
       "type": "bool"
     },
@@ -416,7 +416,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:98"
+        "src/configstream/config.py:100"
       ],
       "type": "bool"
     },
@@ -427,7 +427,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:104"
+        "src/configstream/config.py:106"
       ],
       "type": "int"
     },
@@ -438,7 +438,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:105"
+        "src/configstream/config.py:107"
       ],
       "type": "int"
     },
@@ -449,7 +449,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:103"
+        "src/configstream/config.py:105"
       ],
       "type": "float"
     },
@@ -460,7 +460,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:122"
+        "src/configstream/config.py:124"
       ],
       "type": "bool"
     },
@@ -471,7 +471,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:120"
+        "src/configstream/config.py:122"
       ],
       "type": "bool"
     },
@@ -482,7 +482,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:154"
+        "src/configstream/config.py:156"
       ],
       "type": "bool"
     },
@@ -493,7 +493,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:121"
+        "src/configstream/config.py:123"
       ],
       "type": "bool"
     },
@@ -504,7 +504,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:171",
+        "src/configstream/config.py:173",
         "src/configstream/testers/go_tester/binary_security.py:113"
       ],
       "type": "str"
@@ -516,7 +516,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:65"
+        "src/configstream/config.py:66"
       ],
       "type": "str"
     },
@@ -538,7 +538,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:102"
+        "src/configstream/config.py:104"
       ],
       "type": "bool"
     },
@@ -549,7 +549,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:176"
+        "src/configstream/config.py:178"
       ],
       "type": "bool"
     },
@@ -560,7 +560,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:175"
+        "src/configstream/config.py:177"
       ],
       "type": "int"
     },
@@ -582,7 +582,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:177"
+        "src/configstream/config.py:179"
       ],
       "type": "bool"
     },
@@ -593,7 +593,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:150"
+        "src/configstream/config.py:152"
       ],
       "type": "bool"
     },
@@ -615,7 +615,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:159"
+        "src/configstream/config.py:161"
       ],
       "type": "Optional[str]"
     },
@@ -820,12 +820,23 @@
     },
     {
       "declared_in_settings": true,
+      "default": 2,
+      "name": "GO_TESTER_MAX_CONSECUTIVE_TIMEOUTS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:58"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
       "default": 800,
       "name": "HEDGE_AFTER_MS",
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:112"
+        "src/configstream/config.py:114"
       ],
       "type": "int"
     },
@@ -836,7 +847,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:113"
+        "src/configstream/config.py:115"
       ],
       "type": "int"
     },
@@ -847,7 +858,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:107"
+        "src/configstream/config.py:109"
       ],
       "type": "bool"
     },
@@ -869,7 +880,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:130"
+        "src/configstream/config.py:132"
       ],
       "type": "bool"
     },
@@ -891,7 +902,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:61"
+        "src/configstream/config.py:62"
       ],
       "type": "str"
     },
@@ -913,7 +924,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:168"
+        "src/configstream/config.py:170"
       ],
       "type": "bool"
     },
@@ -924,7 +935,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:170"
+        "src/configstream/config.py:172"
       ],
       "type": "int"
     },
@@ -935,7 +946,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:169"
+        "src/configstream/config.py:171"
       ],
       "type": "float"
     },
@@ -990,7 +1001,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:94"
+        "src/configstream/config.py:96"
       ],
       "type": "str"
     },
@@ -1001,7 +1012,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:93"
+        "src/configstream/config.py:95"
       ],
       "type": "bool"
     },
@@ -1012,7 +1023,7 @@
       "required": false,
       "sensitive": true,
       "sources": [
-        "src/configstream/config.py:139"
+        "src/configstream/config.py:141"
       ],
       "type": "Optional[str]"
     },
@@ -1023,7 +1034,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:71"
+        "src/configstream/config.py:72"
       ],
       "type": "int"
     },
@@ -1034,7 +1045,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:72"
+        "src/configstream/config.py:73"
       ],
       "type": "int"
     },
@@ -1045,7 +1056,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:73"
+        "src/configstream/config.py:74"
       ],
       "type": "int"
     },
@@ -1067,7 +1078,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:74"
+        "src/configstream/config.py:75"
       ],
       "type": "int"
     },
@@ -1078,7 +1089,18 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:75"
+        "src/configstream/config.py:77"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 5000,
+      "name": "MAX_REMOTE_TEST_CANDIDATES_PER_SOURCE",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:76"
       ],
       "type": "int"
     },
@@ -1089,7 +1111,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:174"
+        "src/configstream/config.py:176"
       ],
       "type": "int"
     },
@@ -1100,7 +1122,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:68"
+        "src/configstream/config.py:69"
       ],
       "type": "int"
     },
@@ -1122,7 +1144,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:70"
+        "src/configstream/config.py:71"
       ],
       "type": "int"
     },
@@ -1155,7 +1177,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:172"
+        "src/configstream/config.py:174"
       ],
       "type": "Optional[str]"
     },
@@ -1166,7 +1188,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:62"
+        "src/configstream/config.py:63"
       ],
       "type": "str"
     },
@@ -1200,8 +1222,8 @@
       "sensitive": false,
       "sources": [
         "scripts/native_client_checks.py:92",
-        "src/configstream/testers/go_tester/manager.py:324",
-        "src/configstream/testers/go_tester/manager.py:91"
+        "src/configstream/testers/go_tester/manager.py:335",
+        "src/configstream/testers/go_tester/manager.py:92"
       ],
       "type": null
     },
@@ -1212,7 +1234,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:111"
+        "src/configstream/config.py:113"
       ],
       "type": "int"
     },
@@ -1268,7 +1290,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:149"
+        "src/configstream/config.py:151"
       ],
       "type": "str"
     },
@@ -1279,7 +1301,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:148"
+        "src/configstream/config.py:150"
       ],
       "type": "bool"
     },
@@ -1290,7 +1312,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:58"
+        "src/configstream/config.py:59"
       ],
       "type": "int"
     },
@@ -1301,7 +1323,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:178"
+        "src/configstream/config.py:180"
       ],
       "type": "str"
     },
@@ -1312,7 +1334,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:117"
+        "src/configstream/config.py:119"
       ],
       "type": "int"
     },
@@ -1378,7 +1400,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:125"
+        "src/configstream/config.py:127"
       ],
       "type": "Optional[str]"
     },
@@ -1400,7 +1422,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:182"
+        "src/configstream/config.py:184"
       ],
       "type": "float"
     },
@@ -1411,7 +1433,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:183"
+        "src/configstream/config.py:185"
       ],
       "type": "float"
     },
@@ -1427,7 +1449,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:77"
+        "src/configstream/config.py:79"
       ],
       "type": "dict[str, float]"
     },
@@ -1457,7 +1479,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:85"
+        "src/configstream/config.py:87"
       ],
       "type": "dict"
     },
@@ -1479,7 +1501,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:155"
+        "src/configstream/config.py:157"
       ],
       "type": "bool"
     },
@@ -1490,7 +1512,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:156"
+        "src/configstream/config.py:158"
       ],
       "type": "int"
     },
@@ -1501,7 +1523,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:157"
+        "src/configstream/config.py:159"
       ],
       "type": "float"
     },
@@ -1523,7 +1545,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:180"
+        "src/configstream/config.py:182"
       ],
       "type": "int"
     },
@@ -1534,7 +1556,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:179"
+        "src/configstream/config.py:181"
       ],
       "type": "int"
     },
@@ -1545,7 +1567,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:142"
+        "src/configstream/config.py:144"
       ],
       "type": "Optional[str]"
     },
@@ -1557,7 +1579,7 @@
       "sensitive": true,
       "sources": [
         "scripts/audit_pipeline_outputs.py:323",
-        "src/configstream/config.py:137"
+        "src/configstream/config.py:139"
       ],
       "type": "Optional[str]"
     },
@@ -1568,7 +1590,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:123"
+        "src/configstream/config.py:125"
       ],
       "type": "bool"
     },
@@ -1579,7 +1601,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:134"
+        "src/configstream/config.py:136"
       ],
       "type": "str"
     },
@@ -1591,7 +1613,7 @@
       "sensitive": true,
       "sources": [
         "scripts/upload_telegram.py:29",
-        "src/configstream/config.py:133"
+        "src/configstream/config.py:135"
       ],
       "type": "Optional[str]"
     },
@@ -1635,7 +1657,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:118"
+        "src/configstream/config.py:120"
       ],
       "type": "bool"
     },
@@ -1648,7 +1670,7 @@
       "sources": [
         "src/configstream/security/utls_wrapper.py:143",
         "src/configstream/testers/go_tester/binary_security.py:158",
-        "src/configstream/testers/go_tester/manager.py:323",
+        "src/configstream/testers/go_tester/manager.py:334",
         "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py:100",
         "src/configstream/tools/vwarp/binary.py:140"
       ],
@@ -1661,7 +1683,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:126"
+        "src/configstream/config.py:128"
       ],
       "type": "int"
     },
@@ -1672,7 +1694,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:144",
+        "src/configstream/config.py:146",
         "src/configstream/intelligence/washer/core.py:515",
         "src/configstream/pipeline/core.py:150",
         "src/configstream/pipeline/core.py:171",
@@ -1680,7 +1702,7 @@
         "src/configstream/pipeline/core.py:181",
         "src/configstream/pipeline/core.py:41",
         "src/configstream/pipeline/core.py:47",
-        "src/configstream/testers/go_tester/manager.py:331",
+        "src/configstream/testers/go_tester/manager.py:342",
         "src/configstream/testers/go_tester/secure_manager.py:72"
       ],
       "type": "bool"
@@ -1714,7 +1736,7 @@
       "required": false,
       "sensitive": true,
       "sources": [
-        "src/configstream/config.py:135"
+        "src/configstream/config.py:137"
       ],
       "type": "Optional[str]"
     },
@@ -1725,7 +1747,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:146"
+        "src/configstream/config.py:148"
       ],
       "type": "str"
     },
@@ -1747,7 +1769,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:147"
+        "src/configstream/config.py:149"
       ],
       "type": "bool"
     },
@@ -1769,7 +1791,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:145"
+        "src/configstream/config.py:147"
       ],
       "type": "int"
     },
@@ -1814,7 +1836,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:60"
+        "src/configstream/config.py:61"
       ],
       "type": "str"
     },
@@ -1825,7 +1847,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:63"
+        "src/configstream/config.py:64"
       ],
       "type": "Optional[str]"
     },
@@ -1836,7 +1858,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:166"
+        "src/configstream/config.py:168"
       ],
       "type": "float"
     },
@@ -1847,7 +1869,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:165"
+        "src/configstream/config.py:167"
       ],
       "type": "int"
     },
@@ -1858,7 +1880,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/config.py:167"
+        "src/configstream/config.py:169"
       ],
       "type": "float"
     }
