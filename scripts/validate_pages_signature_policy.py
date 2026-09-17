@@ -57,7 +57,7 @@ def _validate_current_main_source() -> list[str]:
         request.add_header("Authorization", f"Bearer {token}")
 
     try:
-        with urlopen(request, timeout=10) as response:  # nosec B310 - fixed GitHub API origin
+        with urlopen(request, timeout=10) as response:  # nosec B310
             payload = json.load(response)
     except (HTTPError, URLError, OSError, json.JSONDecodeError, TimeoutError) as exc:
         return [f"could not verify current main revision: {type(exc).__name__}"]
