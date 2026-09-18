@@ -16,114 +16,6 @@ from .chains import extract_chain_proxies
 logger = logging.getLogger(__name__)
 
 
-def wireguard_outbound_to_endpoint(outbound: Dict[str, Any]) -> Dict[str, Any]:
-    """Migrate a legacy sing-box WireGuard outbound to the 1.13+ endpoint schema.
-
-    sing-box removed WireGuard outbounds in 1.13.0. Keep the internal outbound
-    representation for converters/chains, but normalize it at every native
-    runtime/release boundary so probes and published configs use the supported
-    endpoint contract.
-    """
-    if outbound.get("type") != "wireguard":
-        raise ValueError("expected a WireGuard outbound")
-
-    def string_list(value: Any) -> list[str]:
-        if value in (None, ""):
-            return []
-        if isinstance(value, list):
-            return [str(item) for item in value if item not in (None, "")]
-        return [str(value)]
-
-    def port_value(value: Any) -> int:
-        try:
-            port = int(value or 0)
-        except (TypeError, ValueError):
-            return 0
-        return port if 0 <= port <= 65535 else 0
-
-    local_addresses: list[str] = []
-    for field in ("address", "local_address", "local_address_v6"):
-        for value in string_list(outbound.get(field)):
-            if value not in local_addresses:
-                local_addresses.append(value)
-
-    default_allowed = string_list(outbound.get("allowed_ips")) or ["0.0.0.0/0"]
-    if any(":" in item for item in local_addresses) and "::/0" not in default_allowed:
-        default_allowed.append("::/0")
-
-    def migrate_peer(peer: Dict[str, Any]) -> Dict[str, Any]:
-        allowed = string_list(peer.get("allowed_ips")) or list(default_allowed)
-        migrated: Dict[str, Any] = {
-            "address": peer.get("address") or peer.get("server") or outbound.get("server"),
-            "port": port_value(
-                peer.get("port")
-                or peer.get("server_port")
-                or outbound.get("server_port")
-            ),
-            "public_key": (
-                peer.get("public_key")
-                or peer.get("peer_public_key")
-                or outbound.get("peer_public_key")
-                or outbound.get("public_key")
-            ),
-            "allowed_ips": allowed,
-        }
-        for field in (
-            "pre_shared_key",
-            "reserved",
-            "persistent_keepalive_interval",
-        ):
-            value = peer.get(field)
-            if value in (None, "", []):
-                value = outbound.get(field)
-            if value not in (None, "", []):
-                migrated[field] = value
-        return migrated
-
-    raw_peers = outbound.get("peers")
-    if isinstance(raw_peers, list) and raw_peers:
-        peers = [
-            migrate_peer(peer)
-            for peer in raw_peers
-            if isinstance(peer, dict)
-        ]
-    else:
-        peers = [migrate_peer({})]
-
-    endpoint: Dict[str, Any] = {
-        "type": "wireguard",
-        "tag": outbound.get("tag"),
-        "address": local_addresses,
-        "private_key": outbound.get("private_key"),
-        "mtu": int(outbound.get("mtu") or 1408),
-        "peers": peers,
-    }
-
-    if "system" in outbound:
-        endpoint["system"] = parse_bool(outbound["system"])
-    elif "system_interface" in outbound:
-        endpoint["system"] = parse_bool(outbound["system_interface"])
-    interface_name = outbound.get("name") or outbound.get("interface_name")
-    if interface_name not in (None, ""):
-        endpoint["name"] = interface_name
-    for field in ("listen_port", "workers"):
-        if outbound.get(field) not in (None, ""):
-            endpoint[field] = outbound[field]
-    for field in (
-        "detour",
-        "bind_interface",
-        "routing_mark",
-        "connect_timeout",
-        "tcp_fast_open",
-        "tcp_multi_path",
-        "udp_fragment",
-        "domain_resolver",
-    ):
-        if field in outbound:
-            endpoint[field] = outbound[field]
-    return endpoint
-
-
 def _chain_obs_from_details(details: Dict[str, Any]) -> list[Dict[str, Any]]:
     chain_proxies = extract_chain_proxies(details)
     if chain_proxies:
@@ -918,3 +810,111 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             )
 
     return out
+
+
+def wireguard_outbound_to_endpoint(outbound: Dict[str, Any]) -> Dict[str, Any]:
+    """Migrate a legacy sing-box WireGuard outbound to the 1.13+ endpoint schema.
+
+    sing-box removed WireGuard outbounds in 1.13.0. Keep the internal outbound
+    representation for converters/chains, but normalize it at every native
+    runtime/release boundary so probes and published configs use the supported
+    endpoint contract.
+    """
+    if outbound.get("type") != "wireguard":
+        raise ValueError("expected a WireGuard outbound")
+
+    def string_list(value: Any) -> list[str]:
+        if value in (None, ""):
+            return []
+        if isinstance(value, list):
+            return [str(item) for item in value if item not in (None, "")]
+        return [str(value)]
+
+    def port_value(value: Any) -> int:
+        try:
+            port = int(value or 0)
+        except (TypeError, ValueError):
+            return 0
+        return port if 0 <= port <= 65535 else 0
+
+    local_addresses: list[str] = []
+    for field in ("address", "local_address", "local_address_v6"):
+        for value in string_list(outbound.get(field)):
+            if value not in local_addresses:
+                local_addresses.append(value)
+
+    default_allowed = string_list(outbound.get("allowed_ips")) or ["0.0.0.0/0"]
+    if any(":" in item for item in local_addresses) and "::/0" not in default_allowed:
+        default_allowed.append("::/0")
+
+    def migrate_peer(peer: Dict[str, Any]) -> Dict[str, Any]:
+        allowed = string_list(peer.get("allowed_ips")) or list(default_allowed)
+        migrated: Dict[str, Any] = {
+            "address": peer.get("address") or peer.get("server") or outbound.get("server"),
+            "port": port_value(
+                peer.get("port")
+                or peer.get("server_port")
+                or outbound.get("server_port")
+            ),
+            "public_key": (
+                peer.get("public_key")
+                or peer.get("peer_public_key")
+                or outbound.get("peer_public_key")
+                or outbound.get("public_key")
+            ),
+            "allowed_ips": allowed,
+        }
+        for field in (
+            "pre_shared_key",
+            "reserved",
+            "persistent_keepalive_interval",
+        ):
+            value = peer.get(field)
+            if value in (None, "", []):
+                value = outbound.get(field)
+            if value not in (None, "", []):
+                migrated[field] = value
+        return migrated
+
+    raw_peers = outbound.get("peers")
+    if isinstance(raw_peers, list) and raw_peers:
+        peers = [
+            migrate_peer(peer)
+            for peer in raw_peers
+            if isinstance(peer, dict)
+        ]
+    else:
+        peers = [migrate_peer({})]
+
+    endpoint: Dict[str, Any] = {
+        "type": "wireguard",
+        "tag": outbound.get("tag"),
+        "address": local_addresses,
+        "private_key": outbound.get("private_key"),
+        "mtu": int(outbound.get("mtu") or 1408),
+        "peers": peers,
+    }
+
+    if "system" in outbound:
+        endpoint["system"] = parse_bool(outbound["system"])
+    elif "system_interface" in outbound:
+        endpoint["system"] = parse_bool(outbound["system_interface"])
+    interface_name = outbound.get("name") or outbound.get("interface_name")
+    if interface_name not in (None, ""):
+        endpoint["name"] = interface_name
+    for field in ("listen_port", "workers"):
+        if outbound.get(field) not in (None, ""):
+            endpoint[field] = outbound[field]
+    for field in (
+        "detour",
+        "bind_interface",
+        "routing_mark",
+        "connect_timeout",
+        "tcp_fast_open",
+        "tcp_multi_path",
+        "udp_fragment",
+        "domain_resolver",
+    ):
+        if field in outbound:
+            endpoint[field] = outbound[field]
+    return endpoint
