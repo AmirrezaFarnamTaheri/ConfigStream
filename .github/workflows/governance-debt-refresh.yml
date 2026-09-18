@@ -44,3 +44,4 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "chore(governance): regenerate debt and triage evidence"
           git push origin HEAD:agent/fix-singbox-wireguard-runtime-conformance
+# rerun after exact function-size ratchet
