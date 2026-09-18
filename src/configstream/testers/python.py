@@ -26,7 +26,8 @@ from aiohttp_socks import ProxyConnector
 
 from ..async_utils import safe_wait_for
 from ..config import AppSettings
-from ..converters import to_singbox_outbound, wireguard_outbound_to_endpoint
+from ..converters import to_singbox_outbound
+from ..converters.singbox import wireguard_outbound_to_endpoint
 from ..intelligence.evasion import enrich_outbound_with_evasion
 from ..models import Proxy
 from ..security_validator import SecurityValidator
