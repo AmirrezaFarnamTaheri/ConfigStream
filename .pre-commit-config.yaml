@@ -34,6 +34,14 @@ repos:
         language: system
         files: ^\.github/workflows/.*\.ya?ml$
         pass_filenames: false
+      - id: verify-repository-static
+        name: verify repository (static profile)
+        # Mirrors the CI static gate (debt-matrix freshness, exception
+        # budgets, etc.) so a contributor who only runs pre-commit locally
+        # still catches what CONTRIBUTING.md says this hook set covers.
+        entry: python scripts/verify_repository.py --profile static
+        language: system
+        pass_filenames: false
       - id: pytest
         name: pytest
         entry: pytest -q
