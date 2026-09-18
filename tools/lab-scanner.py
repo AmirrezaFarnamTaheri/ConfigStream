@@ -50,6 +50,7 @@ import sys
 import time
 import urllib.request
 import urllib.error
+import urllib.parse
 from typing import List, Tuple, Optional, Dict, Any
 
 try:
@@ -401,6 +402,32 @@ def section(title: str):
 # ============================================================
 # Network Probes
 # ============================================================
+
+
+def parse_custom_proxy_uri(value: str) -> Optional[Dict[str, Any]]:
+    """Parse a supported custom Layer-1 proxy URI without naive colon splitting."""
+    try:
+        parsed = urllib.parse.urlsplit(value.strip())
+        scheme = parsed.scheme.lower()
+        if scheme not in {"socks5", "http"}:
+            return None
+        if parsed.username is not None or parsed.password is not None:
+            return None
+        host = parsed.hostname
+        port = parsed.port
+    except (TypeError, ValueError):
+        return None
+    if not host or port is None or not 1 <= port <= 65535:
+        return None
+    return {"type": scheme, "host": host, "port": port}
+
+
+def format_proxy_uri(proxy: Dict[str, Any]) -> str:
+    """Render a parsed proxy URI, preserving valid bracketed IPv6 syntax."""
+    host = str(proxy["host"])
+    if ":" in host and not host.startswith("["):
+        host = f"[{host}]"
+    return f"{proxy['type']}://{host}:{int(proxy['port'])}"
 
 
 def load_user_endpoints(source: str) -> List[Tuple[str, int]]:
@@ -2800,12 +2827,12 @@ User-supplied resources:
     # Parse user-supplied proxy
     user_proxy: Optional[Dict[str, Any]] = None
     if args.custom_proxy:
-        p = args.custom_proxy.replace("://", ":")
-        pp = p.split(":")
-        if len(pp) >= 3:
-            user_proxy = {"type": pp[0], "host": pp[1], "port": int(pp[2])}
-        else:
-            info("Invalid --custom-proxy format. Use type://host:port")
+        user_proxy = parse_custom_proxy_uri(args.custom_proxy)
+        if user_proxy is None:
+            info(
+                "Invalid --custom-proxy. Use socks5://host:port or http://host:port "
+                "(credentials are not supported)."
+            )
 
     if args.scan_vwarp:
         results = scan_vwarp_endpoints(rtt_limit="800ms")
@@ -2837,7 +2864,7 @@ User-supplied resources:
         relay_extra: List[str] = []
         if user_proxy:
             relay_extra.append(
-                f"{user_proxy['type']}://{user_proxy['host']}:{user_proxy['port']}"
+                format_proxy_uri(user_proxy)
             )
         if user_eps:
             relay_extra.extend(f"{e['ip']}:{e['port']}" for e in user_eps)
