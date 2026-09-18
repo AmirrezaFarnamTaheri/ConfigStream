@@ -117,7 +117,6 @@ def test_lab_private_destination_rules_match_backend() -> None:
         requires_transport_security(address) for address in addresses
     ]
 
-
 def test_lab_singbox_exports_use_113_endpoint_schema() -> None:
     node = shutil.which("node")
     if not node:

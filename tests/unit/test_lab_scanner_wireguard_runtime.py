@@ -13,9 +13,7 @@ VALID_PRIVATE_KEY = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
 
 
 def _load_scanner():
-    spec = importlib.util.spec_from_file_location(
-        "configstream_lab_scanner", SCANNER_PATH
-    )
+    spec = importlib.util.spec_from_file_location("configstream_lab_scanner", SCANNER_PATH)
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -82,7 +80,9 @@ def test_lab_scanner_requires_real_warp_credentials(monkeypatch) -> None:
     monkeypatch.delenv("WARP_KEY_POOL", raising=False)
 
     with pytest.raises(ValueError, match="WARP private key is required"):
-        scanner.generate_chain_config([{"type": "warp", "ip": "1.1.1.1", "port": 2408}])
+        scanner.generate_chain_config(
+            [{"type": "warp", "ip": "1.1.1.1", "port": 2408}]
+        )
 
 
 def test_lab_scanner_custom_proxy_parser_handles_ipv6() -> None:
