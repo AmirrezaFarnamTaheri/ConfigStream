@@ -1552,7 +1552,7 @@
     },
     {
       "path": "src/configstream/testers/lab_chain_tester.py",
-      "line": 168,
+      "line": 186,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1560,7 +1560,7 @@
     },
     {
       "path": "src/configstream/testers/lab_chain_tester.py",
-      "line": 210,
+      "line": 228,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1568,7 +1568,7 @@
     },
     {
       "path": "src/configstream/testers/lab_chain_tester.py",
-      "line": 218,
+      "line": 236,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1576,7 +1576,7 @@
     },
     {
       "path": "src/configstream/testers/lab_chain_tester.py",
-      "line": 233,
+      "line": 251,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1600,7 +1600,7 @@
     },
     {
       "path": "src/configstream/testers/python.py",
-      "line": 114,
+      "line": 158,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1608,7 +1608,7 @@
     },
     {
       "path": "src/configstream/testers/python.py",
-      "line": 154,
+      "line": 198,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1616,7 +1616,7 @@
     },
     {
       "path": "src/configstream/testers/python.py",
-      "line": 260,
+      "line": 304,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1624,7 +1624,7 @@
     },
     {
       "path": "src/configstream/testers/python.py",
-      "line": 351,
+      "line": 380,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1632,7 +1632,7 @@
     },
     {
       "path": "src/configstream/testers/python.py",
-      "line": 393,
+      "line": 422,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1640,7 +1640,7 @@
     },
     {
       "path": "src/configstream/testers/python.py",
-      "line": 438,
+      "line": 467,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
