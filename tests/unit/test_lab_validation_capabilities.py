@@ -19,6 +19,9 @@ from configstream.lab_validation import _validate_and_build_lab_config
         ("bind_interface", "eth0"),
         ("routing_mark", 1234),
         ("netns", "/var/run/netns/host"),
+        # A `direct` hop that rewrites the destination would redirect the
+        # server-owned probe to an internal host after SSRF pinning.
+        ("override_address", "127.0.0.1"),
     ],
 )
 async def test_lab_rejects_host_capability_fields(field: str, value: object) -> None:

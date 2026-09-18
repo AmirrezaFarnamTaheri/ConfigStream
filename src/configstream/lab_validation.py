@@ -34,7 +34,13 @@ LAB_ALLOWED_OUTBOUND_TYPES = {
 }
 
 LAB_DESTINATION_KEYS = {"server", "address"}
-LAB_INTERNAL_HOST_SUFFIXES = (".local", ".localhost", ".lan", ".internal")
+LAB_INTERNAL_HOST_SUFFIXES = (
+    ".local",
+    ".localhost",
+    ".lan",
+    ".internal",
+    ".home.arpa",
+)
 
 # Bounds that keep a single lab request from turning into a DoS: each hostname
 # destination triggers a blocking, up-to-5s DNS resolution, so an unbounded
@@ -53,6 +59,10 @@ LAB_FORBIDDEN_CAPABILITY_KEYS = {
     "inet6_bind_address",
     "netns",
     "network_namespace",
+    # `direct` outbounds can rewrite every connection's destination; allowing
+    # it would let a chain redirect the server-owned probe to internal hosts
+    # and bypass the pinned-destination SSRF checks below.
+    "override_address",
     "routing_mark",
     "system_interface",
 }
