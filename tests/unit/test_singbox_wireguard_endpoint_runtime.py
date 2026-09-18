@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from __future__ import annotations
 
+import pytest
+
 from configstream.converters.singbox import wireguard_outbound_to_endpoint
 from configstream.testers.python import _runtime_singbox_document
 
@@ -146,3 +148,65 @@ def test_runtime_document_keeps_non_wireguard_shape_without_endpoints() -> None:
 
     assert document["outbounds"][0]["tag"] == "proxy-test"
     assert "endpoints" not in document
+
+
+def test_wireguard_endpoint_rejects_invalid_runtime_fields() -> None:
+    base = {
+        "type": "wireguard",
+        "tag": "wg",
+        "address": ["10.0.0.2/32"],
+        "private_key": "private",
+        "server": "198.51.100.10",
+        "server_port": 51820,
+        "peer_public_key": "public",
+    }
+
+    invalid_cases = [
+        ({"tag": ""}, "tag"),
+        ({"address": [], "local_address": "", "local_address_v6": ""}, "local address"),
+        ({"private_key": ""}, "private key"),
+        ({"server_port": 0}, "peer port"),
+        ({"server_port": 65536}, "peer port"),
+        ({"server_port": "not-a-port"}, "peer port"),
+        ({"peer_public_key": ""}, "peer public key"),
+        ({"mtu": 0}, "mtu"),
+        ({"mtu": "invalid"}, "mtu"),
+        ({"reserved": [1, 2]}, "reserved"),
+        ({"reserved": [1, 2, 256]}, "reserved"),
+        ({"persistent_keepalive_interval": -1}, "keepalive"),
+        ({"listen_port": 0}, "listen_port"),
+        ({"workers": 0}, "workers"),
+    ]
+
+    for updates, match in invalid_cases:
+        candidate = dict(base)
+        candidate.update(updates)
+        with pytest.raises(ValueError, match=match):
+            wireguard_outbound_to_endpoint(candidate)
+
+
+def test_wireguard_endpoint_rejects_malformed_explicit_peers() -> None:
+    base = {
+        "type": "wireguard",
+        "tag": "wg",
+        "address": ["10.0.0.2/32"],
+        "private_key": "private",
+    }
+    with pytest.raises(ValueError, match="peers must be a list"):
+        wireguard_outbound_to_endpoint({**base, "peers": "invalid"})
+    with pytest.raises(ValueError, match="peers must contain objects"):
+        wireguard_outbound_to_endpoint({**base, "peers": [{"address": "a"}, "invalid"]})
+    with pytest.raises(ValueError, match="peer address"):
+        wireguard_outbound_to_endpoint(
+            {
+                **base,
+                "peers": [{"port": 51820, "public_key": "public"}],
+            }
+        )
+    with pytest.raises(ValueError, match="peer public key"):
+        wireguard_outbound_to_endpoint(
+            {
+                **base,
+                "peers": [{"address": "198.51.100.10", "port": 51820}],
+            }
+        )
