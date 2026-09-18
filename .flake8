@@ -6,3 +6,4 @@ per-file-ignores =
     src/configstream/pipeline/fetcher.py:F401
     # scripts bootstrap sys.path to the repo root before importing local modules
     scripts/*:E402
+    tools/*:E402
