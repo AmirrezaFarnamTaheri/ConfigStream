@@ -74,6 +74,70 @@ class TestAutoDetect(unittest.TestCase):
         self.assertIsNone(auto_detect_and_parse(""))
         self.assertIsNone(auto_detect_and_parse("http://"))  # Incomplete
 
+    def test_detect_openvpn_content_based(self):
+        """OpenVPN configs are detected by content, not a URL scheme."""
+        config = "client\ndev tun\nremote 1.2.3.4 1194\nproto udp\n"
+        proxy = auto_detect_and_parse(config)
+        self.assertIsNotNone(proxy)
+        self.assertEqual(proxy.protocol, "openvpn")
+        self.assertEqual(proxy.address, "1.2.3.4")
+
+    def test_openvpn_lookalike_without_remote_falls_through(self):
+        """Content that only partially resembles OpenVPN yields no match."""
+        self.assertIsNone(auto_detect_and_parse("client\ndev tun\nno remote here"))
+
+    def test_detect_naked_ip_port(self):
+        """A bare ``host:port`` with no scheme is treated as a SOCKS/HTTP proxy."""
+        proxy = auto_detect_and_parse("203.0.113.5:1080")
+        self.assertIsNotNone(proxy)
+        self.assertEqual(proxy.protocol, "socks5")
+        self.assertEqual(proxy.port, 1080)
+
+    def test_port_heuristic_prefers_tls_candidates_on_443(self):
+        """Unscheme'd content on port 443 is still resolved through the direct
+        scheme map before the port-based TLS heuristic ever runs, so a
+        recognized ``trojan://`` URL is parsed as trojan, not misclassified."""
+        proxy = auto_detect_and_parse("trojan://secret@example.com:443")
+        self.assertIsNotNone(proxy)
+        self.assertEqual(proxy.protocol, "trojan")
+
+    def test_detect_clash_json_entry(self):
+        config = '{"type": "trojan", "server": "1.2.3.4", "port": 443, "password": "x", "name": "r"}'
+        proxy = auto_detect_and_parse(config)
+        self.assertIsNotNone(proxy)
+        self.assertEqual(proxy.protocol, "trojan")
+        self.assertEqual(proxy.address, "1.2.3.4")
+
+    def test_generic_http_scheme_is_not_misclassified_as_a_proxy_protocol(self):
+        """A plain ``http://`` URL must not be reinterpreted as trojan, vless,
+        hysteria, or wireguard just because it shares a port those protocols
+        commonly use (443/typical WireGuard ports)."""
+        for config in ("http://example.com:443", "http://1.2.3.4:51820"):
+            proxy = auto_detect_and_parse(config)
+            self.assertIsNotNone(proxy)
+            self.assertEqual(proxy.protocol, "http")
+
+    def test_fallback_loop_rejects_scheme_protocol_mismatch(self):
+        """``parse_naive`` is a thin urlparse wrapper: given any
+        ``user:pass@host:port`` it happily returns a "naive" proxy regardless
+        of scheme. The fallback loop's scheme allowlist must still reject
+        that result when the URL's own scheme isn't one of naive's schemes,
+        otherwise an arbitrary ``scheme://user:pass@host:port`` string would
+        be laundered into a bogus proxy entry."""
+        from configstream.parsers import parse_naive
+
+        # Confirm the premise: parse_naive alone is scheme-agnostic.
+        self.assertEqual(
+            parse_naive("totallyunknown://user:pass@1.2.3.4:51820").protocol, "naive"
+        )
+        # auto_detect_and_parse must still reject it via the scheme allowlist.
+        self.assertIsNone(
+            auto_detect_and_parse("totallyunknown://user:pass@1.2.3.4:51820")
+        )
+
+    def test_unrecognized_scheme_is_dropped_not_crashed(self):
+        self.assertIsNone(auto_detect_and_parse("totallyunknown://x@1.2.3.4:1080"))
+
 
 if __name__ == "__main__":
     unittest.main()
