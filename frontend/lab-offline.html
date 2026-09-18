@@ -376,12 +376,30 @@ function generate(){
   const primary=outbounds[outbounds.length-1].tag;
 
   if(fmt==='singbox'){
+    const sbOutbounds=[];
+    const endpoints=[];
+    outbounds.forEach(o=>{
+      if(o.type!=='wireguard'){sbOutbounds.push(o);return;}
+      const allowed=['0.0.0.0/0'];
+      const endpoint={
+        type:'wireguard',tag:o.tag,address:Array.isArray(o.local_address)?o.local_address:[o.local_address].filter(Boolean),
+        private_key:o.private_key,mtu:o.mtu||1280,
+        peers:[{
+          address:o.server,port:o.server_port,public_key:o.peer_public_key,
+          allowed_ips:allowed
+        }]
+      };
+      if(o.reserved)endpoint.peers[0].reserved=o.reserved;
+      if(o.detour)endpoint.detour=o.detour;
+      endpoints.push(endpoint);
+    });
     lastConfig={
       log:{level:'info'},
       inbounds:[{type:'mixed',tag:'mixed-in',listen:'127.0.0.1',listen_port:port}],
-      outbounds:[...outbounds,{type:'direct',tag:'direct'},{type:'block',tag:'block'}],
+      outbounds:[...sbOutbounds,{type:'direct',tag:'direct'}],
       route:{rules:[{inbound:['mixed-in'],outbound:primary}],final:primary}
     };
+    if(endpoints.length)lastConfig.endpoints=endpoints;
     showOutput(JSON.stringify(lastConfig,null,2),'json');
   } else if(fmt==='clash'){
     let y=`# ConfigStream Chain (Clash/Mihomo)\nmixed-port: ${port}\nallow-lan: false\n\nproxies:\n`;
