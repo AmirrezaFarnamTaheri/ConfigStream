@@ -99,15 +99,23 @@ ConfigStream's `--auto-chain` tries all 6 strategies automatically and picks the
 ## Technical Details
 
 ### WireGuard Configuration Fields
+ConfigStream targets sing-box 1.13+, where WireGuard is a top-level endpoint rather than an outbound:
+
 ```json
 {
   "type": "wireguard",
-  "server": "162.159.192.1",
-  "server_port": 2408,
-  "local_address": ["172.16.0.2/32", "fd01:db8:85a3::2/128"],
+  "tag": "warp-out",
+  "address": ["172.16.0.2/32", "fd01:db8:85a3::2/128"],
   "private_key": "...",
-  "peer_public_key": "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",
-  "mtu": 1280
+  "mtu": 1280,
+  "peers": [
+    {
+      "address": "162.159.192.1",
+      "port": 2408,
+      "public_key": "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",
+      "allowed_ips": ["0.0.0.0/0", "::/0"]
+    }
+  ]
 }
 ```
 
