@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "731e74987a522dda7713f3423f07a93a8312c26eb9136cb56233f77698fe658a",
+  "source_digest": "11a41eec372e6e5e986a703225f14a7d89507a5817f4488f33e2d37a75f78ce1",
   "variable_count": 163,
   "variables": [
     {
@@ -740,8 +740,8 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:621",
-        "scripts/finalize_release_outputs.py:668",
+        "scripts/finalize_release_outputs.py:589",
+        "scripts/finalize_release_outputs.py:636",
         "scripts/generate_evidence_bundle.py:20",
         "scripts/native_client_checks.py:232",
         "scripts/release_gate.py:191",
@@ -761,8 +761,8 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:620",
-        "scripts/finalize_release_outputs.py:667",
+        "scripts/finalize_release_outputs.py:588",
+        "scripts/finalize_release_outputs.py:635",
         "scripts/generate_evidence_bundle.py:19",
         "scripts/native_client_checks.py:231",
         "scripts/release_gate.py:190",
@@ -782,8 +782,8 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:619",
-        "scripts/finalize_release_outputs.py:666",
+        "scripts/finalize_release_outputs.py:587",
+        "scripts/finalize_release_outputs.py:634",
         "scripts/generate_evidence_bundle.py:21",
         "scripts/native_client_checks.py:230",
         "scripts/release_gate.py:189",
@@ -1133,7 +1133,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:58"
+        "scripts/finalize_release_outputs.py:59"
       ],
       "type": null
     },
@@ -1166,7 +1166,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:683"
+        "scripts/finalize_release_outputs.py:651"
       ],
       "type": null
     },
