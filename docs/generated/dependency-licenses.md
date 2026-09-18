@@ -184,7 +184,7 @@ Unknown licenses requiring external resolution: **147**
 | python | `singbox2proxy` | `0.2.7` | required | unknown |
 | python | `slowapi` | `0.1.9` | required | unknown |
 | python | `sniffio` | `1.3.1` | required | unknown |
-| python | `soupsieve` | `2.8.4` | required | unknown |
+| python | `soupsieve` | `2.9.0` | required | unknown |
 | python | `starlette` | `1.3.1` | required | unknown |
 | python | `tenacity` | `9.1.4` | required | unknown |
 | python | `text-unidecode` | `1.3` | required | unknown |
