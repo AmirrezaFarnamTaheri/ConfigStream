@@ -298,7 +298,7 @@ async def _sanitize_and_pin_outbound(
 
 
 async def _validate_and_build_lab_config(config: object) -> Dict[str, Any]:
-    """Constructs a server-owned minimal sing-box document containing ONLY sanitized outbounds."""
+    """Construct a server-owned minimal sing-box 1.13+ document from sanitized nodes."""
     if not isinstance(config, dict):
         raise HTTPException(status_code=400, detail="Config must be JSON object")
 
@@ -326,15 +326,23 @@ async def _validate_and_build_lab_config(config: object) -> Dict[str, Any]:
 
     runtime_outbounds: List[Dict[str, Any]] = []
     endpoints: List[Dict[str, Any]] = []
+    primary_tag: Optional[str] = None
     for clean_outbound in clean_outbounds:
         outbound_type = str(clean_outbound.get("type") or "").lower()
-        if outbound_type == "wireguard":
-            endpoints.append(wireguard_outbound_to_endpoint(clean_outbound))
-        elif outbound_type == "block":
+        if outbound_type == "block":
             # sing-box 1.13 removed the legacy special block outbound. The
             # Laboratory does not preserve caller-owned route rules, so an
             # unreferenced builder compatibility node has no runtime purpose.
             continue
+        candidate_tag = clean_outbound.get("tag")
+        if (
+            primary_tag is None
+            and isinstance(candidate_tag, str)
+            and candidate_tag.strip()
+        ):
+            primary_tag = candidate_tag.strip()
+        if outbound_type == "wireguard":
+            endpoints.append(wireguard_outbound_to_endpoint(clean_outbound))
         else:
             runtime_outbounds.append(clean_outbound)
 
@@ -348,8 +356,6 @@ async def _validate_and_build_lab_config(config: object) -> Dict[str, Any]:
     if endpoints:
         document["endpoints"] = endpoints
 
-    primary = runtime_outbounds[0] if runtime_outbounds else endpoints[0]
-    primary_tag = primary.get("tag")
-    if isinstance(primary_tag, str) and primary_tag.strip():
-        document["route"] = {"final": primary_tag.strip()}
+    if primary_tag is not None:
+        document["route"] = {"final": primary_tag}
     return document
