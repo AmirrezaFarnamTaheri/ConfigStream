@@ -16,6 +16,7 @@ omit =
     */freshness.py
     */sharding.py
     */geoip_offline.py
+    */countries.py
     */__main__.py
 
 [report]
