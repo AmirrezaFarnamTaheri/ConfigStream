@@ -544,7 +544,7 @@
     },
     {
       "path": "src/configstream/converters/singbox.py",
-      "line": 366,
+      "line": 365,
       "marker": "LARGE_FUNCTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1616,7 +1616,7 @@
     },
     {
       "path": "src/configstream/testers/python.py",
-      "line": 365,
+      "line": 363,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1624,7 +1624,7 @@
     },
     {
       "path": "src/configstream/testers/python.py",
-      "line": 407,
+      "line": 405,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1632,7 +1632,7 @@
     },
     {
       "path": "src/configstream/testers/python.py",
-      "line": 452,
+      "line": 450,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",

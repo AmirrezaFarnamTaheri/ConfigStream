@@ -301,9 +301,7 @@ class PythonTester:
         outbound["tag"] = "proxy-test"
         intermediate_items = [outbound]
         if isinstance(extras, list):
-            intermediate_items.extend(
-                item for item in extras if isinstance(item, dict)
-            )
+            intermediate_items.extend(item for item in extras if isinstance(item, dict))
 
         outbounds: list[dict[str, Any]] = []
         endpoints: list[dict[str, Any]] = []

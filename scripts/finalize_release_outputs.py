@@ -147,6 +147,7 @@ def _wireguard_endpoint(outbound: dict[str, Any]) -> dict[str, Any]:
     sanitized = _sanitize(endpoint)
     return sanitized if isinstance(sanitized, dict) else {}
 
+
 def _dns_server(server: dict[str, Any]) -> dict[str, Any]:
     if server.get("type") and "address" not in server:
         sanitized = _sanitize(server)

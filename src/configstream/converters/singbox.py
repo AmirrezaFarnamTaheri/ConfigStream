@@ -253,7 +253,6 @@ def _revived_outbound_from_chain(
     return out
 
 
-
 def _wireguard_values(value: Any) -> list[str]:
     """Normalize one-or-many WireGuard string fields without duplicates."""
     if value in (None, ""):
