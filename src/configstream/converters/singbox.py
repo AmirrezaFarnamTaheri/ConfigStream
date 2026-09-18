@@ -812,90 +812,172 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
     return out
 
 
-def wireguard_outbound_to_endpoint(outbound: Dict[str, Any]) -> Dict[str, Any]:
-    """Migrate a legacy sing-box WireGuard outbound to the 1.13+ endpoint schema.
+def _wireguard_string_values(value: Any) -> list[str]:
+    """Normalize one-or-many WireGuard strings, stripping blanks and duplicates."""
+    if value in (None, ""):
+        return []
+    raw = value if isinstance(value, list) else [value]
+    values: list[str] = []
+    for item in raw:
+        if item in (None, ""):
+            continue
+        text = str(item).strip()
+        if text and text not in values:
+            values.append(text)
+    return values
 
-    sing-box removed WireGuard outbounds in 1.13.0. Keep the internal outbound
-    representation for converters/chains, but normalize it at every native
-    runtime/release boundary so probes and published configs use the supported
-    endpoint contract.
-    """
+
+def _wireguard_required_text(value: Any, field: str) -> str:
+    text = str(value or "").strip()
+    if not text:
+        raise ValueError(f"WireGuard endpoint requires {field}")
+    return text
+
+
+def _wireguard_port(value: Any, field: str = "peer port") -> int:
+    if isinstance(value, bool):
+        raise ValueError(f"WireGuard endpoint has invalid {field}")
+    try:
+        port = int(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"WireGuard endpoint has invalid {field}") from exc
+    if not 1 <= port <= 65535:
+        raise ValueError(f"WireGuard endpoint has invalid {field}")
+    return port
+
+
+def _wireguard_positive_int(value: Any, field: str, default: int) -> int:
+    candidate = default if value in (None, "") else value
+    if isinstance(candidate, bool):
+        raise ValueError(f"WireGuard endpoint has invalid {field}")
+    try:
+        parsed = int(candidate)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"WireGuard endpoint has invalid {field}") from exc
+    if parsed <= 0:
+        raise ValueError(f"WireGuard endpoint has invalid {field}")
+    return parsed
+
+
+def _wireguard_reserved(value: Any) -> list[int]:
+    if not isinstance(value, (list, tuple)) or len(value) != 3:
+        raise ValueError("WireGuard reserved must contain exactly three bytes")
+    result: list[int] = []
+    for item in value:
+        if isinstance(item, bool):
+            raise ValueError("WireGuard reserved bytes must be integers from 0 to 255")
+        try:
+            parsed = int(item)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                "WireGuard reserved bytes must be integers from 0 to 255"
+            ) from exc
+        if not 0 <= parsed <= 255:
+            raise ValueError("WireGuard reserved bytes must be integers from 0 to 255")
+        result.append(parsed)
+    return result
+
+
+def _wireguard_nonnegative_int(value: Any, field: str) -> int:
+    if isinstance(value, bool):
+        raise ValueError(f"WireGuard endpoint has invalid {field}")
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"WireGuard endpoint has invalid {field}") from exc
+    if parsed < 0:
+        raise ValueError(f"WireGuard endpoint has invalid {field}")
+    return parsed
+
+
+def wireguard_outbound_to_endpoint(outbound: Dict[str, Any]) -> Dict[str, Any]:
+    """Migrate a legacy WireGuard outbound to the fail-closed 1.13+ endpoint schema."""
     if outbound.get("type") != "wireguard":
         raise ValueError("expected a WireGuard outbound")
 
-    def string_list(value: Any) -> list[str]:
-        if value in (None, ""):
-            return []
-        if isinstance(value, list):
-            return [str(item) for item in value if item not in (None, "")]
-        return [str(value)]
-
-    def port_value(value: Any) -> int:
-        try:
-            port = int(value or 0)
-        except (TypeError, ValueError):
-            return 0
-        return port if 0 <= port <= 65535 else 0
+    tag = _wireguard_required_text(outbound.get("tag"), "a tag")
+    private_key = _wireguard_required_text(
+        outbound.get("private_key"), "a private key"
+    )
 
     local_addresses: list[str] = []
     for field in ("address", "local_address", "local_address_v6"):
-        for value in string_list(outbound.get(field)):
+        for value in _wireguard_string_values(outbound.get(field)):
             if value not in local_addresses:
                 local_addresses.append(value)
+    if not local_addresses:
+        raise ValueError("WireGuard endpoint requires a local address")
 
-    default_allowed = string_list(outbound.get("allowed_ips")) or ["0.0.0.0/0"]
+    default_allowed = _wireguard_string_values(outbound.get("allowed_ips")) or [
+        "0.0.0.0/0"
+    ]
     if any(":" in item for item in local_addresses) and "::/0" not in default_allowed:
         default_allowed.append("::/0")
 
     def migrate_peer(peer: Dict[str, Any]) -> Dict[str, Any]:
-        allowed = string_list(peer.get("allowed_ips")) or list(default_allowed)
+        address = _wireguard_required_text(
+            peer.get("address") or peer.get("server") or outbound.get("server"),
+            "a peer address",
+        )
+        public_key = _wireguard_required_text(
+            peer.get("public_key")
+            or peer.get("peer_public_key")
+            or outbound.get("peer_public_key")
+            or outbound.get("public_key"),
+            "a peer public key",
+        )
+        allowed = _wireguard_string_values(peer.get("allowed_ips")) or list(
+            default_allowed
+        )
         migrated: Dict[str, Any] = {
-            "address": (
-                peer.get("address")
-                or peer.get("server")
-                or outbound.get("server")
-            ),
-            "port": port_value(
+            "address": address,
+            "port": _wireguard_port(
                 peer.get("port")
                 or peer.get("server_port")
                 or outbound.get("server_port")
             ),
-            "public_key": (
-                peer.get("public_key")
-                or peer.get("peer_public_key")
-                or outbound.get("peer_public_key")
-                or outbound.get("public_key")
-            ),
+            "public_key": public_key,
             "allowed_ips": allowed,
         }
-        for field in (
-            "pre_shared_key",
-            "reserved",
-            "persistent_keepalive_interval",
-        ):
-            value = peer.get(field)
-            if value in (None, "", []):
-                value = outbound.get(field)
-            if value not in (None, "", []):
-                migrated[field] = value
+        pre_shared_key = peer.get("pre_shared_key")
+        if pre_shared_key in (None, ""):
+            pre_shared_key = outbound.get("pre_shared_key")
+        if pre_shared_key not in (None, ""):
+            migrated["pre_shared_key"] = str(pre_shared_key).strip()
+
+        reserved = peer.get("reserved")
+        if reserved in (None, "", []):
+            reserved = outbound.get("reserved")
+        if reserved not in (None, "", []):
+            migrated["reserved"] = _wireguard_reserved(reserved)
+
+        keepalive = peer.get("persistent_keepalive_interval")
+        if keepalive in (None, ""):
+            keepalive = outbound.get("persistent_keepalive_interval")
+        if keepalive not in (None, ""):
+            migrated["persistent_keepalive_interval"] = _wireguard_nonnegative_int(
+                keepalive, "persistent keepalive interval"
+            )
         return migrated
 
     raw_peers = outbound.get("peers")
-    if isinstance(raw_peers, list) and raw_peers:
-        peers = [
-            migrate_peer(peer)
-            for peer in raw_peers
-            if isinstance(peer, dict)
-        ]
-    else:
+    if raw_peers in (None, []):
         peers = [migrate_peer({})]
+    elif not isinstance(raw_peers, list):
+        raise ValueError("WireGuard peers must be a list")
+    else:
+        if any(not isinstance(peer, dict) for peer in raw_peers):
+            raise ValueError("WireGuard peers must contain objects")
+        peers = [migrate_peer(peer) for peer in raw_peers]
+        if not peers:
+            raise ValueError("WireGuard endpoint requires at least one peer")
 
     endpoint: Dict[str, Any] = {
         "type": "wireguard",
-        "tag": outbound.get("tag"),
+        "tag": tag,
         "address": local_addresses,
-        "private_key": outbound.get("private_key"),
-        "mtu": int(outbound.get("mtu") or 1408),
+        "private_key": private_key,
+        "mtu": _wireguard_positive_int(outbound.get("mtu"), "mtu", 1408),
         "peers": peers,
     }
 
@@ -905,10 +987,15 @@ def wireguard_outbound_to_endpoint(outbound: Dict[str, Any]) -> Dict[str, Any]:
         endpoint["system"] = parse_bool(outbound["system_interface"])
     interface_name = outbound.get("name") or outbound.get("interface_name")
     if interface_name not in (None, ""):
-        endpoint["name"] = interface_name
-    for field in ("listen_port", "workers"):
-        if outbound.get(field) not in (None, ""):
-            endpoint[field] = outbound[field]
+        endpoint["name"] = str(interface_name).strip()
+    if outbound.get("listen_port") not in (None, ""):
+        endpoint["listen_port"] = _wireguard_port(
+            outbound["listen_port"], "listen_port"
+        )
+    if outbound.get("workers") not in (None, ""):
+        endpoint["workers"] = _wireguard_positive_int(
+            outbound["workers"], "workers", 1
+        )
     for field in (
         "detour",
         "bind_interface",
