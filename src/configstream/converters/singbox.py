@@ -2,6 +2,7 @@
 import logging
 import hashlib
 import base64
+import binascii
 import ipaddress
 import re
 import copy
@@ -250,6 +251,116 @@ def _revived_outbound_from_chain(
     if extra_outbounds:
         out["_extra_outbounds"] = extra_outbounds
     return out
+
+
+
+def _wireguard_values(value: Any) -> list[str]:
+    """Normalize one-or-many WireGuard string fields without duplicates."""
+    if value in (None, ""):
+        return []
+    raw = value if isinstance(value, list) else [value]
+    values: list[str] = []
+    for item in raw:
+        if item in (None, ""):
+            continue
+        text = str(item).strip()
+        if text and text not in values:
+            values.append(text)
+    return values
+
+
+def wireguard_outbound_to_endpoint(outbound: Dict[str, Any]) -> Dict[str, Any]:
+    """Migrate a legacy sing-box WireGuard outbound to a 1.13+ endpoint.
+
+    ConfigStream deliberately keeps the legacy outbound as its converter-stage
+    intermediate representation because chain/revival code consumes that shape.
+    Every runtime/public sing-box document must cross this helper before being
+    handed to sing-box 1.13+, where WireGuard outbounds no longer exist.
+    """
+    if outbound.get("type") != "wireguard":
+        raise ValueError("expected a WireGuard outbound")
+
+    local_addresses: list[str] = []
+    for field in ("address", "local_address", "local_address_v6"):
+        for value in _wireguard_values(outbound.get(field)):
+            if value not in local_addresses:
+                local_addresses.append(value)
+    if not local_addresses:
+        raise ValueError("WireGuard endpoint requires a local address")
+
+    server = str(outbound.get("server") or "").strip()
+    try:
+        server_port = int(outbound.get("server_port") or 0)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("WireGuard endpoint has invalid server_port") from exc
+    public_key = str(
+        outbound.get("peer_public_key") or outbound.get("public_key") or ""
+    ).strip()
+    private_key = str(outbound.get("private_key") or "").strip()
+    if not server or not 1 <= server_port <= 65535:
+        raise ValueError("WireGuard endpoint requires a valid peer address and port")
+    if not public_key or not private_key:
+        raise ValueError("WireGuard endpoint requires private and peer public keys")
+
+    allowed_ips = _wireguard_values(outbound.get("allowed_ips")) or ["0.0.0.0/0"]
+    if any(":" in address for address in local_addresses) and "::/0" not in allowed_ips:
+        allowed_ips.append("::/0")
+
+    peer: Dict[str, Any] = {
+        "address": server,
+        "port": server_port,
+        "public_key": public_key,
+        "allowed_ips": allowed_ips,
+    }
+    for field in ("pre_shared_key", "reserved", "persistent_keepalive_interval"):
+        value = outbound.get(field)
+        if value not in (None, "", []):
+            peer[field] = value
+
+    try:
+        mtu = int(outbound.get("mtu") or 1408)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("WireGuard endpoint has invalid mtu") from exc
+    if mtu <= 0:
+        raise ValueError("WireGuard endpoint requires a positive mtu")
+
+    endpoint: Dict[str, Any] = {
+        "type": "wireguard",
+        "tag": str(outbound.get("tag") or "").strip(),
+        "mtu": mtu,
+        "address": local_addresses,
+        "private_key": private_key,
+        "peers": [peer],
+    }
+    if not endpoint["tag"]:
+        raise ValueError("WireGuard endpoint requires a tag")
+
+    if "system_interface" in outbound:
+        endpoint["system"] = parse_bool(outbound.get("system_interface"))
+    if outbound.get("interface_name") not in (None, ""):
+        endpoint["name"] = str(outbound["interface_name"]).strip()
+    if outbound.get("listen_port") not in (None, ""):
+        try:
+            listen_port = int(outbound["listen_port"])
+        except (TypeError, ValueError) as exc:
+            raise ValueError("WireGuard endpoint has invalid listen_port") from exc
+        if not 0 <= listen_port <= 65535:
+            raise ValueError("WireGuard endpoint listen_port is out of range")
+        endpoint["listen_port"] = listen_port
+
+    for field in (
+        "detour",
+        "bind_interface",
+        "routing_mark",
+        "connect_timeout",
+        "tcp_fast_open",
+        "tcp_multi_path",
+        "udp_fragment",
+        "domain_resolver",
+    ):
+        if outbound.get(field) not in (None, ""):
+            endpoint[field] = outbound[field]
+    return endpoint
 
 
 def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
@@ -614,9 +725,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
                         return ""
                     # Sing-box expects standard WireGuard Base64 keys; keep original Base64.
                     return key
-                except Exception:
-                    # Return empty string on invalid Base64 to prevent passing illegal data to Go
-                    logging.getLogger(__name__).debug("Suppressed broad exception")
+                except (ValueError, binascii.Error):
                     return ""
             return key
 
