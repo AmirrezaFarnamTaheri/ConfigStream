@@ -517,14 +517,14 @@ function handleStep5Export() {
     let filename = 'configstream-chain';
 
     switch (format) {
-        case 'singbox': content = JSON.stringify(state.chainConfig, null, 2); filename += '.json'; break;
+        case 'singbox': content = exporters.buildSingboxJson(state.chainConfig); filename += '.json'; break;
         case 'clash': content = exporters.buildClashYaml(state.chainConfig); filename += '.yaml'; break;
         case 'xray': content = exporters.buildXrayJson(state.chainConfig); filename += '-xray.json'; break;
         case 'nekobox': content = exporters.buildNekoboxLink(state.chainConfig); filename += '-nekobox.txt'; break;
         case 'uri': content = state.parsedProxy ? state.parsedProxy.config : ''; filename += '.txt'; break;
         case 'script-python': content = exporters.buildPythonScript(state.chainConfig); filename += '.py'; break;
         case 'script-bash': content = exporters.buildBashScript(state.chainConfig); filename += '.sh'; break;
-        default: content = JSON.stringify(state.chainConfig, null, 2); filename += '.json';
+        default: content = exporters.buildSingboxJson(state.chainConfig); filename += '.json';
     }
 
     const codeEl = $('#exportCode');
