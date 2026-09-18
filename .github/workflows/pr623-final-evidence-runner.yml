@@ -1,0 +1,67 @@
+name: PR 623 Final Evidence Runner
+
+on:
+  push:
+    branches:
+      - tmp/pr615-final-evidence-20260916
+    paths:
+      - .github/workflows/pr623-final-evidence-runner.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pr623-final-evidence-runner
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: agent/fix-singbox-113-wireguard-conformance
+          fetch-depth: 0
+
+      - name: Refresh deterministic governance evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/generate_environment_catalog.py
+          python3 scripts/generate_supply_chain_evidence.py
+          python3 scripts/generate_dependency_inventory.py
+          python3 scripts/generate_source_admission.py
+          python3 scripts/generate_debt_matrix.py
+          python3 scripts/generate_triage_report.py
+          python3 scripts/collect_repository_forensics.py
+
+      - name: Verify complete static profile
+        id: verify
+        shell: bash
+        run: |
+          set +e
+          python3 scripts/verify_repository.py --profile static --continue-on-failure
+          status=$?
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Commit exact target-branch evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -u
+          if git diff --cached --quiet; then
+            echo "No evidence changes"
+          else
+            git commit -m "chore(governance): refresh final WireGuard evidence"
+            git push origin HEAD:agent/fix-singbox-113-wireguard-conformance
+          fi
+
+      - name: Enforce verifier status
+        shell: bash
+        env:
+          VERIFY_STATUS: ${{ steps.verify.outputs.status }}
+        run: |
+          test "${VERIFY_STATUS:-1}" -eq 0
