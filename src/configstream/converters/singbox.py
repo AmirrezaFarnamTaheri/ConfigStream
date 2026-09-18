@@ -850,7 +850,11 @@ def wireguard_outbound_to_endpoint(outbound: Dict[str, Any]) -> Dict[str, Any]:
     def migrate_peer(peer: Dict[str, Any]) -> Dict[str, Any]:
         allowed = string_list(peer.get("allowed_ips")) or list(default_allowed)
         migrated: Dict[str, Any] = {
-            "address": peer.get("address") or peer.get("server") or outbound.get("server"),
+            "address": (
+                peer.get("address")
+                or peer.get("server")
+                or outbound.get("server")
+            ),
             "port": port_value(
                 peer.get("port")
                 or peer.get("server_port")
