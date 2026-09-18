@@ -140,7 +140,7 @@ const raw = {
       type: 'wireguard', tag: 'warp-out', server: '162.159.192.1', server_port: 2408,
       local_address: ['172.16.0.2/32', 'fd01:db8:85a3::2/128'],
       private_key: 'private', peer_public_key: 'public', reserved: [1, 2, 3], mtu: 1280,
-      system_interface: 'false'
+      system_interface: 'false', listen_port: 0, workers: 0
     },
     {type: 'block', tag: 'block'}
   ],
@@ -173,13 +173,26 @@ try {
 } catch (error) {
   invalidBooleanRejected = error instanceof TypeError;
 }
+let invalidPeerPortRejected = false;
+try {
+  const badPeer = structuredClone(raw);
+  badPeer.outbounds[1].peers = [{
+    address: '198.51.100.10',
+    port: 0,
+    public_key: 'peer'
+  }];
+  buildSingboxConfig(badPeer);
+} catch (error) {
+  invalidPeerPortRejected = error instanceof TypeError;
+}
 console.log(JSON.stringify({
   modern,
   nekobox: decode(nekoEncoded),
   python: decode(pythonMatch[1]),
   bash: decode(bashMatch[1]),
   invalidMtuRejected,
-  invalidBooleanRejected
+  invalidBooleanRejected,
+  invalidPeerPortRejected
 }));
 """
     result = subprocess.run(
@@ -193,6 +206,7 @@ console.log(JSON.stringify({
     payloads = json.loads(result.stdout)
     assert payloads.pop("invalidMtuRejected") is True
     assert payloads.pop("invalidBooleanRejected") is True
+    assert payloads.pop("invalidPeerPortRejected") is True
     for config in payloads.values():
         assert [item["type"] for item in config["outbounds"]] == ["vless"]
         assert config["outbounds"][0]["detour"] == "warp-out"
@@ -202,6 +216,8 @@ console.log(JSON.stringify({
         assert endpoint["type"] == "wireguard"
         assert endpoint["tag"] == "warp-out"
         assert endpoint["system"] is False
+        assert endpoint["listen_port"] == 0
+        assert endpoint["workers"] == 0
         assert endpoint["address"] == [
             "172.16.0.2/32",
             "fd01:db8:85a3::2/128",
