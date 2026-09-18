@@ -36,7 +36,7 @@ def _is_private_or_local(host: str) -> bool:
     """Return True if host resolves to or IS a private/local/loopback address."""
     try:
         addr = ipaddress.ip_address(host)
-        return any(addr in net for net in _PRIVATE_NETWORKS)
+        return not addr.is_global
     except ValueError:
         pass
     try:
@@ -45,12 +45,12 @@ def _is_private_or_local(host: str) -> bool:
             ip = sockaddr[0]
             try:
                 addr = ipaddress.ip_address(ip)
-                if any(addr in net for net in _PRIVATE_NETWORKS):
+                if not addr.is_global:
                     return True
             except ValueError:
                 continue
     except (socket.gaierror, OSError):
-        pass
+        return True
     return False
 
 
@@ -66,7 +66,7 @@ def _validate_outbound_no_ssrf(outbound: Any, depth: int = 0) -> None:
             f"SSRF rejected: outbound server '{SecurityValidator.sanitize_log_message(str(server))}' "
             "resolves to a private/local address"
         )
-    for key in ("outbound", "detour", "next"):
+    for key in ("outbound", "detour", "next", "peers"):
         child = outbound.get(key)
         if isinstance(child, dict):
             _validate_outbound_no_ssrf(child, depth + 1)
@@ -103,8 +103,12 @@ def _ensure_config_ready(config: Dict[str, Any]) -> Dict[str, Any]:
     cfg = dict(config)
     if "log" not in cfg or not cfg["log"]:
         cfg["log"] = {"level": "warn"}
-    if "outbounds" not in cfg or not cfg["outbounds"]:
-        raise ValueError("Config must have at least one outbound")
+    outbounds = cfg.get("outbounds")
+    endpoints = cfg.get("endpoints")
+    valid_outbounds = isinstance(outbounds, list) and bool(outbounds)
+    valid_endpoints = isinstance(endpoints, list) and bool(endpoints)
+    if not valid_outbounds and not valid_endpoints:
+        raise ValueError("Config must have at least one outbound or endpoint")
     if "inbounds" not in cfg or not cfg["inbounds"]:
         cfg["inbounds"] = [
             {
@@ -115,7 +119,11 @@ def _ensure_config_ready(config: Dict[str, Any]) -> Dict[str, Any]:
             }
         ]
     if "route" not in cfg or not cfg["route"]:
-        cfg["route"] = {"rules": [{"outbound": "direct", "protocol": ["dns"]}]}
+        primary = outbounds[0] if valid_outbounds else endpoints[0]
+        if isinstance(primary, dict):
+            tag = primary.get("tag")
+            if isinstance(tag, str) and tag.strip():
+                cfg["route"] = {"final": tag.strip()}
     return cfg
 
 
@@ -141,6 +149,16 @@ async def test_chain_config(
             if isinstance(outbounds, list):
                 for ob in outbounds:
                     _validate_outbound_no_ssrf(ob)
+            endpoints = config.get("endpoints", [])
+            if isinstance(endpoints, list):
+                for endpoint in endpoints:
+                    if not isinstance(endpoint, dict):
+                        raise ValueError("endpoint entry is not a dict")
+                    peers = endpoint.get("peers", [])
+                    if not isinstance(peers, list) or not peers:
+                        raise ValueError("WireGuard endpoint must contain peers")
+                    for peer in peers:
+                        _validate_outbound_no_ssrf(peer)
         ready_config = _ensure_config_ready(config)
         config_content = json.dumps(ready_config)
     except ValueError as e:
