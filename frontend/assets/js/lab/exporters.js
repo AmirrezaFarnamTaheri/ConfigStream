@@ -12,6 +12,14 @@ function requirePort(value) {
     return port;
 }
 
+function requireNonnegativeInteger(value, field, max = null) {
+    const parsed = Number(value);
+    if (!Number.isInteger(parsed) || parsed < 0 || (max !== null && parsed > max)) {
+        throw new TypeError(`Invalid ${field}`);
+    }
+    return parsed;
+}
+
 function requireString(value, field) {
     const text = String(value ?? '');
     if (!text && field) throw new TypeError(`${field} is required`);
@@ -84,7 +92,11 @@ function wireguardOutboundToEndpoint(sbOut) {
         if (!peer || typeof peer !== 'object') throw new TypeError('Invalid WireGuard peer');
         const migrated = {
             address: requireString(peer.address || peer.server || sbOut.server, 'WireGuard peer address'),
-            port: requirePort(peer.port || peer.server_port || sbOut.server_port),
+            port: requirePort(
+                peer.port !== undefined
+                    ? peer.port
+                    : (peer.server_port !== undefined ? peer.server_port : sbOut.server_port)
+            ),
             public_key: requireString(
                 peer.public_key || peer.peer_public_key || sbOut.peer_public_key || sbOut.public_key,
                 'WireGuard public key'
@@ -135,6 +147,16 @@ function wireguardOutboundToEndpoint(sbOut) {
     }
     const interfaceName = sbOut.name || sbOut.interface_name;
     if (interfaceName) endpoint.name = String(interfaceName);
+    if (sbOut.listen_port !== undefined && sbOut.listen_port !== null && sbOut.listen_port !== '') {
+        endpoint.listen_port = requireNonnegativeInteger(
+            sbOut.listen_port,
+            'WireGuard listen_port',
+            65535
+        );
+    }
+    if (sbOut.workers !== undefined && sbOut.workers !== null && sbOut.workers !== '') {
+        endpoint.workers = requireNonnegativeInteger(sbOut.workers, 'WireGuard workers');
+    }
     return endpoint;
 }
 
