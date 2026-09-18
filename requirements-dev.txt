@@ -20,9 +20,6 @@ typing-inspection==0.4.4
 wrapt==2.2.2
 
 # Testing
-beautifulsoup4==4.15.0
-nest-asyncio==1.6.0
-soupsieve==2.9.0
 backports.asyncio.runner==1.2.0; python_version < "3.11"
 coverage==7.15.4
 hypothesis==6.156.1
