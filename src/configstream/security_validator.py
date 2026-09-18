@@ -56,6 +56,9 @@ SUSPICIOUS_PORTS = {
     6379,  # Redis
 }
 
+# Hostname suffixes that only ever resolve on the local network.
+_LOCAL_HOST_SUFFIXES = (".localhost", ".local", ".internal", ".lan", ".home.arpa")
+
 # Local IP ranges (IPv4)
 LOCAL_IP_RANGES = [
     re.compile(r"^127\."),
@@ -69,23 +72,35 @@ LOCAL_IP_RANGES = [
 class SecurityValidator:
     @staticmethod
     def is_local_ip(ip: str) -> bool:
+        """Return True for loopback, private, link-local or otherwise non-public hosts.
+
+        Accepts bare IP literals, bracketed IPv6 literals (``[::1]``) and
+        hostnames. Hostnames are only matched against well-known local names;
+        no DNS resolution happens here.
+        """
         if not ip:
             return False
-        ip_lower = str(ip).strip().lower()
-        if ip_lower == "localhost":
-            return True
-        if ip_lower.endswith(".local"):
+        host = str(ip).strip().lower()
+        if host.startswith("[") and host.endswith("]"):
+            host = host[1:-1]
+        # Drop an IPv6 zone index ("fe80::1%eth0") and the DNS root dot.
+        host = host.split("%", 1)[0].rstrip(".")
+        if not host:
+            return False
+        if host == "localhost" or host.endswith(_LOCAL_HOST_SUFFIXES):
             return True
         try:
-            ip_obj = ipaddress.ip_address(ip)
-            return (
-                ip_obj.is_private
-                or ip_obj.is_loopback
-                or ip_obj.is_link_local
-                or ip_obj.is_reserved
-            )
+            ip_obj = ipaddress.ip_address(host)
         except ValueError:
             return False
+        mapped = getattr(ip_obj, "ipv4_mapped", None)
+        if mapped is not None:
+            ip_obj = mapped
+        # ``is_global`` excludes RFC1918, loopback, link-local, CGNAT
+        # (100.64/10), unspecified, documentation and reserved space.
+        # Multicast is technically global for some ranges but is never a
+        # valid unicast proxy endpoint.
+        return (not ip_obj.is_global) or ip_obj.is_multicast
 
     @staticmethod
     def is_valid_uuid(val: str) -> bool:
@@ -227,7 +242,7 @@ class SecurityValidator:
                 return False, "weak_trojan_password"
 
         if proxy.protocol == "shadowsocks":
-            method = proxy.details.get("method", "")
+            method = str(proxy.details.get("method") or "")
             if method.lower() in ["rc4-md5", "table"]:
                 return False, "insecure_encryption_method"
 

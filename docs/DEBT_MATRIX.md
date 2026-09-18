@@ -412,7 +412,7 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - L149 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/security_validator.py`
-- L150 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L165 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/serialize.py`
 - L52 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
