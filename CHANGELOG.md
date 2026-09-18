@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+
+- **Sing-box 1.13 WireGuard runtime compatibility**: Migrated release-authority and Python fallback WireGuard checks from the removed legacy outbound model to top-level WireGuard endpoints. Finalization and runtime probing now share one fail-closed migration helper, preserving dual-stack local addresses and peer/dial fields so native conformance matches the published client model.
+- **Governance ratchets after WireGuard repair**: Narrowed the remaining converter Base64 recovery boundary, reducing the exact broad-exception ceiling to 223 and the `to_singbox_outbound` size ceiling to 557 lines; regenerated debt/triage evidence accordingly.
+
 - **Partial-run availability**: Lowered usable-source coverage from 80% to 70% and allow tester infrastructure errors up to 5% of attempted tests when working results exist. Timing-based resharding accepts 50% runtime-source coverage while requiring 80% canonical identity mapping. Native validation and working-output requirements remain enforced; invalid threshold overrides are rejected.
 
 - **Deeper lifecycle and compatibility repairs**: Timed-out or cancelled Python startup retains temporary configs until the worker finishes and cleans late processes. HTTPS fallback uses a verified TLS connection to the proxy; URI credentials are decoded once and explicit zero ports are rejected. HTTP/HTTPS now export through the backend Clash converter. The intake timer stops before output generation. Temporary-config cleanup closes descriptors on permission failures and retries unsuccessful removal.
