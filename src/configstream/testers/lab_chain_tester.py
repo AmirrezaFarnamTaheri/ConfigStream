@@ -57,7 +57,9 @@ def _is_private_or_local(host: str) -> bool:
 def _validate_outbound_no_ssrf(outbound: Any, depth: int = 0) -> None:
     """Recursively validate outbound entries for SSRF targets."""
     if depth > 10:
-        return
+        # Fail closed: an attacker-controlled structure this deep cannot be
+        # proven SSRF-safe, so refuse it instead of silently skipping it.
+        raise ValueError("outbound nesting exceeds the SSRF validation depth")
     if not isinstance(outbound, dict):
         raise ValueError(f"outbound entry is not a dict at depth {depth}")
     server = outbound.get("server") or outbound.get("address") or ""
@@ -76,7 +78,55 @@ def _validate_outbound_no_ssrf(outbound: Any, depth: int = 0) -> None:
                     _validate_outbound_no_ssrf(item, depth + 1)
 
 
+def _validate_config_no_ssrf(config: Any) -> None:
+    """Validate every outbound and WireGuard endpoint peer for SSRF targets."""
+    if not isinstance(config, dict):
+        return
+    outbounds = config.get("outbounds", [])
+    if isinstance(outbounds, list):
+        for ob in outbounds:
+            _validate_outbound_no_ssrf(ob)
+    endpoints = config.get("endpoints", [])
+    if isinstance(endpoints, list):
+        for endpoint in endpoints:
+            if not isinstance(endpoint, dict):
+                raise ValueError("endpoint entry is not a dict")
+            peers = endpoint.get("peers", [])
+            if not isinstance(peers, list) or not peers:
+                raise ValueError("WireGuard endpoint must contain peers")
+            for peer in peers:
+                _validate_outbound_no_ssrf(peer)
+
+
 logger = logging.getLogger(__name__)
+
+
+def _stop_late_singbox(future: "asyncio.Future[Any]") -> None:
+    """Stop a sing-box instance whose start finished after we stopped waiting.
+
+    ``run_in_executor`` threads cannot be cancelled, so a start that exceeds
+    the request deadline still produces a live sing-box process later. Without
+    this callback that process (and its listening port) would leak for the
+    lifetime of the server.
+    """
+    if future.cancelled() or future.exception() is not None:
+        return
+    instance = future.result()
+    stop = getattr(instance, "stop", None)
+    if not callable(stop):
+        return
+    try:
+        asyncio.get_running_loop().run_in_executor(None, stop)
+    except RuntimeError:
+        # No running loop (interpreter shutdown): stop synchronously.
+        try:
+            stop()
+        except (OSError, RuntimeError) as exc:  # pragma: no cover - best effort
+            logger.debug(
+                "late sing-box stop failed: %s",
+                SecurityValidator.sanitize_log_message(str(exc)),
+            )
+
 
 _SINGBOX_AVAILABLE: Optional[bool] = None
 
@@ -148,21 +198,9 @@ async def test_chain_config(
         return {"success": False, "error": "singbox2proxy not installed"}
 
     try:
-        if isinstance(config, dict):
-            outbounds = config.get("outbounds", [])
-            if isinstance(outbounds, list):
-                for ob in outbounds:
-                    _validate_outbound_no_ssrf(ob)
-            endpoints = config.get("endpoints", [])
-            if isinstance(endpoints, list):
-                for endpoint in endpoints:
-                    if not isinstance(endpoint, dict):
-                        raise ValueError("endpoint entry is not a dict")
-                    peers = endpoint.get("peers", [])
-                    if not isinstance(peers, list) or not peers:
-                        raise ValueError("WireGuard endpoint must contain peers")
-                    for peer in peers:
-                        _validate_outbound_no_ssrf(peer)
+        # Destination checks may resolve hostnames; keep that blocking DNS work
+        # off the event loop that also serves the rest of the API.
+        await asyncio.to_thread(_validate_config_no_ssrf, config)
         ready_config = _ensure_config_ready(config)
         config_content = json.dumps(ready_config)
     except ValueError as e:
@@ -180,12 +218,13 @@ async def test_chain_config(
     loop = asyncio.get_running_loop()
     sb_instance = None
     with SecureConfigContext(config_content) as config_path:
+        start_future = loop.run_in_executor(None, lambda: SingBoxProxy(config_path))
         try:
             sb_instance = await asyncio.wait_for(
-                loop.run_in_executor(None, lambda: SingBoxProxy(config_path)),
-                timeout=timeout,
+                asyncio.shield(start_future), timeout=timeout
             )
         except asyncio.TimeoutError:
+            start_future.add_done_callback(_stop_late_singbox)
             return {"success": False, "error": "sing-box start timed out"}
         except Exception as e:
             err_msg = SecurityValidator.sanitize_log_message(str(e))
