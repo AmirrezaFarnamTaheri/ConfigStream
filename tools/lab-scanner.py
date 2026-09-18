@@ -1811,11 +1811,18 @@ def test_chain_layers(layers: List[Dict[str, Any]]) -> Dict[str, Any]:
     all_reachable = all(r.get("ok") for r in individual)
     if all_reachable:
         ok("All layers are individually reachable. Full chain should work.")
-        generate_chain_config(layers)
-        info("Generated sing-box config for full chain test.")
-        info("To test end-to-end, run:")
-        print("    sing-box run -c <config-file>")
-        print("    curl -x socks5://127.0.0.1:2080 https://ip.gs")
+        try:
+            generate_chain_config(layers)
+        except ValueError as exc:
+            info(
+                "Runnable sing-box config was not generated: "
+                + SecurityValidator.sanitize_log_message(str(exc))
+            )
+        else:
+            info("Generated sing-box config for full chain test.")
+            info("To test end-to-end, run:")
+            print("    sing-box run -c <config-file>")
+            print("    curl -x socks5://127.0.0.1:2080 https://ip.gs")
     else:
         failed = [r for r in individual if not r.get("ok")]
         fail(f"{len(failed)} layer(s) are unreachable. Chain will fail.")
@@ -2287,7 +2294,17 @@ def interactive_layer_builder():
                 if eps:
                     ok(f"Loaded {len(eps)} endpoint(s). Adding first as WARP layer.")
                     ip0, port0 = eps[0]
-                    layers.append({"type": "warp", "ip": ip0, "port": port0})
+                    warp_layer: Dict[str, Any] = {
+                        "type": "warp",
+                        "ip": ip0,
+                        "port": port0,
+                    }
+                    supplied_key = input(
+                        "  WARP private key [blank uses WARP_KEY_POOL]: "
+                    ).strip()
+                    if supplied_key:
+                        warp_layer["private_key"] = supplied_key
+                    layers.append(warp_layer)
                     ok(f"Layer {len(layers)} added: warp @ {ip0}:{port0}")
                     if len(eps) > 1:
                         info(
@@ -2339,6 +2356,11 @@ def interactive_layer_builder():
             )
             port_str = input("  Port [2408]: ").strip() or "2408"
             layer["port"] = int(port_str)
+            supplied_key = input(
+                "  WARP private key [blank uses WARP_KEY_POOL]: "
+            ).strip()
+            if supplied_key:
+                layer["private_key"] = supplied_key
         elif choice in ("4", "5", "6", "7"):
             type_map = {"4": "vless", "5": "vmess", "6": "trojan", "7": "shadowsocks"}
             layer["type"] = type_map[choice]
@@ -2387,7 +2409,12 @@ def interactive_layer_builder():
         test_chain_layers(layers)
 
     # Generate config
-    config = generate_chain_config(layers)
+    try:
+        config = generate_chain_config(layers)
+    except ValueError as exc:
+        fail(SecurityValidator.sanitize_log_message(str(exc)))
+        info("Provide a WARP private key or configure WARP_KEY_POOL, then retry.")
+        return
     config_json = json.dumps(config, indent=2)
 
     section("Generated Chain Configuration")
@@ -2815,12 +2842,23 @@ User-supplied resources:
         proxy_list = [user_proxy] if user_proxy else None
         best = auto_find_best_chain(proxies=proxy_list, clean_ips=clean_ips)
         if best:
-            config = generate_chain_config(best)
-            config_json = json.dumps(config, indent=2)
-            section("Auto-Generated Chain Config")
-            print(config_json)
-            if args.json:
-                print(json.dumps({"chain": best, "config": config}, indent=2))
+            try:
+                config = generate_chain_config(best)
+            except ValueError as exc:
+                message = SecurityValidator.sanitize_log_message(str(exc))
+                fail(message)
+                info(
+                    "Auto-chain found a path, but a runnable WARP config requires "
+                    "WARP_KEY_POOL credentials."
+                )
+                if args.json:
+                    print(json.dumps({"chain": best, "config": None, "error": message}, indent=2))
+            else:
+                config_json = json.dumps(config, indent=2)
+                section("Auto-Generated Chain Config")
+                print(config_json)
+                if args.json:
+                    print(json.dumps({"chain": best, "config": config}, indent=2))
     elif args.test_proxy:
         # Parse proxy URL: type://host:port
         parts = args.test_proxy.replace("://", ":").split(":")
