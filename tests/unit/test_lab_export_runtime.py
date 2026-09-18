@@ -116,3 +116,82 @@ def test_lab_private_destination_rules_match_backend() -> None:
     assert json.loads(result.stdout) == [
         requires_transport_security(address) for address in addresses
     ]
+
+def test_lab_singbox_exports_use_113_endpoint_schema() -> None:
+    node = shutil.which("node")
+    if not node:
+        pytest.skip("Node unavailable")
+    script = r"""
+import {
+  buildSingboxConfig,
+  buildNekoboxLink,
+  buildPythonScript,
+  buildBashScript
+} from './frontend/assets/js/lab/exporters.js';
+
+const raw = {
+  log: {level: 'info'},
+  outbounds: [
+    {
+      type: 'vless', tag: 'proxy-chain', server: 'example.com', server_port: 443,
+      uuid: '123e4567-e89b-12d3-a456-426614174000', detour: 'warp-out'
+    },
+    {
+      type: 'wireguard', tag: 'warp-out', server: '162.159.192.1', server_port: 2408,
+      local_address: ['172.16.0.2/32', 'fd01:db8:85a3::2/128'],
+      private_key: 'private', peer_public_key: 'public', reserved: [1, 2, 3], mtu: 1280
+    },
+    {type: 'block', tag: 'block'}
+  ],
+  route: {final: 'proxy-chain'}
+};
+
+const decode = value => JSON.parse(Buffer.from(value, 'base64').toString('utf8'));
+const modern = buildSingboxConfig(raw);
+const nekoEncoded = decodeURIComponent(
+  buildNekoboxLink(raw).split('nekobox://import-singbox?config=')[1]
+);
+const pythonScript = buildPythonScript(raw);
+const bashScript = buildBashScript(raw);
+const pythonMatch = pythonScript.match(/base64\.b64decode\("([^"]+)"\)/);
+const bashMatch = bashScript.match(/printf '%s' '([^']+)' \| base64 -d/);
+if (!pythonMatch || !bashMatch) throw new Error('Generated runner payload missing');
+console.log(JSON.stringify({
+  modern,
+  nekobox: decode(nekoEncoded),
+  python: decode(pythonMatch[1]),
+  bash: decode(bashMatch[1])
+}));
+"""
+    result = subprocess.run(
+        [node, "--input-type=module", "-e", script],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+        timeout=30,
+    )
+    payloads = json.loads(result.stdout)
+    for config in payloads.values():
+        assert [item["type"] for item in config["outbounds"]] == ["vless"]
+        assert config["outbounds"][0]["detour"] == "warp-out"
+        assert config["route"]["final"] == "proxy-chain"
+        assert len(config["endpoints"]) == 1
+        endpoint = config["endpoints"][0]
+        assert endpoint["type"] == "wireguard"
+        assert endpoint["tag"] == "warp-out"
+        assert endpoint["address"] == [
+            "172.16.0.2/32",
+            "fd01:db8:85a3::2/128",
+        ]
+        assert "server" not in endpoint
+        assert endpoint["peers"] == [
+            {
+                "address": "162.159.192.1",
+                "port": 2408,
+                "public_key": "public",
+                "allowed_ips": ["0.0.0.0/0", "::/0"],
+                "reserved": [1, 2, 3],
+            }
+        ]
+
