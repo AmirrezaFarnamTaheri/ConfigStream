@@ -25,7 +25,6 @@
     "src/configstream/concurrency_manager.py": 2,
     "src/configstream/converters/clash.py": 1,
     "src/configstream/converters/common.py": 1,
-    "src/configstream/converters/singbox.py": 1,
     "src/configstream/dns_batch_resolver.py": 2,
     "src/configstream/dns_cache.py": 1,
     "src/configstream/fetcher_worker.py": 1,
@@ -76,5 +75,5 @@
     "target_total": 0
   },
   "schema_version": 1,
-  "total_ceiling": 224
+  "total_ceiling": 223
 }
