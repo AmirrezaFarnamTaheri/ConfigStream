@@ -44,6 +44,133 @@ function normalizeReserved(value) {
     return result;
 }
 
+function stringList(value) {
+    if (value === null || value === undefined || value === '') return [];
+    const values = Array.isArray(value) ? value : [value];
+    return values.map(item => String(item).trim()).filter(Boolean);
+}
+
+function wireguardOutboundToEndpoint(sbOut) {
+    const localAddresses = [];
+    for (const field of ['address', 'local_address', 'local_address_v6']) {
+        for (const value of stringList(sbOut[field])) {
+            if (!localAddresses.includes(value)) localAddresses.push(value);
+        }
+    }
+    if (!localAddresses.length) throw new TypeError('WireGuard local address is required');
+
+    const defaultAllowed = stringList(sbOut.allowed_ips);
+    if (!defaultAllowed.length) defaultAllowed.push('0.0.0.0/0');
+    if (localAddresses.some(value => value.includes(':')) && !defaultAllowed.includes('::/0')) {
+        defaultAllowed.push('::/0');
+    }
+
+    const sourcePeers = Array.isArray(sbOut.peers) && sbOut.peers.length
+        ? sbOut.peers
+        : [{}];
+    const peers = sourcePeers.map(peer => {
+        if (!peer || typeof peer !== 'object') throw new TypeError('Invalid WireGuard peer');
+        const migrated = {
+            address: requireString(peer.address || peer.server || sbOut.server, 'WireGuard peer address'),
+            port: requirePort(peer.port || peer.server_port || sbOut.server_port),
+            public_key: requireString(
+                peer.public_key || peer.peer_public_key || sbOut.peer_public_key || sbOut.public_key,
+                'WireGuard public key'
+            ),
+            allowed_ips: stringList(peer.allowed_ips).length
+                ? stringList(peer.allowed_ips)
+                : [...defaultAllowed],
+        };
+        const preSharedKey = peer.pre_shared_key || sbOut.pre_shared_key;
+        if (preSharedKey) migrated.pre_shared_key = String(preSharedKey);
+        const reserved = peer.reserved ?? sbOut.reserved;
+        if (reserved !== undefined && reserved !== null) migrated.reserved = normalizeReserved(reserved);
+        const keepalive = peer.persistent_keepalive_interval ?? sbOut.persistent_keepalive_interval;
+        if (keepalive !== undefined && keepalive !== null && keepalive !== '') {
+            const value = Number(keepalive);
+            if (!Number.isInteger(value) || value < 0) {
+                throw new TypeError('Invalid WireGuard persistent keepalive interval');
+            }
+            migrated.persistent_keepalive_interval = value;
+        }
+        return migrated;
+    });
+
+    const mtu = Number(sbOut.mtu || 1408);
+    if (!Number.isInteger(mtu) || mtu < 1) throw new TypeError('Invalid WireGuard MTU');
+    const endpoint = {
+        type: 'wireguard',
+        tag: requireString(sbOut.tag, 'WireGuard tag'),
+        address: localAddresses,
+        private_key: requireString(sbOut.private_key, 'WireGuard private key'),
+        mtu,
+        peers,
+    };
+    if (sbOut.detour) endpoint.detour = String(sbOut.detour);
+    for (const field of [
+        'bind_interface', 'routing_mark', 'connect_timeout', 'tcp_fast_open',
+        'tcp_multi_path', 'udp_fragment', 'domain_resolver'
+    ]) {
+        if (sbOut[field] !== undefined) endpoint[field] = sbOut[field];
+    }
+    if (sbOut.system !== undefined) endpoint.system = Boolean(sbOut.system);
+    else if (sbOut.system_interface !== undefined) {
+        endpoint.system = ['1', 'true', 'yes', 'on'].includes(
+            String(sbOut.system_interface).trim().toLowerCase()
+        );
+    }
+    const interfaceName = sbOut.name || sbOut.interface_name;
+    if (interfaceName) endpoint.name = String(interfaceName);
+    return endpoint;
+}
+
+export function buildSingboxConfig(chainConfig) {
+    if (!chainConfig || typeof chainConfig !== 'object') {
+        throw new TypeError('Missing chain config');
+    }
+    const config = JSON.parse(JSON.stringify(chainConfig));
+    if (!Array.isArray(config.outbounds)) throw new TypeError('Missing chain outbounds');
+
+    const endpoints = Array.isArray(config.endpoints) ? [...config.endpoints] : [];
+    const outbounds = [];
+    const removedSpecialTags = new Map();
+    for (const outbound of config.outbounds) {
+        if (!outbound || typeof outbound !== 'object') continue;
+        const type = String(outbound.type || '').toLowerCase();
+        if (type === 'wireguard') endpoints.push(wireguardOutboundToEndpoint(outbound));
+        else if (type === 'block' || type === 'dns') {
+            if (outbound.tag) removedSpecialTags.set(
+                String(outbound.tag),
+                type === 'block' ? 'reject' : 'hijack-dns'
+            );
+        } else {
+            outbounds.push(outbound);
+        }
+    }
+    config.outbounds = outbounds;
+    if (endpoints.length) config.endpoints = endpoints;
+    else delete config.endpoints;
+
+    if (config.route && Array.isArray(config.route.rules) && removedSpecialTags.size) {
+        for (const rule of config.route.rules) {
+            if (!rule || typeof rule !== 'object') continue;
+            const action = removedSpecialTags.get(String(rule.outbound || ''));
+            if (action) {
+                delete rule.outbound;
+                rule.action = action;
+            }
+        }
+    }
+    if (config.route && removedSpecialTags.has(String(config.route.final || ''))) {
+        throw new TypeError('Legacy special outbound cannot be used as route final');
+    }
+    return config;
+}
+
+export function buildSingboxJson(chainConfig) {
+    return JSON.stringify(buildSingboxConfig(chainConfig), null, 2);
+}
+
 function transportOptions(sbOut, clashProxy) {
     const transport = sbOut.transport && typeof sbOut.transport === 'object'
         ? sbOut.transport
@@ -346,11 +473,12 @@ export function buildXrayJson(chainConfig) {
 
 export function buildNekoboxLink(chainConfig) {
     if (!chainConfig) return '';
-    return 'nekobox://import-singbox?config=' + encodeURIComponent(toBase64Utf8(JSON.stringify(chainConfig)));
+    const modern = buildSingboxConfig(chainConfig);
+    return 'nekobox://import-singbox?config=' + encodeURIComponent(toBase64Utf8(JSON.stringify(modern)));
 }
 
 export function buildPythonScript(chainConfig) {
-    const configB64 = toBase64Utf8(JSON.stringify(chainConfig));
+    const configB64 = toBase64Utf8(JSON.stringify(buildSingboxConfig(chainConfig)));
     return `#!/usr/bin/env python3
 """ConfigStream chain runner generated by Laboratory."""
 import base64
@@ -383,7 +511,7 @@ if __name__ == "__main__":
 }
 
 export function buildBashScript(chainConfig) {
-    const configB64 = toBase64Utf8(JSON.stringify(chainConfig));
+    const configB64 = toBase64Utf8(JSON.stringify(buildSingboxConfig(chainConfig)));
     return `#!/usr/bin/env bash
 set -euo pipefail
 
