@@ -100,9 +100,9 @@ def wireguard_outbound_to_endpoint(outbound: Dict[str, Any]) -> Dict[str, Any]:
     }
 
     if "system" in outbound:
-        endpoint["system"] = bool(outbound["system"])
+        endpoint["system"] = parse_bool(outbound["system"])
     elif "system_interface" in outbound:
-        endpoint["system"] = bool(outbound["system_interface"])
+        endpoint["system"] = parse_bool(outbound["system_interface"])
     interface_name = outbound.get("name") or outbound.get("interface_name")
     if interface_name not in (None, ""):
         endpoint["name"] = interface_name
