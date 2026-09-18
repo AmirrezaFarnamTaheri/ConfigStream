@@ -6,6 +6,7 @@ from configstream.converters.singbox import (
     VALID_VLESS_FLOWS,
     _sanitize_ss_method,
     _sanitize_vless_flow,
+    wireguard_outbound_to_endpoint,
 )
 
 
@@ -238,6 +239,48 @@ def test_wireguard_pre_shared_key():
     assert out is not None
     assert out["pre_shared_key"] == "psk_key_value"
     assert out["mtu"] == 1400
+
+
+def test_wireguard_endpoint_migration_preserves_dual_stack_and_dial_fields():
+    legacy = {
+        "type": "wireguard",
+        "tag": "wg-test",
+        "server": "162.159.192.1",
+        "server_port": 2408,
+        "local_address": "172.16.0.2/32",
+        "local_address_v6": "fd00::2/128",
+        "private_key": "private-key",
+        "peer_public_key": "public-key",
+        "pre_shared_key": "psk",
+        "reserved": [1, 2, 3],
+        "mtu": 1280,
+        "system_interface": True,
+        "interface_name": "wg-test0",
+        "listen_port": 10000,
+        "detour": "relay",
+    }
+
+    endpoint = wireguard_outbound_to_endpoint(legacy)
+
+    assert endpoint["type"] == "wireguard"
+    assert endpoint["tag"] == "wg-test"
+    assert endpoint["address"] == ["172.16.0.2/32", "fd00::2/128"]
+    assert endpoint["system"] is True
+    assert endpoint["name"] == "wg-test0"
+    assert endpoint["listen_port"] == 10000
+    assert endpoint["detour"] == "relay"
+    assert "server" not in endpoint
+    assert "server_port" not in endpoint
+    assert endpoint["peers"] == [
+        {
+            "address": "162.159.192.1",
+            "port": 2408,
+            "public_key": "public-key",
+            "allowed_ips": ["0.0.0.0/0", "::/0"],
+            "pre_shared_key": "psk",
+            "reserved": [1, 2, 3],
+        }
+    ]
 
 
 def test_singbox_outbounds_validate_against_schema():
