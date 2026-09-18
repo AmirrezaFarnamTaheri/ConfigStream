@@ -50,6 +50,18 @@ function stringList(value) {
     return values.map(item => String(item).trim()).filter(Boolean);
 }
 
+function parseOptionalBoolean(value, field) {
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'number') {
+        if (value === 1) return true;
+        if (value === 0) return false;
+    }
+    const normalized = String(value ?? '').trim().toLowerCase();
+    if (['1', 'true', 'yes', 'on'].includes(normalized)) return true;
+    if (['0', 'false', 'no', 'off', ''].includes(normalized)) return false;
+    throw new TypeError(`${field} must be a boolean value`);
+}
+
 function wireguardOutboundToEndpoint(sbOut) {
     const localAddresses = [];
     for (const field of ['address', 'local_address', 'local_address_v6']) {
@@ -96,7 +108,7 @@ function wireguardOutboundToEndpoint(sbOut) {
         return migrated;
     });
 
-    const mtu = Number(sbOut.mtu || 1408);
+    const mtu = Number(sbOut.mtu ?? 1408);
     if (!Number.isInteger(mtu) || mtu < 1) throw new TypeError('Invalid WireGuard MTU');
     const endpoint = {
         type: 'wireguard',
@@ -113,10 +125,12 @@ function wireguardOutboundToEndpoint(sbOut) {
     ]) {
         if (sbOut[field] !== undefined) endpoint[field] = sbOut[field];
     }
-    if (sbOut.system !== undefined) endpoint.system = Boolean(sbOut.system);
-    else if (sbOut.system_interface !== undefined) {
-        endpoint.system = ['1', 'true', 'yes', 'on'].includes(
-            String(sbOut.system_interface).trim().toLowerCase()
+    if (sbOut.system !== undefined) {
+        endpoint.system = parseOptionalBoolean(sbOut.system, 'WireGuard system');
+    } else if (sbOut.system_interface !== undefined) {
+        endpoint.system = parseOptionalBoolean(
+            sbOut.system_interface,
+            'WireGuard system_interface'
         );
     }
     const interfaceName = sbOut.name || sbOut.interface_name;
