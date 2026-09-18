@@ -59,20 +59,27 @@ wireguard://PRIVATE_KEY@HOST:PORT?publickey=PEER_PUBLIC_KEY&address=LOCAL_IP&mtu
 
 ## Sing-box Configuration
 
+ConfigStream targets sing-box 1.13+, which removed legacy WireGuard outbounds. WireGuard is emitted as a top-level endpoint:
+
 ```json
 {
   "type": "wireguard",
   "tag": "warp-out",
-  "server": "162.159.192.1",
-  "server_port": 2408,
-  "local_address": [
+  "address": [
     "172.16.0.2/32",
     "fd01:db8:85a3::2/128"
   ],
   "private_key": "client-private-key-base64",
-  "peer_public_key": "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",
-  "reserved": [0, 0, 0],
-  "mtu": 1280
+  "mtu": 1280,
+  "peers": [
+    {
+      "address": "162.159.192.1",
+      "port": 2408,
+      "public_key": "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",
+      "allowed_ips": ["0.0.0.0/0", "::/0"],
+      "reserved": [0, 0, 0]
+    }
+  ]
 }
 ```
 
