@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+- **Sing-box 1.13 WireGuard and dependency security repair**: Migrated legacy WireGuard outbounds to canonical top-level endpoints across native probes, release finalization, and the live/browser Laboratory; added fail-closed endpoint validation with client-safe 400 responses while preserving multi-peer, dual-stack, and documented zero-default semantics; upgraded SoupSieve to 2.9.0 for CVE-2026-85999/CVE-2026-86000 with regenerated supply-chain evidence; and hardened Laboratory scanner custom-proxy URI parsing, including bracketed IPv6.
+
 - **Partial-run availability**: Lowered usable-source coverage from 80% to 70% and allow tester infrastructure errors up to 5% of attempted tests when working results exist. Timing-based resharding accepts 50% runtime-source coverage while requiring 80% canonical identity mapping. Native validation and working-output requirements remain enforced; invalid threshold overrides are rejected.
 
 - **Deeper lifecycle and compatibility repairs**: Timed-out or cancelled Python startup retains temporary configs until the worker finishes and cleans late processes. HTTPS fallback uses a verified TLS connection to the proxy; URI credentials are decoded once and explicit zero ports are rejected. HTTP/HTTPS now export through the backend Clash converter. The intake timer stops before output generation. Temporary-config cleanup closes descriptors on permission failures and retries unsuccessful removal.
