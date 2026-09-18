@@ -78,3 +78,62 @@ def test_validate_missing_vmess_uuid_is_fatal_even_when_insecure_kept(monkeypatc
     assert results == []
     assert proxy.is_secure is False
     assert "missing_uuid" in proxy.security_issues.get("policy", [])
+
+
+import pytest  # noqa: E402
+
+
+@pytest.mark.parametrize(
+    "host",
+    [
+        "127.0.0.1",
+        "10.1.2.3",
+        "192.168.0.10",
+        "169.254.169.254",
+        "100.64.0.1",  # CGNAT is not publicly routable
+        "0.0.0.0",
+        "224.0.0.1",  # multicast is never a unicast proxy endpoint
+        "::1",
+        "[::1]",  # bracketed IPv6 literal survives sanitize_address
+        "[fe80::1%eth0]",
+        "::ffff:127.0.0.1",  # IPv4-mapped loopback
+        "fd12:3456::1",
+        "localhost",
+        "LOCALHOST.",
+        "router.lan",
+        "printer.local.",
+        "metadata.internal",
+        "svc.home.arpa",
+    ],
+)
+def test_is_local_ip_rejects_non_public_hosts(host):
+    assert SecurityValidator.is_local_ip(host) is True
+
+
+@pytest.mark.parametrize(
+    "host",
+    [
+        "1.1.1.1",
+        "8.8.8.8",
+        "2606:4700:4700::1111",
+        "[2001:4860:4860::8888]",
+        "example.com",
+        "",
+    ],
+)
+def test_is_local_ip_accepts_public_hosts(host):
+    assert SecurityValidator.is_local_ip(host) is False
+
+
+def test_bracketed_ipv6_loopback_proxy_is_blocked():
+    proxy = create_test_proxy(address="[::1]", port=443, details={"tls": True})
+    ok, reason = SecurityValidator.validate_proxy_config(proxy, TEST_POLICY)
+    assert (ok, reason) == (False, "local_ip_blocked")
+
+
+def test_shadowsocks_null_method_does_not_crash():
+    proxy = create_test_proxy(
+        protocol="shadowsocks", address="1.1.1.1", port=8388, details={"method": None}
+    )
+    ok, _reason = SecurityValidator.validate_proxy_config(proxy, TEST_POLICY)
+    assert ok is True
