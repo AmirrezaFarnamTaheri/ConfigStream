@@ -167,10 +167,10 @@ verification condition, not a passing result.
 
 ## 4. Technical Debt Remediation & Actionable Roadmap
 
-According to [`docs/DEBT_MATRIX.md`](../../DEBT_MATRIX.md), 280 actionable markers are tracked and prioritized:
+According to [`docs/DEBT_MATRIX.md`](../../DEBT_MATRIX.md), 246 actionable markers are tracked and prioritized:
 
 1. **P1 - High Priority (Broad Exceptions in Production)**:
-   - Refactor 224 generic `except Exception:` blocks across `src/configstream/adapters/` and `src/configstream/parsers/` into explicit `(ValidationError, JSONDecodeError, TimeoutError)` exceptions.
+   - Refactor 223 generic `except Exception:` blocks across `src/configstream/adapters/` and `src/configstream/parsers/` into explicit `(ValidationError, JSONDecodeError, TimeoutError)` exceptions.
 2. **P2 - Routine Maintenance (Tooling Scripts)**:
    - Standardize error handling in `scripts/dynamic_reshard.py` and `scripts/generate_evidence_bundle.py`.
 3. **Go Scanner Timer Allocation (Go 1.24+)**:
