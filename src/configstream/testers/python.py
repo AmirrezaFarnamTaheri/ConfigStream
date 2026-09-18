@@ -26,7 +26,7 @@ from aiohttp_socks import ProxyConnector
 
 from ..async_utils import safe_wait_for
 from ..config import AppSettings
-from ..converters import to_singbox_outbound
+from ..converters import to_singbox_outbound, wireguard_outbound_to_endpoint
 from ..intelligence.evasion import enrich_outbound_with_evasion
 from ..models import Proxy
 from ..security_validator import SecurityValidator
@@ -298,30 +298,43 @@ class PythonTester:
         )
         extras = outbound.pop("_extra_outbounds", None)
         outbound["tag"] = "proxy-test"
-        outbounds = [outbound]
+        intermediate_items = [outbound]
         if isinstance(extras, list):
-            outbounds.extend(item for item in extras if isinstance(item, dict))
+            intermediate_items.extend(
+                item for item in extras if isinstance(item, dict)
+            )
+
+        outbounds: list[dict[str, Any]] = []
+        endpoints: list[dict[str, Any]] = []
+        for item in intermediate_items:
+            if item.get("type") == "wireguard":
+                endpoints.append(wireguard_outbound_to_endpoint(item))
+            else:
+                outbounds.append(item)
+
         loop = asyncio.get_running_loop()
         instance = None
         try:
             for startup_attempt in range(_STARTUP_ATTEMPTS):
                 http_port = _lease_loopback_port()
                 try:
-                    config_content = json.dumps(
-                        {
-                            "log": {"level": "info"},
-                            "inbounds": [
-                                {
-                                    "type": "http",
-                                    "tag": "http-in",
-                                    "listen": "127.0.0.1",
-                                    "listen_port": http_port,
-                                }
-                            ],
-                            "outbounds": outbounds,
-                            "route": {"final": "proxy-test"},
-                        }
-                    )
+                    runtime_config: dict[str, Any] = {
+                        "log": {"level": "info"},
+                        "inbounds": [
+                            {
+                                "type": "http",
+                                "tag": "http-in",
+                                "listen": "127.0.0.1",
+                                "listen_port": http_port,
+                            }
+                        ],
+                        "route": {"final": "proxy-test"},
+                    }
+                    if outbounds:
+                        runtime_config["outbounds"] = outbounds
+                    if endpoints:
+                        runtime_config["endpoints"] = endpoints
+                    config_content = json.dumps(runtime_config)
                 except (TypeError, ValueError):
                     _release_loopback_port(http_port)
                     raise
