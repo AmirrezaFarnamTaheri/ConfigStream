@@ -1581,6 +1581,7 @@ def test_through_proxy(
 def generate_chain_config(layers: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Generate a sing-box chain config from a list of layers."""
     outbounds: List[Dict[str, Any]] = []
+    endpoints: List[Dict[str, Any]] = []
     prev_tag = None
 
     for i, layer in enumerate(reversed(layers)):
@@ -1601,17 +1602,29 @@ def generate_chain_config(layers: List[Dict[str, Any]]) -> Dict[str, Any]:
                 {"type": "http", "server": layer["host"], "server_port": layer["port"]}
             )
         elif layer["type"] == "warp":
-            outbound.update(
-                {
-                    "type": "wireguard",
-                    "server": layer["ip"],
-                    "server_port": layer["port"],
-                    "local_address": [f"172.16.0.{i + 2}/32"],
-                    "private_key": "YNS+CEQE6JIQiVWcOUJd0K8FLFeCQBONJnXCdFnMRlQ=",
-                    "peer_public_key": "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",
-                    "mtu": 1280,
-                }
-            )
+            private_key, peer_key, reserved = _warp_credentials_for_layer(layer)
+            endpoint: Dict[str, Any] = {
+                "type": "wireguard",
+                "tag": tag,
+                "address": [f"172.16.0.{i + 2}/32"],
+                "private_key": private_key,
+                "mtu": 1280,
+                "peers": [
+                    {
+                        "address": layer["ip"],
+                        "port": layer["port"],
+                        "public_key": peer_key,
+                        "allowed_ips": ["0.0.0.0/0"],
+                    }
+                ],
+            }
+            if reserved is not None:
+                endpoint["peers"][0]["reserved"] = reserved
+            if prev_tag:
+                endpoint["detour"] = prev_tag
+            prev_tag = tag
+            endpoints.append(endpoint)
+            continue
         elif layer["type"] in ("vless", "vmess", "trojan", "shadowsocks"):
             outbound.update(
                 {
@@ -1635,11 +1648,11 @@ def generate_chain_config(layers: List[Dict[str, Any]]) -> Dict[str, Any]:
         prev_tag = tag
         outbounds.append(outbound)
 
-    # The first outbound in the list is the innermost (user-facing)
+    # The first user layer is the innermost/user-facing route target.
     outbounds.reverse()
-    primary_tag = outbounds[0]["tag"] if outbounds else "direct"
+    primary_tag = "layer-1" if layers else "direct"
 
-    return {
+    config: Dict[str, Any] = {
         "log": {"level": "info"},
         "inbounds": [
             {
@@ -1649,13 +1662,15 @@ def generate_chain_config(layers: List[Dict[str, Any]]) -> Dict[str, Any]:
                 "listen_port": 2080,
             }
         ],
-        "outbounds": outbounds
-        + [{"type": "direct", "tag": "direct"}, {"type": "block", "tag": "block"}],
+        "outbounds": outbounds + [{"type": "direct", "tag": "direct"}],
         "route": {
             "rules": [{"inbound": ["mixed-in"], "outbound": primary_tag}],
             "final": primary_tag,
         },
     }
+    if endpoints:
+        config["endpoints"] = endpoints
+    return config
 
 
 # ============================================================
@@ -2552,6 +2567,85 @@ def full_diagnostic(workers: int = 30):
     print()
     info("For interactive chain builder: python lab-scanner.py --interactive")
     info("For JSON output: python lab-scanner.py --json")
+
+
+
+WARP_DEFAULT_PEER_KEY = "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
+
+
+def _validate_wireguard_key(value: object, field: str) -> str:
+    import base64
+
+    text = str(value or "").strip()
+    if not text:
+        raise ValueError(f"{field} is required")
+    try:
+        raw = base64.b64decode(text, validate=True)
+    except (ValueError, binascii.Error) as exc:
+        raise ValueError(f"{field} must be valid Base64") from exc
+    if len(raw) != 32:
+        raise ValueError(f"{field} must decode to exactly 32 bytes")
+    return text
+
+
+def _warp_credentials_for_layer(
+    layer: Dict[str, Any],
+) -> Tuple[str, str, Optional[List[int]]]:
+    private_key = str(layer.get("private_key") or "").strip()
+    peer_key = str(
+        layer.get("peer_public_key")
+        or os.environ.get("WARP_PEER_KEY")
+        or WARP_DEFAULT_PEER_KEY
+    ).strip()
+    reserved = layer.get("reserved")
+
+    if not private_key:
+        raw_pool = os.environ.get("WARP_KEY_POOL", "").strip()
+        if raw_pool:
+            try:
+                payload = json.loads(raw_pool)
+            except json.JSONDecodeError as exc:
+                raise ValueError("WARP_KEY_POOL must be valid JSON") from exc
+            entries = payload if isinstance(payload, list) else [payload]
+            credential = next(
+                (
+                    item
+                    for item in entries
+                    if isinstance(item, dict) and item.get("private_key")
+                ),
+                None,
+            )
+            if credential:
+                private_key = str(credential.get("private_key") or "").strip()
+                peer_key = str(
+                    credential.get("peer_public_key")
+                    or credential.get("public_key")
+                    or peer_key
+                ).strip()
+                if reserved is None:
+                    reserved = credential.get("reserved")
+
+    private_key = _validate_wireguard_key(private_key, "WARP private key")
+    peer_key = _validate_wireguard_key(peer_key, "WARP peer public key")
+
+    normalized_reserved: Optional[List[int]] = None
+    if reserved not in (None, "", []):
+        if isinstance(reserved, str):
+            values = [part.strip() for part in reserved.split(",")]
+        elif isinstance(reserved, list):
+            values = reserved
+        else:
+            raise ValueError("WARP reserved bytes must be a list or comma-separated string")
+        try:
+            normalized_reserved = [int(value) for value in values]
+        except (TypeError, ValueError) as exc:
+            raise ValueError("WARP reserved bytes must be integers") from exc
+        if len(normalized_reserved) != 3 or any(
+            value < 0 or value > 255 for value in normalized_reserved
+        ):
+            raise ValueError("WARP reserved bytes must be three integers from 0 to 255")
+
+    return private_key, peer_key, normalized_reserved
 
 
 def main():
