@@ -1896,7 +1896,7 @@
     },
     {
       "path": "tools/lab-scanner.py",
-      "line": 449,
+      "line": 476,
       "marker": "BROAD_EXCEPTION",
       "category": "other",
       "priority": "P2 - Routine",
@@ -1904,7 +1904,7 @@
     },
     {
       "path": "tools/lab-scanner.py",
-      "line": 467,
+      "line": 494,
       "marker": "BROAD_EXCEPTION",
       "category": "other",
       "priority": "P2 - Routine",
@@ -1912,7 +1912,7 @@
     },
     {
       "path": "tools/lab-scanner.py",
-      "line": 498,
+      "line": 525,
       "marker": "BROAD_EXCEPTION",
       "category": "other",
       "priority": "P2 - Routine",
@@ -1920,7 +1920,7 @@
     },
     {
       "path": "tools/lab-scanner.py",
-      "line": 536,
+      "line": 563,
       "marker": "BROAD_EXCEPTION",
       "category": "other",
       "priority": "P2 - Routine",
@@ -1928,7 +1928,7 @@
     },
     {
       "path": "tools/lab-scanner.py",
-      "line": 568,
+      "line": 595,
       "marker": "BROAD_EXCEPTION",
       "category": "other",
       "priority": "P2 - Routine",
@@ -1936,7 +1936,7 @@
     },
     {
       "path": "tools/lab-scanner.py",
-      "line": 587,
+      "line": 614,
       "marker": "BROAD_EXCEPTION",
       "category": "other",
       "priority": "P2 - Routine",
@@ -1944,7 +1944,7 @@
     },
     {
       "path": "tools/lab-scanner.py",
-      "line": 610,
+      "line": 637,
       "marker": "BROAD_EXCEPTION",
       "category": "other",
       "priority": "P2 - Routine",
@@ -1952,7 +1952,7 @@
     },
     {
       "path": "tools/lab-scanner.py",
-      "line": 640,
+      "line": 667,
       "marker": "BROAD_EXCEPTION",
       "category": "other",
       "priority": "P2 - Routine",
@@ -1960,7 +1960,7 @@
     },
     {
       "path": "tools/lab-scanner.py",
-      "line": 669,
+      "line": 696,
       "marker": "BROAD_EXCEPTION",
       "category": "other",
       "priority": "P2 - Routine",
@@ -1968,7 +1968,7 @@
     },
     {
       "path": "tools/lab-scanner.py",
-      "line": 692,
+      "line": 719,
       "marker": "BROAD_EXCEPTION",
       "category": "other",
       "priority": "P2 - Routine",
@@ -1976,7 +1976,7 @@
     },
     {
       "path": "tools/lab-scanner.py",
-      "line": 727,
+      "line": 754,
       "marker": "BROAD_EXCEPTION",
       "category": "other",
       "priority": "P2 - Routine",
@@ -1984,7 +1984,7 @@
     },
     {
       "path": "tools/lab-scanner.py",
-      "line": 993,
+      "line": 1020,
       "marker": "BROAD_EXCEPTION",
       "category": "other",
       "priority": "P2 - Routine",
