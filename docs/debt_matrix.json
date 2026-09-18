@@ -1552,7 +1552,7 @@
     },
     {
       "path": "src/configstream/testers/lab_chain_tester.py",
-      "line": 190,
+      "line": 229,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1560,7 +1560,7 @@
     },
     {
       "path": "src/configstream/testers/lab_chain_tester.py",
-      "line": 232,
+      "line": 271,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1568,7 +1568,7 @@
     },
     {
       "path": "src/configstream/testers/lab_chain_tester.py",
-      "line": 240,
+      "line": 279,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1576,7 +1576,7 @@
     },
     {
       "path": "src/configstream/testers/lab_chain_tester.py",
-      "line": 255,
+      "line": 294,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
