@@ -19,7 +19,7 @@ def test_wireguard_outbound_migrates_complete_singbox_113_endpoint() -> None:
             "pre_shared_key": "psk",
             "reserved": [1, 2, 3],
             "persistent_keepalive_interval": 25,
-            "system_interface": True,
+            "system_interface": "false",
             "interface_name": "wg-test",
             "detour": "relay",
             "mtu": 1280,
@@ -31,7 +31,7 @@ def test_wireguard_outbound_migrates_complete_singbox_113_endpoint() -> None:
     assert endpoint["address"] == ["172.16.0.2/32", "fd01::2/128"]
     assert endpoint["private_key"] == "private"
     assert endpoint["mtu"] == 1280
-    assert endpoint["system"] is True
+    assert endpoint["system"] is False
     assert endpoint["name"] == "wg-test"
     assert endpoint["detour"] == "relay"
     assert "server" not in endpoint
