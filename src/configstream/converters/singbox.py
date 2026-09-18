@@ -899,7 +899,9 @@ def wireguard_outbound_to_endpoint(outbound: Dict[str, Any]) -> Dict[str, Any]:
         raise ValueError("expected a WireGuard outbound")
 
     tag = _wireguard_required_text(outbound.get("tag"), "a tag")
-    private_key = _wireguard_required_text(outbound.get("private_key"), "a private key")
+    private_key = _wireguard_required_text(
+        outbound.get("private_key"), "a private key"
+    )
 
     local_addresses: list[str] = []
     for field in ("address", "local_address", "local_address_v6"):
@@ -996,7 +998,9 @@ def wireguard_outbound_to_endpoint(outbound: Dict[str, Any]) -> Dict[str, Any]:
             outbound["listen_port"], "listen_port", allow_zero=True
         )
     if outbound.get("workers") not in (None, ""):
-        endpoint["workers"] = _wireguard_nonnegative_int(outbound["workers"], "workers")
+        endpoint["workers"] = _wireguard_nonnegative_int(
+            outbound["workers"], "workers"
+        )
     for field in (
         "detour",
         "bind_interface",
