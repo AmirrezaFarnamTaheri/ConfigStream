@@ -504,7 +504,7 @@
     },
     {
       "path": "src/configstream/cli.py",
-      "line": 299,
+      "line": 310,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
