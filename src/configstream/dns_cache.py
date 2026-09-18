@@ -187,10 +187,6 @@ class DNSCache:
                 self._cleanup_counter = 0
         return address
 
-    async def _enforce_size_limit_locked(self) -> None:
-        while len(self._cache) >= self._max_size:
-            self._cache.popitem(last=False)
-
     def _cleanup_expired_locked(self, now: float) -> None:
         expired = [
             host for host, entry in self._cache.items() if entry.expires_at <= now
