@@ -108,6 +108,17 @@ def main():
     pass
 
 
+def _close_loaded_geoip_resolver() -> None:
+    """Close the GeoIP singleton if (and only if) this run created it."""
+    try:
+        from .geoip import loaded_resolver
+    except ImportError:
+        return
+    resolver = loaded_resolver()
+    if resolver is not None:
+        resolver.close()
+
+
 @main.command()
 @click.option("--sources", required=True, help="Path to sources.txt")
 @click.option("--output", default="output", help="Output directory")
@@ -303,13 +314,7 @@ def merge(
         sys.exit(1)
     finally:
         # GeoIP support is optional for commands such as ``update-databases``.
-        # Import it only after the merge path has used the resolver.
-        try:
-            from .geoip import DEFAULT_RESOLVER
-        except ImportError:
-            DEFAULT_RESOLVER = None
-        if DEFAULT_RESOLVER:
-            DEFAULT_RESOLVER.close()
+        _close_loaded_geoip_resolver()
 
 
 @main.command()
@@ -446,12 +451,7 @@ def retest(input, output, timeout, max_workers, leniency, verbose):  # noqa: A00
             console.print_exception()
         sys.exit(1)
     finally:
-        try:
-            from .geoip import DEFAULT_RESOLVER
-        except ImportError:
-            DEFAULT_RESOLVER = None
-        if DEFAULT_RESOLVER:
-            DEFAULT_RESOLVER.close()
+        _close_loaded_geoip_resolver()
 
 
 @main.command()

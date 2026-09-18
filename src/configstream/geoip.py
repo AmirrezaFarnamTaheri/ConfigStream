@@ -258,4 +258,22 @@ class GeoIPResolver:
         return stats
 
 
-DEFAULT_RESOLVER = GeoIPResolver()
+def loaded_resolver() -> Optional[GeoIPResolver]:
+    """Return the singleton only if something already created it.
+
+    Shutdown paths use this to release MMDB handles without paying for (and
+    logging about) a database load that never happened.
+    """
+    instance = GeoIPResolver._instance
+    if instance is None or not getattr(instance, "_initialized", False):
+        return None
+    return instance
+
+
+def __getattr__(name: str) -> Any:
+    # ``DEFAULT_RESOLVER`` used to be built at import time, which opened the
+    # MMDB files (and warned about missing ones) for every CLI invocation,
+    # including ``--help``. Resolve it lazily instead (PEP 562).
+    if name == "DEFAULT_RESOLVER":
+        return GeoIPResolver()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
