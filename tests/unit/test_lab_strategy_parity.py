@@ -147,5 +147,6 @@ def test_lab_vwarp_metadata_exports() -> None:
     lab_js = _read("frontend/assets/js/lab.js")
     assert "clash['x-configstream-vwarp'] = chainConfig._vwarp;" in lab_js
     assert "xray._vwarp = chainConfig._vwarp;" in lab_js
-    assert lab_js.count("toBase64Utf8(JSON.stringify(buildSingboxConfig(chainConfig)))") >= 2\n    assert "toBase64Utf8(JSON.stringify(modern))" in lab_js
+    assert lab_js.count("toBase64Utf8(JSON.stringify(buildSingboxConfig(chainConfig)))") >= 2
+    assert "toBase64Utf8(JSON.stringify(modern))" in lab_js
     assert 'CONFIG.get("_vwarp")' not in lab_js
