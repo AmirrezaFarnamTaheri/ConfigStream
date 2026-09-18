@@ -141,6 +141,71 @@ async def test_python_tester_wires_wrapper_readiness_port(mock_settings: Any) ->
 
 
 @pytest.mark.asyncio
+async def test_python_tester_wireguard_uses_modern_endpoint(
+    mock_settings: Any,
+) -> None:
+    """The sing-box 1.13 runtime must never receive a legacy WireGuard outbound."""
+    tester = PythonTester(mock_settings)
+    proxy = Proxy(
+        config="wireguard://162.159.192.1:2408",
+        protocol="wireguard",
+        address="162.159.192.1",
+        port=2408,
+        remarks="warp-test",
+        details={
+            "private_key": "private-key",
+            "peer_public_key": "public-key",
+            "local_address": ["172.16.0.2/32", "fd00::2/128"],
+            "reserved": [0, 0, 0],
+        },
+    )
+    captured: dict[str, Any] = {}
+
+    class Instance:
+        http_proxy_url = "http://127.0.0.1:43123"
+
+        def stop(self) -> None:
+            return None
+
+    def factory(config_path: str, *, http_port: int, socks_port: bool) -> Instance:
+        del http_port, socks_port
+        captured["config"] = json.loads(Path(config_path).read_text(encoding="utf-8"))
+        return Instance()
+
+    with (
+        patch("configstream.testers.python._get_singbox_factory", return_value=factory),
+        patch("configstream.testers.python._reserve_loopback_port", return_value=43123),
+        patch("configstream.testers.python.aiohttp.ClientSession") as mock_session,
+    ):
+        session = mock_session.return_value
+        session.__aenter__.return_value = session
+        response = MagicMock(status=204)
+        response.__aenter__.return_value = response
+        session.get.return_value = response
+        result = await tester.test_via_singbox(proxy)
+
+    assert result.is_working
+    config = captured["config"]
+    assert config.get("outbounds", []) == []
+    assert config["route"]["final"] == "proxy-test"
+    endpoint = config["endpoints"][0]
+    assert endpoint["type"] == "wireguard"
+    assert endpoint["tag"] == "proxy-test"
+    assert endpoint["address"] == ["172.16.0.2/32", "fd00::2/128"]
+    assert "server" not in endpoint
+    assert "server_port" not in endpoint
+    assert endpoint["peers"] == [
+        {
+            "address": "162.159.192.1",
+            "port": 2408,
+            "public_key": "public-key",
+            "allowed_ips": ["0.0.0.0/0", "::/0"],
+            "reserved": [0, 0, 0],
+        }
+    ]
+
+
+@pytest.mark.asyncio
 async def test_python_tester_retries_loopback_bind_collision(
     mock_settings: Any,
 ) -> None:
