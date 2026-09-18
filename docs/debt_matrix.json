@@ -1144,7 +1144,7 @@
     },
     {
       "path": "src/configstream/pipeline/fetcher.py",
-      "line": 178,
+      "line": 181,
       "marker": "LARGE_FUNCTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1152,7 +1152,7 @@
     },
     {
       "path": "src/configstream/pipeline/fetcher.py",
-      "line": 534,
+      "line": 537,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1160,7 +1160,7 @@
     },
     {
       "path": "src/configstream/pipeline/fetcher.py",
-      "line": 538,
+      "line": 541,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1168,7 +1168,7 @@
     },
     {
       "path": "src/configstream/pipeline/fetcher.py",
-      "line": 545,
+      "line": 548,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1176,7 +1176,7 @@
     },
     {
       "path": "src/configstream/pipeline/fetcher.py",
-      "line": 554,
+      "line": 557,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",

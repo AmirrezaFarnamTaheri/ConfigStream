@@ -5,7 +5,7 @@ import logging
 import socket
 from secrets import choice as secure_choice, randbelow
 from urllib.parse import urlparse, urljoin
-from typing import Any, Dict, Optional, Tuple, List, Union, cast
+from typing import Any, Dict, Optional, Tuple, List, cast
 import httpx
 
 from configstream.config import AppSettings
@@ -26,10 +26,13 @@ logger = logging.getLogger(__name__)
 # Conservative module fallback; per-run settings remain authoritative.
 MAX_RESPONSE_SIZE = 10 * 1024 * 1024
 
+# Current mainstream desktop browsers. Some mirrors and CDNs throttle or
+# block clearly outdated user agents, so keep these reasonably recent.
 USER_AGENTS = [
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36",
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:142.0) Gecko/20100101 Firefox/142.0",
 ]
 
 FETCH_INTERNAL_HOST_SUFFIXES = (".local", ".localhost", ".lan", ".internal")
@@ -578,12 +581,14 @@ class _SimpleRateLimiter:
         self._buckets: Dict[str, Tuple[float, float]] = {}
         self._lock = asyncio.Lock()
 
+    def _refill(self, source: str, now: float) -> float:
+        tokens, last = self._buckets.get(source, (float(self._burst), now))
+        return min(float(self._burst), tokens + max(0.0, now - last) * self._rate)
+
     async def is_allowed(self, source: str) -> bool:
         async with self._lock:
-            now = asyncio.get_event_loop().time()
-            tokens, last = self._buckets.get(source, (float(self._burst), now))
-            elapsed = now - last
-            tokens = min(self._burst, tokens + elapsed * self._rate)
+            now = asyncio.get_running_loop().time()
+            tokens = self._refill(source, now)
             if tokens >= 1.0:
                 self._buckets[source] = (tokens - 1.0, now)
                 return True
@@ -592,8 +597,9 @@ class _SimpleRateLimiter:
 
     async def get_wait_time(self, source: str) -> float:
         async with self._lock:
-            now = asyncio.get_event_loop().time()
-            tokens, _ = self._buckets.get(source, (float(self._burst), now))
+            # Account for tokens regained since the last call; reading the
+            # stale bucket over-estimated the wait and slowed fetches down.
+            tokens = self._refill(source, asyncio.get_running_loop().time())
             if tokens >= 1.0:
                 return 0.0
             return (1.0 - tokens) / self._rate
