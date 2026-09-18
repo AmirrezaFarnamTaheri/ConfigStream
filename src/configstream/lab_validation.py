@@ -11,6 +11,8 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import HTTPException
 
+from .converters.singbox import wireguard_outbound_to_endpoint
+
 LAB_ALLOWED_OUTBOUND_TYPES = {
     "block",
     "direct",
@@ -239,6 +241,35 @@ async def _sanitize_and_pin_outbound(
                     if isinstance(tls_obj, dict):
                         tls_obj.setdefault("server_name", orig_clean)
 
+    if lower_type == "wireguard" and "peers" in clean_outbound:
+        peers = clean_outbound["peers"]
+        if not isinstance(peers, list) or not peers:
+            raise HTTPException(
+                status_code=400,
+                detail=f"{path}.peers must be a non-empty array",
+            )
+        clean_peers = []
+        for peer_index, peer in enumerate(peers):
+            if not isinstance(peer, dict):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"{path}.peers[{peer_index}] must be an object",
+                )
+            budget[0] -= 1
+            if budget[0] < 0:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Config contains too many outbound/peer nodes for live lab testing",
+                )
+            clean_peer = dict(peer)
+            for key in LAB_DESTINATION_KEYS:
+                if key in clean_peer:
+                    clean_peer[key] = await _validate_lab_destination(
+                        clean_peer[key], f"{path}.peers[{peer_index}].{key}"
+                    )
+            clean_peers.append(clean_peer)
+        clean_outbound["peers"] = clean_peers
+
     # Recursively check nested outbounds/detours/next
     for key in ("detour", "next", "outbounds"):
         if key in clean_outbound:
@@ -293,5 +324,32 @@ async def _validate_and_build_lab_config(config: object) -> Dict[str, Any]:
         clean_outbound = await _sanitize_and_pin_outbound(outbound, path, 0, budget)
         clean_outbounds.append(clean_outbound)
 
-    # Build server-owned minimal sing-box document
-    return {"outbounds": clean_outbounds}
+    runtime_outbounds: List[Dict[str, Any]] = []
+    endpoints: List[Dict[str, Any]] = []
+    for clean_outbound in clean_outbounds:
+        outbound_type = str(clean_outbound.get("type") or "").lower()
+        if outbound_type == "wireguard":
+            endpoints.append(wireguard_outbound_to_endpoint(clean_outbound))
+        elif outbound_type == "block":
+            # sing-box 1.13 removed the legacy special block outbound. The
+            # Laboratory does not preserve caller-owned route rules, so an
+            # unreferenced builder compatibility node has no runtime purpose.
+            continue
+        else:
+            runtime_outbounds.append(clean_outbound)
+
+    if not runtime_outbounds and not endpoints:
+        raise HTTPException(
+            status_code=400,
+            detail="Config contains no executable live-lab outbound or endpoint",
+        )
+
+    document: Dict[str, Any] = {"outbounds": runtime_outbounds}
+    if endpoints:
+        document["endpoints"] = endpoints
+
+    primary = runtime_outbounds[0] if runtime_outbounds else endpoints[0]
+    primary_tag = primary.get("tag")
+    if isinstance(primary_tag, str) and primary_tag.strip():
+        document["route"] = {"final": primary_tag.strip()}
+    return document
