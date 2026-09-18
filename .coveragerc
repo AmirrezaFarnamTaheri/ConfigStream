@@ -4,16 +4,18 @@ omit =
     */test*.py
     */__pycache__/*
     */tools/*
-    # Unused/future modules (not currently integrated)
+    # Genuinely dead code: no import site anywhere under src/ or tests/ as of
+    # this writing. Re-check with `grep -rn <module>` before adding a module
+    # here — auto_detect.py, dns_cache.py, http_client.py, and serialize.py
+    # were previously (and incorrectly) listed alongside these; all four are
+    # imported by production code (the core parser dispatcher, DNS/SNI
+    # pinning, the HTTP client, and output serialization respectively) and
+    # must stay covered.
     */diskqueue.py
-    */dns_cache.py
     */etag_cache.py
     */freshness.py
-    */http_client.py
-    */serialize.py
     */sharding.py
     */geoip_offline.py
-    */auto_detect.py
     */__main__.py
 
 [report]
