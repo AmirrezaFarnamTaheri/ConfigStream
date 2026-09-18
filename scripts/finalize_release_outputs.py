@@ -16,6 +16,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from configstream.constants import ARTIFACT_TRANSIENT_SUFFIXES as TRANSIENT_SUFFIXES
+from configstream.converters.singbox import wireguard_outbound_to_endpoint
 from configstream.output.client_formats import generate_xray_config
 from configstream.release_policy import (
     MIN_SOURCE_COVERAGE,
@@ -142,39 +143,7 @@ def _string_list(value: Any) -> list[str]:
 
 
 def _wireguard_endpoint(outbound: dict[str, Any]) -> dict[str, Any]:
-    local = _string_list(outbound.get("address") or outbound.get("local_address"))
-    allowed = _string_list(outbound.get("allowed_ips")) or ["0.0.0.0/0"]
-    if any(":" in item for item in local) and "::/0" not in allowed:
-        allowed.append("::/0")
-    peer: dict[str, Any] = {
-        "address": outbound.get("server"),
-        "port": int(outbound.get("server_port") or 0),
-        "public_key": outbound.get("peer_public_key") or outbound.get("public_key"),
-        "allowed_ips": allowed,
-    }
-    for field in ("pre_shared_key", "reserved", "persistent_keepalive_interval"):
-        if outbound.get(field) not in (None, "", []):
-            peer[field] = outbound[field]
-    endpoint: dict[str, Any] = {
-        "type": "wireguard",
-        "tag": outbound.get("tag"),
-        "address": local,
-        "private_key": outbound.get("private_key"),
-        "mtu": int(outbound.get("mtu") or 1408),
-        "peers": [peer],
-    }
-    for field in (
-        "detour",
-        "bind_interface",
-        "routing_mark",
-        "connect_timeout",
-        "tcp_fast_open",
-        "tcp_multi_path",
-        "udp_fragment",
-        "domain_resolver",
-    ):
-        if field in outbound:
-            endpoint[field] = outbound[field]
+    endpoint = wireguard_outbound_to_endpoint(outbound)
     sanitized = _sanitize(endpoint)
     return sanitized if isinstance(sanitized, dict) else {}
 
