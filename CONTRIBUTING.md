@@ -24,13 +24,17 @@ We are actively looking for help with the following "Next Generation" features:
 
 1.  **Fork the repo.**
 2.  **Clone it locally.**
-3.  **Install dependencies:**
+3.  **Install dependencies** (pinned, exactly as CI does):
     ```bash
-    pip install -e ".[dev]"
+    python -m venv .venv && . .venv/bin/activate
+    pip install -r requirements-dev.txt
+    pip install -e . --no-deps
+    pre-commit install                      # optional but recommended
     ```
 4.  **Run Tests:**
     ```bash
-    pytest
+    pytest -m "not playwright and not frontend_browser and not e2e"   # fast, no browser
+    pytest                                                             # full suite
     ```
 
     WSL note: If `pytest` crashes with a `FileNotFoundError` inside `_pytest/capture.py`, your temp directory may be on a Windows mount (e.g. `/mnt/c/...`). Run tests with a Linux temp dir:
@@ -54,6 +58,27 @@ ConfigStream v3.0 is modular. Please respect the folder structure:
 *   **Python:** We use `black` and `flake8`.
 *   **Type Hints:** All new code must be fully typed (`mypy`).
 *   **Architecture:** Keep logic in `src/configstream/`. Do not put business logic in `scripts/`.
+
+## ✅ Before You Push
+
+CI blocks on the same checks you can run locally:
+
+```bash
+black --check --target-version py310 $(git diff --name-only origin/main -- '*.py')
+flake8 src/ tests/
+mypy .
+python scripts/generate_debt_matrix.py     # regenerates docs/DEBT_MATRIX.md + docs/debt_matrix.json
+python scripts/generate_triage_report.py   # regenerates TRIAGE_REPORT.md
+python scripts/verify_repository.py --profile static
+```
+
+The debt matrix records the line number of every broad `except` and
+debt marker comment (see `scripts/generate_debt_matrix.py`), so **almost any Python edit makes it stale**; commit the
+regenerated files with your change. `pre-commit run --all-files` does all of
+the above (the `pytest` hook runs on `pre-push`).
+
+Frontend changes: `npm ci && npm run build && npm run test:frontend:no-network`
+(set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` if Playwright cannot download Chromium).
 
 ## 🤝 Pull Request Process
 

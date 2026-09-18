@@ -1,20 +1,32 @@
+# Local hooks mirror the blocking CI gates in .github/workflows/ci.yml.
+# Install once with `pre-commit install`; run everything with
+# `pre-commit run --all-files`.
 repos:
   - repo: local
     hooks:
+      - id: black
+        name: black
+        entry: black --target-version py310
+        language: system
+        types: [python]
       - id: flake8
         name: flake8
         entry: flake8
         language: system
         types: [python]
       - id: mypy
-        name: mypy
-        entry: mypy
+        name: mypy (whole repository, as in CI)
+        entry: mypy .
         language: system
         types: [python]
-      - id: pytest
-        name: pytest
-        entry: pytest -q
+        pass_filenames: false
+      - id: derived-docs
+        name: regenerate debt matrix and triage report
+        # These generated files embed source line numbers, so almost any
+        # Python edit changes them; CI fails when they are stale.
+        entry: bash -c 'python scripts/generate_debt_matrix.py >/dev/null && python scripts/generate_triage_report.py >/dev/null'
         language: system
+        types_or: [python, markdown, javascript]
         pass_filenames: false
       - id: validate-workflows
         name: validate GitHub workflow YAML
@@ -22,12 +34,17 @@ repos:
         language: system
         files: ^\.github/workflows/.*\.ya?ml$
         pass_filenames: false
+      - id: pytest
+        name: pytest
+        entry: pytest -q
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
 
-# NEW: Secret Scanning
+  # Secret scanning (keep in sync with GITLEAKS_VERSION in ci.yml)
   - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.18.1
+    rev: v8.30.1
     hooks:
       - id: gitleaks
         name: Detect Secrets
         description: "Detect hardcoded secrets like passwords, API keys, and tokens."
-        entry: gitleaks detect --source . --verbose --redact

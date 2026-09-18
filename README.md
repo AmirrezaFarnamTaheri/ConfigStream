@@ -16,7 +16,7 @@ ConfigStream is a sovereignty-grade, zero-budget anti-censorship platform. It co
 - **Python 3.10+**
 - **Docker** (Recommended for production)
 - **Node.js 24+** (Optional, for frontend development)
-- **Go 1.24+** (Optional, for high-performance tester builds)
+- **Go 1.26+** (Optional, for high-performance tester builds; see `src/go/tester/go.mod`)
 
 ### 🚀 Quick Start (Docker)
 ```bash
