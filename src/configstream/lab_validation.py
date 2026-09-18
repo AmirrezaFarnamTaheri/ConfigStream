@@ -342,7 +342,13 @@ async def _validate_and_build_lab_config(config: object) -> Dict[str, Any]:
         ):
             primary_tag = candidate_tag.strip()
         if outbound_type == "wireguard":
-            endpoints.append(wireguard_outbound_to_endpoint(clean_outbound))
+            try:
+                endpoints.append(wireguard_outbound_to_endpoint(clean_outbound))
+            except ValueError as exc:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid WireGuard configuration: {exc}",
+                ) from exc
         else:
             runtime_outbounds.append(clean_outbound)
 
