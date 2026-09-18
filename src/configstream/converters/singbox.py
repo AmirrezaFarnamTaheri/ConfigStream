@@ -834,14 +834,17 @@ def _wireguard_required_text(value: Any, field: str) -> str:
     return text
 
 
-def _wireguard_port(value: Any, field: str = "peer port") -> int:
+def _wireguard_port(
+    value: Any, field: str = "peer port", *, allow_zero: bool = False
+) -> int:
     if isinstance(value, bool):
         raise ValueError(f"WireGuard endpoint has invalid {field}")
     try:
         port = int(value)
     except (TypeError, ValueError) as exc:
         raise ValueError(f"WireGuard endpoint has invalid {field}") from exc
-    if not 1 <= port <= 65535:
+    minimum = 0 if allow_zero else 1
+    if not minimum <= port <= 65535:
         raise ValueError(f"WireGuard endpoint has invalid {field}")
     return port
 
@@ -990,11 +993,11 @@ def wireguard_outbound_to_endpoint(outbound: Dict[str, Any]) -> Dict[str, Any]:
         endpoint["name"] = str(interface_name).strip()
     if outbound.get("listen_port") not in (None, ""):
         endpoint["listen_port"] = _wireguard_port(
-            outbound["listen_port"], "listen_port"
+            outbound["listen_port"], "listen_port", allow_zero=True
         )
     if outbound.get("workers") not in (None, ""):
-        endpoint["workers"] = _wireguard_positive_int(
-            outbound["workers"], "workers", 1
+        endpoint["workers"] = _wireguard_nonnegative_int(
+            outbound["workers"], "workers"
         )
     for field in (
         "detour",
