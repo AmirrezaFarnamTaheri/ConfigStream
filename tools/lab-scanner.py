@@ -2623,7 +2623,6 @@ def full_diagnostic(workers: int = 30):
     info("For JSON output: python lab-scanner.py --json")
 
 
-
 WARP_DEFAULT_PEER_KEY = "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
 
 
@@ -2706,7 +2705,9 @@ def _warp_credentials_for_layer(
         elif isinstance(reserved, list):
             values = reserved
         else:
-            raise ValueError("WARP reserved bytes must be a list or comma-separated string")
+            raise ValueError(
+                "WARP reserved bytes must be a list or comma-separated string"
+            )
         try:
             normalized_reserved = [int(value) for value in values]
         except (TypeError, ValueError) as exc:
@@ -2863,9 +2864,7 @@ User-supplied resources:
     elif args.scan_relays:
         relay_extra: List[str] = []
         if user_proxy:
-            relay_extra.append(
-                format_proxy_uri(user_proxy)
-            )
+            relay_extra.append(format_proxy_uri(user_proxy))
         if user_eps:
             relay_extra.extend(f"{e['ip']}:{e['port']}" for e in user_eps)
         results = scan_relay_candidates(
@@ -2896,7 +2895,11 @@ User-supplied resources:
                     "WARP_KEY_POOL credentials."
                 )
                 if args.json:
-                    print(json.dumps({"chain": best, "config": None, "error": message}, indent=2))
+                    print(
+                        json.dumps(
+                            {"chain": best, "config": None, "error": message}, indent=2
+                        )
+                    )
             else:
                 config_json = json.dumps(config, indent=2)
                 section("Auto-Generated Chain Config")
