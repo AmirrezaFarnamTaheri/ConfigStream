@@ -27,6 +27,7 @@ from aiohttp_socks import ProxyConnector
 from ..async_utils import safe_wait_for
 from ..config import AppSettings
 from ..converters import to_singbox_outbound
+from ..converters.singbox import wireguard_outbound_to_endpoint
 from ..intelligence.evasion import enrich_outbound_with_evasion
 from ..models import Proxy
 from ..security_validator import SecurityValidator
@@ -78,6 +79,49 @@ def _is_bind_collision(exc: BaseException) -> bool:
     return "address already in use" in message or (
         "only one usage of each socket address" in message
     )
+
+
+def _runtime_singbox_document(
+    primary: dict[str, Any],
+    extras: Any,
+    http_port: int,
+) -> dict[str, Any]:
+    """Build a sing-box 1.13+ runtime document for one bounded proxy probe.
+
+    WireGuard was removed from the outbound schema in sing-box 1.13. Preserve
+    the converter's internal legacy representation, but migrate every primary
+    or chained WireGuard hop to a top-level endpoint before starting native
+    sing-box. This pure boundary is intentionally unit-testable without a live
+    proxy or subprocess.
+    """
+    items: list[dict[str, Any]] = [primary]
+    if isinstance(extras, list):
+        items.extend(item for item in extras if isinstance(item, dict))
+
+    outbounds: list[dict[str, Any]] = []
+    endpoints: list[dict[str, Any]] = []
+    for item in items:
+        if item.get("type") == "wireguard":
+            endpoints.append(wireguard_outbound_to_endpoint(item))
+        else:
+            outbounds.append(item)
+
+    document: dict[str, Any] = {
+        "log": {"level": "info"},
+        "inbounds": [
+            {
+                "type": "http",
+                "tag": "http-in",
+                "listen": "127.0.0.1",
+                "listen_port": http_port,
+            }
+        ],
+        "outbounds": outbounds,
+        "route": {"final": "proxy-test"},
+    }
+    if endpoints:
+        document["endpoints"] = endpoints
+    return document
 
 
 def _get_singbox_factory():
@@ -298,9 +342,6 @@ class PythonTester:
         )
         extras = outbound.pop("_extra_outbounds", None)
         outbound["tag"] = "proxy-test"
-        outbounds = [outbound]
-        if isinstance(extras, list):
-            outbounds.extend(item for item in extras if isinstance(item, dict))
         loop = asyncio.get_running_loop()
         instance = None
         try:
@@ -308,19 +349,7 @@ class PythonTester:
                 http_port = _lease_loopback_port()
                 try:
                     config_content = json.dumps(
-                        {
-                            "log": {"level": "info"},
-                            "inbounds": [
-                                {
-                                    "type": "http",
-                                    "tag": "http-in",
-                                    "listen": "127.0.0.1",
-                                    "listen_port": http_port,
-                                }
-                            ],
-                            "outbounds": outbounds,
-                            "route": {"final": "proxy-test"},
-                        }
+                        _runtime_singbox_document(outbound, extras, http_port)
                     )
                 except (TypeError, ValueError):
                     _release_loopback_port(http_port)
