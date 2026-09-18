@@ -70,7 +70,8 @@ Sing-box has a built-in DNS server to prevent DNS leaks.
 ## 5. Chain Configuration Examples
 
 ### Example 1: WARP Shielded Chain
-Your ISP sees a connection to Cloudflare. Cloudflare routes to your proxy.
+Your ISP sees a connection to Cloudflare. Cloudflare routes to your proxy. ConfigStream targets sing-box 1.13+, so WireGuard lives under `endpoints`, not `outbounds`.
+
 ```json
 {
   "inbounds": [
@@ -83,24 +84,26 @@ Your ISP sees a connection to Cloudflare. Cloudflare routes to your proxy.
       "uuid": "your-uuid",
       "tls": { "enabled": true, "server_name": "example.com" },
       "detour": "warp-out"
-    },
-    {
-      "type": "wireguard", "tag": "warp-out",
-      "server": "162.159.192.1", "server_port": 2408,
-      "local_address": ["172.16.0.2/32"],
-      "private_key": "...",
-      "peer_public_key": "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",
-      "mtu": 1280
-    },
-    { "type": "direct", "tag": "direct" },
-    { "type": "block", "tag": "block" }
+    }
   ],
-  "route": {
-    "rules": [
-      { "geoip": ["private"], "outbound": "direct" }
-    ],
-    "final": "proxy-out"
-  }
+  "endpoints": [
+    {
+      "type": "wireguard",
+      "tag": "warp-out",
+      "address": ["172.16.0.2/32"],
+      "private_key": "...",
+      "mtu": 1280,
+      "peers": [
+        {
+          "address": "162.159.192.1",
+          "port": 2408,
+          "public_key": "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",
+          "allowed_ips": ["0.0.0.0/0"]
+        }
+      ]
+    }
+  ],
+  "route": { "final": "proxy-out" }
 }
 ```
 
@@ -146,7 +149,8 @@ Route through any intermediate proxy (LAN, remote, or pipeline output).
 ```
 
 ### Example 4: Double WARP
-Two layers of WARP encryption for maximum obfuscation.
+Two layers of WARP encryption for maximum obfuscation. Each WireGuard layer is a sing-box 1.13+ endpoint.
+
 ```json
 {
   "outbounds": [
@@ -155,21 +159,42 @@ Two layers of WARP encryption for maximum obfuscation.
       "server": "example.com", "server_port": 443,
       "uuid": "your-uuid",
       "detour": "warp-inner"
-    },
-    {
-      "type": "wireguard", "tag": "warp-inner",
-      "server": "162.159.192.1", "server_port": 2408,
-      "private_key": "...", "peer_public_key": "bmXOC+...",
-      "mtu": 1280,
-      "detour": "warp-outer"
-    },
-    {
-      "type": "wireguard", "tag": "warp-outer",
-      "server": "188.114.98.224", "server_port": 854,
-      "private_key": "...", "peer_public_key": "bmXOC+...",
-      "mtu": 1280
     }
-  ]
+  ],
+  "endpoints": [
+    {
+      "type": "wireguard",
+      "tag": "warp-inner",
+      "address": ["172.16.0.2/32"],
+      "private_key": "...",
+      "mtu": 1280,
+      "detour": "warp-outer",
+      "peers": [
+        {
+          "address": "162.159.192.1",
+          "port": 2408,
+          "public_key": "bmXOC+...",
+          "allowed_ips": ["0.0.0.0/0"]
+        }
+      ]
+    },
+    {
+      "type": "wireguard",
+      "tag": "warp-outer",
+      "address": ["172.16.1.2/32"],
+      "private_key": "...",
+      "mtu": 1280,
+      "peers": [
+        {
+          "address": "188.114.98.224",
+          "port": 854,
+          "public_key": "bmXOC+...",
+          "allowed_ips": ["0.0.0.0/0"]
+        }
+      ]
+    }
+  ],
+  "route": { "final": "proxy-out" }
 }
 ```
 
