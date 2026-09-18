@@ -174,8 +174,8 @@ def test_wireguard_endpoint_rejects_invalid_runtime_fields() -> None:
         ({"reserved": [1, 2]}, "reserved"),
         ({"reserved": [1, 2, 256]}, "reserved"),
         ({"persistent_keepalive_interval": -1}, "keepalive"),
-        ({"listen_port": 0}, "listen_port"),
-        ({"workers": 0}, "workers"),
+        ({"listen_port": -1}, "listen_port"),
+        ({"workers": -1}, "workers"),
     ]
 
     for updates, match in invalid_cases:
@@ -210,3 +210,23 @@ def test_wireguard_endpoint_rejects_malformed_explicit_peers() -> None:
                 "peers": [{"address": "198.51.100.10", "port": 51820}],
             }
         )
+
+
+def test_wireguard_endpoint_preserves_zero_runtime_defaults() -> None:
+    endpoint = wireguard_outbound_to_endpoint(
+        {
+            "type": "wireguard",
+            "tag": "wg",
+            "address": ["10.0.0.2/32"],
+            "private_key": "private",
+            "server": "198.51.100.10",
+            "server_port": 51820,
+            "peer_public_key": "public",
+            "listen_port": 0,
+            "workers": 0,
+            "persistent_keepalive_interval": 0,
+        }
+    )
+    assert endpoint["listen_port"] == 0
+    assert endpoint["workers"] == 0
+    assert endpoint["peers"][0]["persistent_keepalive_interval"] == 0
