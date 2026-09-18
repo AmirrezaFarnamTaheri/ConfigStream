@@ -230,3 +230,23 @@ def test_wireguard_endpoint_preserves_zero_runtime_defaults() -> None:
     assert endpoint["listen_port"] == 0
     assert endpoint["workers"] == 0
     assert endpoint["peers"][0]["persistent_keepalive_interval"] == 0
+
+
+def test_wireguard_endpoint_rejects_explicit_zero_peer_port() -> None:
+    with pytest.raises(ValueError, match="peer port"):
+        wireguard_outbound_to_endpoint(
+            {
+                "type": "wireguard",
+                "tag": "wg",
+                "address": ["10.0.0.2/32"],
+                "private_key": "private",
+                "server_port": 51820,
+                "peers": [
+                    {
+                        "address": "198.51.100.10",
+                        "port": 0,
+                        "public_key": "peer",
+                    }
+                ],
+            }
+        )
