@@ -2603,13 +2603,20 @@ WARP_DEFAULT_PEER_KEY = "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
 def _validate_wireguard_key(value: object, field: str) -> str:
     import base64
 
-    text = str(value or "").strip()
+    text = "".join(str(value or "").split())
     if not text:
         raise ValueError(f"{field} is required")
+    text = text.replace("-", "+").replace("_", "/")
+    padding = len(text) % 4
+    if padding:
+        text += "=" * (4 - padding)
     try:
         raw = base64.b64decode(text, validate=True)
-    except (ValueError, binascii.Error) as exc:
-        raise ValueError(f"{field} must be valid Base64") from exc
+    except (ValueError, binascii.Error):
+        try:
+            raw = base64.b64decode(text, validate=False)
+        except (ValueError, binascii.Error) as exc:
+            raise ValueError(f"{field} must be valid Base64") from exc
     if len(raw) != 32:
         raise ValueError(f"{field} must decode to exactly 32 bytes")
     return text
@@ -2634,18 +2641,28 @@ def _warp_credentials_for_layer(
             except json.JSONDecodeError as exc:
                 raise ValueError("WARP_KEY_POOL must be valid JSON") from exc
             entries = payload if isinstance(payload, list) else [payload]
-            credential = next(
-                (
-                    item
-                    for item in entries
-                    if isinstance(item, dict) and item.get("private_key")
-                ),
-                None,
-            )
+            credential: Optional[Dict[str, Any]] = None
+            for item in entries:
+                if isinstance(item, str) and item.strip():
+                    credential = {"private_key": item}
+                    break
+                if not isinstance(item, dict):
+                    continue
+                candidate = (
+                    item.get("private_key")
+                    or item.get("private-key")
+                    or item.get("privateKey")
+                )
+                if candidate:
+                    credential = dict(item)
+                    credential["private_key"] = candidate
+                    break
             if credential:
                 private_key = str(credential.get("private_key") or "").strip()
                 peer_key = str(
                     credential.get("peer_public_key")
+                    or credential.get("peer-public-key")
+                    or credential.get("peerPublicKey")
                     or credential.get("public_key")
                     or peer_key
                 ).strip()
