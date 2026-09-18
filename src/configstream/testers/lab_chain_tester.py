@@ -119,7 +119,11 @@ def _ensure_config_ready(config: Dict[str, Any]) -> Dict[str, Any]:
             }
         ]
     if "route" not in cfg or not cfg["route"]:
-        primary = outbounds[0] if valid_outbounds else endpoints[0]
+        primary: Any = None
+        if valid_outbounds and isinstance(outbounds, list):
+            primary = outbounds[0]
+        elif isinstance(endpoints, list):
+            primary = endpoints[0]
         if isinstance(primary, dict):
             tag = primary.get("tag")
             if isinstance(tag, str) and tag.strip():

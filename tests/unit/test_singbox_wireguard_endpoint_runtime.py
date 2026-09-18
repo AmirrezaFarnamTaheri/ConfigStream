@@ -161,7 +161,7 @@ def test_wireguard_endpoint_rejects_invalid_runtime_fields() -> None:
         "peer_public_key": "public",
     }
 
-    invalid_cases = [
+    invalid_cases: list[tuple[dict, str]] = [
         ({"tag": ""}, "tag"),
         ({"address": [], "local_address": "", "local_address_v6": ""}, "local address"),
         ({"private_key": ""}, "private key"),
