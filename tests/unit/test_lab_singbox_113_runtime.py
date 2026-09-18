@@ -65,6 +65,36 @@ async def test_live_lab_migrates_wireguard_and_removes_legacy_block() -> None:
 
 
 @pytest.mark.asyncio
+async def test_live_lab_preserves_wireguard_first_route_target() -> None:
+    clean = await _validate_and_build_lab_config(
+        {
+            "outbounds": [
+                {
+                    "type": "wireguard",
+                    "tag": "warp-primary",
+                    "server": "8.8.8.8",
+                    "server_port": 2408,
+                    "local_address": ["172.16.0.2/32"],
+                    "private_key": "private",
+                    "peer_public_key": "public",
+                },
+                {
+                    "type": "vless",
+                    "tag": "fallback",
+                    "server": "1.1.1.1",
+                    "server_port": 443,
+                    "uuid": "123e4567-e89b-12d3-a456-426614174000",
+                },
+            ]
+        }
+    )
+
+    assert clean["route"] == {"final": "warp-primary"}
+    assert [endpoint["tag"] for endpoint in clean["endpoints"]] == ["warp-primary"]
+    assert [outbound["tag"] for outbound in clean["outbounds"]] == ["fallback"]
+
+
+@pytest.mark.asyncio
 async def test_live_lab_rejects_private_wireguard_peer_destination() -> None:
     with pytest.raises(HTTPException) as exc_info:
         await _validate_and_build_lab_config(
