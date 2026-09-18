@@ -83,3 +83,28 @@ def test_lab_scanner_requires_real_warp_credentials(monkeypatch) -> None:
         scanner.generate_chain_config(
             [{"type": "warp", "ip": "1.1.1.1", "port": 2408}]
         )
+
+
+def test_lab_scanner_custom_proxy_parser_handles_ipv6() -> None:
+    scanner = _load_scanner()
+
+    parsed = scanner.parse_custom_proxy_uri("socks5://[2001:db8::1]:1080")
+
+    assert parsed == {"type": "socks5", "host": "2001:db8::1", "port": 1080}
+    assert scanner.format_proxy_uri(parsed) == "socks5://[2001:db8::1]:1080"
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "socks5://127.0.0.1",
+        "socks5://127.0.0.1:not-a-port",
+        "socks5://user:pass@127.0.0.1:1080",
+        "https://127.0.0.1:443",
+        "not-a-proxy",
+    ],
+)
+def test_lab_scanner_custom_proxy_parser_rejects_unsupported_input(value: str) -> None:
+    scanner = _load_scanner()
+
+    assert scanner.parse_custom_proxy_uri(value) is None
