@@ -44,6 +44,7 @@ def test_modernize_singbox_migrates_wireguard_and_route_contract() -> None:
                 "server": "162.159.192.1",
                 "server_port": 2408,
                 "local_address": "10.0.0.2/32",
+                "local_address_v6": "fd00::2/128",
                 "private_key": "private",
                 "peer_public_key": "public",
                 "detour": "relay",
@@ -61,7 +62,11 @@ def test_modernize_singbox_migrates_wireguard_and_route_contract() -> None:
     result = modernize_singbox(payload)
     assert not any(item.get("type") == "wireguard" for item in result["outbounds"])
     assert not any(item.get("type") in {"block", "dns"} for item in result["outbounds"])
-    assert result["endpoints"][0]["address"] == ["10.0.0.2/32"]
+    assert result["endpoints"][0]["address"] == ["10.0.0.2/32", "fd00::2/128"]
+    assert result["endpoints"][0]["peers"][0]["allowed_ips"] == [
+        "0.0.0.0/0",
+        "::/0",
+    ]
     assert result["route"]["final"] == "🌍 Proxy Select"
     assert any(item.get("action") == "hijack-dns" for item in result["route"]["rules"])
     assert result["inbounds"][0]["address"] == ["172.19.0.1/30"]
