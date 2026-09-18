@@ -190,3 +190,27 @@ def test_lab_ssrf_fallback_fails_closed_on_dns_error(monkeypatch) -> None:
     monkeypatch.setattr(socket, "getaddrinfo", fail_resolution)
 
     assert _is_private_or_local("unresolvable.example") is True
+
+
+@pytest.mark.asyncio
+async def test_live_lab_invalid_wireguard_schema_returns_400() -> None:
+    with pytest.raises(HTTPException) as exc_info:
+        await _validate_and_build_lab_config(
+            {
+                "outbounds": [
+                    {
+                        "type": "wireguard",
+                        "tag": "warp-out",
+                        "server": "8.8.8.8",
+                        "server_port": 0,
+                        "local_address": ["172.16.0.2/32"],
+                        "private_key": "private",
+                        "peer_public_key": "public",
+                    }
+                ]
+            }
+        )
+
+    assert exc_info.value.status_code == 400
+    assert "Invalid WireGuard configuration" in str(exc_info.value.detail)
+    assert "peer port" in str(exc_info.value.detail)
