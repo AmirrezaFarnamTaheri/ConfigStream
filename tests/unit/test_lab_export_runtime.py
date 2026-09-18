@@ -139,7 +139,8 @@ const raw = {
     {
       type: 'wireguard', tag: 'warp-out', server: '162.159.192.1', server_port: 2408,
       local_address: ['172.16.0.2/32', 'fd01:db8:85a3::2/128'],
-      private_key: 'private', peer_public_key: 'public', reserved: [1, 2, 3], mtu: 1280
+      private_key: 'private', peer_public_key: 'public', reserved: [1, 2, 3], mtu: 1280,
+      system_interface: 'false'
     },
     {type: 'block', tag: 'block'}
   ],
@@ -156,11 +157,29 @@ const bashScript = buildBashScript(raw);
 const pythonMatch = pythonScript.match(/base64\.b64decode\("([^"]+)"\)/);
 const bashMatch = bashScript.match(/printf '%s' '([^']+)' \| base64 -d/);
 if (!pythonMatch || !bashMatch) throw new Error('Generated runner payload missing');
+let invalidMtuRejected = false;
+try {
+  const badMtu = structuredClone(raw);
+  badMtu.outbounds[1].mtu = 0;
+  buildSingboxConfig(badMtu);
+} catch (error) {
+  invalidMtuRejected = error instanceof TypeError;
+}
+let invalidBooleanRejected = false;
+try {
+  const badBoolean = structuredClone(raw);
+  badBoolean.outbounds[1].system_interface = 'sometimes';
+  buildSingboxConfig(badBoolean);
+} catch (error) {
+  invalidBooleanRejected = error instanceof TypeError;
+}
 console.log(JSON.stringify({
   modern,
   nekobox: decode(nekoEncoded),
   python: decode(pythonMatch[1]),
-  bash: decode(bashMatch[1])
+  bash: decode(bashMatch[1]),
+  invalidMtuRejected,
+  invalidBooleanRejected
 }));
 """
     result = subprocess.run(
@@ -172,6 +191,8 @@ console.log(JSON.stringify({
         timeout=30,
     )
     payloads = json.loads(result.stdout)
+    assert payloads.pop("invalidMtuRejected") is True
+    assert payloads.pop("invalidBooleanRejected") is True
     for config in payloads.values():
         assert [item["type"] for item in config["outbounds"]] == ["vless"]
         assert config["outbounds"][0]["detour"] == "warp-out"
@@ -180,6 +201,7 @@ console.log(JSON.stringify({
         endpoint = config["endpoints"][0]
         assert endpoint["type"] == "wireguard"
         assert endpoint["tag"] == "warp-out"
+        assert endpoint["system"] is False
         assert endpoint["address"] == [
             "172.16.0.2/32",
             "fd01:db8:85a3::2/128",
