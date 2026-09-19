@@ -217,11 +217,7 @@ def _prune_selector_outbounds(
         unique: list[str] = []
         for member in members:
             member_tag = str(member)
-            if (
-                member_tag != tag
-                and member_tag in valid_tags
-                and member_tag not in unique
-            ):
+            if member_tag in valid_tags - {tag} and member_tag not in unique:
                 unique.append(member_tag)
             if len(unique) >= MAX_SELECTOR_MEMBERS:
                 break
@@ -233,7 +229,9 @@ def _prune_selector_outbounds(
         retained.append(outbound)
 
     final_tags = {
-        str(item.get("tag")) for item in [*retained, *endpoints] if item.get("tag")
+        str(item.get("tag"))
+        for item in [*retained, *endpoints]
+        if item.get("tag") and item.get("tag") is not None
     }
     return retained, final_tags
 
