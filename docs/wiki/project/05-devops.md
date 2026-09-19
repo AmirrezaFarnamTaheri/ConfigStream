@@ -59,12 +59,13 @@ python scripts/validate_frontend_placeholders.py --strict output
 python scripts/validate_pages_artifact.py output
 ```
 
-`validate_pages_signature_policy.py` is secure by default:
+`validate_pages_signature_policy.py` itself is fail-closed by default. The production pipeline, however, intentionally supports optional signing: when no signing key/public trust anchor is configured, `deploy-pages.yml` explicitly opts into unsigned publication so its policy matches `preflight_release_inputs.py`. Repository Variable `ALLOW_UNSIGNED_PAGES=false` can disable that unsigned mode.
 
 - a signed artifact always requires a valid configured `CS_PUBLIC_KEY` and cryptographic manifest verification;
-- a signed artifact can never be downgraded to unsigned treatment;
-- genuinely unsigned Pages publication is rejected unless repository Variable `ALLOW_UNSIGNED_PAGES=true` is explicitly configured;
-- the same signed/explicit-unsigned policy is applied to the candidate, last-known-good snapshot, deployed candidate, and restored rollback release.
+- a signed artifact can never be downgraded to unsigned treatment, even when unsigned publication is enabled;
+- genuinely unsigned artifacts are accepted only through the workflow's explicit `--allow-unsigned` path;
+- the same signed/explicit-unsigned policy is applied to the candidate, last-known-good snapshot, deployed candidate, and restored rollback release;
+- if the existing Pages site returns **exactly HTTP 404 for `artifact_manifest.json`**, and the new candidate has already passed verification, the workflow treats this as a first-deployment bootstrap with no rollback baseline. Any other snapshot failure remains blocking.
 
 ### 4.1 Dependency Closure & Fail-Closed Publication
 - **Validator Runtime Dependencies**: `scripts/validate_frontend_placeholders.py` imports `configstream.security_validator` $\rightarrow$ `configstream.config`, which relies on `pydantic-settings` and `pydantic`; signature/deployment verification also relies on `cryptography`, `httpx`, and `PyYAML`.
