@@ -68,8 +68,22 @@ def test_generate_split_outputs(tmp_path, sample_proxies):
     output_dir.mkdir()
 
     washed = [
-        {"type": "socks", "tag": "RELAY-1"},
-        {"type": "wireguard", "tag": "🛡️ Secure-RU-1", "detour": "RELAY-1"},
+        {
+            "type": "socks",
+            "tag": "RELAY-1",
+            "server": "127.0.0.1",
+            "server_port": 1080,
+        },
+        {
+            "type": "wireguard",
+            "tag": "🛡️ Secure-RU-1",
+            "detour": "RELAY-1",
+            "server": "162.159.192.1",
+            "server_port": 2408,
+            "local_address": ["10.0.0.2/32"],
+            "private_key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "peer_public_key": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+        },
     ]
 
     washed_ids = {"uuid-dirty"}
@@ -88,7 +102,11 @@ def test_generate_split_outputs(tmp_path, sample_proxies):
         vpn_conf = json.load(f)
         assert vpn_conf["inbounds"][0]["type"] == "tun"
         tags = [o["tag"] for o in vpn_conf["outbounds"]]
-        assert "🛡️ Secure-RU-1" in tags
+        endpoint_tags = [
+            endpoint["tag"] for endpoint in vpn_conf.get("endpoints", [])
+        ]
+        assert "🛡️ Secure-RU-1" not in tags
+        assert "🛡️ Secure-RU-1" in endpoint_tags
 
     with open(files["singbox"], encoding="utf-8") as f:
         sniper_conf = json.load(f)
@@ -181,3 +199,27 @@ def test_split_uniquifies_duplicate_chain_tags(tmp_path):
     assert selector is not None
     chain_tags = [t for t in selector.get("outbounds", []) if dup_tag in (t or "")]
     assert len(chain_tags) >= 2, f"Both chains must be selectable, got {chain_tags}"
+
+def test_split_empty_vpn_uses_direct_instead_of_empty_selector(tmp_path):
+    output_dir = tmp_path / "empty"
+    output_dir.mkdir()
+
+    files = generate_split_outputs([], output_dir)
+    vpn = json.loads(files["singbox_vpn"].read_text(encoding="utf-8"))
+
+    assert all(
+        not (
+            outbound.get("type") == "selector"
+            and not outbound.get("outbounds")
+        )
+        for outbound in vpn["outbounds"]
+    )
+    assert all(
+        rule.get("outbound") != "🌍 Proxy Select"
+        for rule in vpn["route"]["rules"]
+    )
+    global_rule = next(
+        rule for rule in vpn["route"]["rules"] if rule.get("clash_mode") == "Global"
+    )
+    assert global_rule["outbound"] == "direct"
+
