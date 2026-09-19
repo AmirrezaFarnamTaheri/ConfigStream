@@ -537,7 +537,7 @@ def generate_xray_config(
     }
     report = {
         "status": "generated",
-        "target": "Xray-core v26.7.28+ (dialerProxy chain contract)",
+        "target": "Xray-core v26.9.9",
         "emitted_records": emitted_records,
         "outbound_count": len(outbounds),
         "unsupported": dict(unsupported),
