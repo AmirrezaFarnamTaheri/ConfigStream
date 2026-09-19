@@ -81,14 +81,10 @@ def test_pages_first_deploy_bootstrap_is_exact_404_only() -> None:
     workflow = _workflow_text()
 
     assert 'echo "LKG_MISSING=false" >> "$GITHUB_ENV"' in workflow
-    assert (
-        "snapshot source returned HTTP 404: .*artifact_manifest\\.json"
-        in workflow
-    )
+    assert "snapshot source returned HTTP 404: .*artifact_manifest\\.json" in workflow
     assert 'echo "LKG_MISSING=true" >> "$GITHUB_ENV"' in workflow
     assert (
-        '[ "${LKG_MISSING:-false}" = true ] && '
-        '[ "${DEPLOY_READY:-false}" = true ]'
+        '[ "${LKG_MISSING:-false}" = true ] && ' '[ "${DEPLOY_READY:-false}" = true ]'
     ) in workflow
     assert (
         "First-deployment bootstrap approved because the prior Pages site has no "
