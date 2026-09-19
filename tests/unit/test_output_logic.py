@@ -83,17 +83,18 @@ def test_generate_categorized_outputs(tmp_path, sample_proxies, warp_keys):
     with open(files["singbox_full"], encoding="utf-8") as f:
         data = json.load(f)
         outbounds = data["outbounds"]
-        tags = [o.get("tag") for o in outbounds if "tag" in o]
+        endpoints = data.get("endpoints", [])
+        outbound_tags = [o.get("tag") for o in outbounds if "tag" in o]
+        endpoint_tags = [e.get("tag") for e in endpoints if "tag" in e]
 
         assert "mixed-in" in [i["tag"] for i in data["inbounds"]]
-        # Updated to match 'The Sniper' strategy used in split.py
-        assert any("Proxy Select" in t for t in tags if t)
-        assert any("Auto" in t for t in tags if t)
+        # Updated to match 'The Sniper' strategy used in split.py.
+        assert any("Proxy Select" in t for t in outbound_tags if t)
+        assert any("Auto" in t for t in outbound_tags if t)
 
-        # Check if washed proxies are included (via extra_outbounds logic)
-        # Note: tags depend on washer generation logic (Secure/Optimal)
-        # The washer logic adds normalized tags with SECURE/OPTIMAL tiers.
-        assert any("secure" in t.lower() for t in tags if t)
+        # Washed WireGuard nodes use the modern sing-box endpoint model.
+        assert any("secure" in t.lower() for t in endpoint_tags if t)
+        assert all(endpoint.get("type") == "wireguard" for endpoint in endpoints)
 
 
 def test_chosen_outputs_generated(tmp_path, sample_proxies):
