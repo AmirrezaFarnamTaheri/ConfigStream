@@ -81,9 +81,9 @@ def test_pages_signature_policy_is_explicit_at_every_trust_boundary() -> None:
     assert workflow.count('signature_policy_args+=(--public-key "$CS_PUBLIC_KEY")') >= 4
     assert workflow.count("signature_policy_args+=(--allow-unsigned)") >= 4
 
-    snapshot = workflow.split(
-        "- name: Snapshot current verified Pages release", 1
-    )[1].split("- name: Record last-known-good availability", 1)[0]
+    snapshot = workflow.split("- name: Snapshot current verified Pages release", 1)[
+        1
+    ].split("- name: Record last-known-good availability", 1)[0]
     rollback = workflow.split("- name: Verify rollback restoration", 1)[1].split(
         "- name: Record rollback action outcomes", 1
     )[0]
