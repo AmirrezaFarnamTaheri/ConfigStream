@@ -61,7 +61,7 @@ This document describes the current Ed25519 signing pipeline, frontend verificat
 - **Manifest private key**: runtime signing helpers accept `CS_SIGNING_PRIVATE_KEY_HEX` and retain `CONFIGSTREAM_SIGNING_PRIVATE_KEY_HEX` as a legacy direct-invocation alias. The production workflow exposes the canonical secret name only.
 - **Public/private binding**: release preflight rejects malformed key material and rejects a configured `CS_PUBLIC_KEY` that does not match the signing private key. Promotion re-signs the final manifest, verifies the produced signature immediately, and—when `CS_PUBLIC_KEY` is configured—verifies the signature against that configured distribution key before publication can continue.
 - **Pages trust boundary**: artifact generation and Pages deployment are intentionally separate trust decisions. Signed Pages publication requires an independently configured matching `CS_PUBLIC_KEY` secret. The deployment workflow checks the candidate, last-known-good snapshot, deployed candidate, and restored rollback against the same policy.
-- **Explicit unsigned policy**: `ALLOW_UNSIGNED_PAGES=true` is a repository Variable that permits genuinely unsigned Pages artifacts. It defaults to false when absent. It never authorizes a signed artifact whose public trust anchor is missing or invalid.
+- **Explicit unsigned policy**: `ALLOW_UNSIGNED_PAGES=true` is a repository Variable that permits genuinely unsigned Pages artifacts. It defaults to false when absent. The same explicit policy is required when an unsigned deployment is captured as last-known-good rollback material. It never authorizes a signed artifact whose public trust anchor is missing or invalid.
 - **Final release verification**: the final artifact contract receives `CS_PUBLIC_KEY` when configured, so signed releases are cryptographically checked against the configured distribution trust anchor rather than only validating signature shape or file hashes.
 - **Frontend allowlist**: runtime-config generation deliberately ignores unrelated secrets that may exist in the CI environment. Only the public Ed25519 verification key and public IPNS routing key are selected for browser publication.
 - **Archive scanning**: Pages-artifact validation scans deployable archives for forbidden secret markers and other credential-like material.
@@ -85,7 +85,7 @@ The canonical generation path supports unsigned and signed artifacts, but Pages 
 The Pages workflow applies the same policy at four points so one stage cannot silently weaken another:
 
 1. **Candidate before upload**: validate the sealed manifest before any Pages artifact is uploaded.
-2. **Last-known-good snapshot**: validate the currently deployed snapshot before accepting it as rollback material.
+2. **Last-known-good snapshot**: validate the currently deployed snapshot before accepting it as rollback material. Signed snapshots require `CS_PUBLIC_KEY`; genuinely unsigned snapshots require the same explicit `ALLOW_UNSIGNED_PAGES=true` policy as publication.
 3. **Candidate after deployment**: verify the deployed release identity/integrity and pass `CS_PUBLIC_KEY` to remote verification when signed mode is active.
 4. **Rollback after restoration**: re-check the last-known-good policy and verify the restored site with the same public trust anchor when signed mode is active.
 
