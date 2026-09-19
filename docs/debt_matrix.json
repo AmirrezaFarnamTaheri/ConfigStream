@@ -608,7 +608,7 @@
     },
     {
       "path": "src/configstream/generators/singbox.py",
-      "line": 144,
+      "line": 155,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -616,11 +616,11 @@
     },
     {
       "path": "src/configstream/generators/split.py",
-      "line": 102,
+      "line": 123,
       "marker": "LARGE_FUNCTION",
       "category": "production",
       "priority": "P1 - High",
-      "text": "Function generate_split_outputs spans 387 lines (threshold: 300)."
+      "text": "Function generate_split_outputs spans 388 lines (threshold: 300)."
     },
     {
       "path": "src/configstream/geoip.py",
