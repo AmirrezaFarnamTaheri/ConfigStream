@@ -26,6 +26,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TARGET_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
           TARGET_RUN_ID: ${{ github.event.workflow_run.id || '0' }}
+          TARGET_EVENT: ${{ github.event.workflow_run.event || github.event_name }}
         shell: bash
         run: |
           set -euo pipefail
@@ -40,6 +41,44 @@ jobs:
               --jq '.workflow_runs[] | [.id, .head_sha, .event] | @tsv' >> "$tmp"
           done
 
+          # A cron tick for the exact commit already being processed must not
+          # destroy hours of completed shard work. Prefer the older active
+          # same-SHA run and cancel only the newly requested scheduled duplicate.
+          if [[ "$TARGET_RUN_ID" =~ ^[1-9][0-9]*$ ]] && [[ "$TARGET_EVENT" == "schedule" ]]; then
+            duplicate_of=""
+            while IFS=$'\t' read -r run_id head_sha event; do
+              [[ "$run_id" =~ ^[0-9]+$ ]] || continue
+              [[ "$run_id" == "$TARGET_RUN_ID" ]] && continue
+              case "$event" in
+                push|schedule|workflow_dispatch) ;;
+                *) continue ;;
+              esac
+              if [[ "$head_sha" == "$TARGET_SHA" ]] && (( run_id < TARGET_RUN_ID )); then
+                duplicate_of="$run_id"
+                break
+              fi
+            done < <(sort -u "$tmp")
+
+            if [[ -n "$duplicate_of" ]]; then
+              echo "Cancelling duplicate scheduled Config's Stream run ${TARGET_RUN_ID}; preserving active same-SHA run ${duplicate_of}"
+              if ! gh api --method POST \
+                -H 'Accept: application/vnd.github+json' \
+                "/repos/${GITHUB_REPOSITORY}/actions/runs/${TARGET_RUN_ID}/cancel" \
+                >/dev/null 2>"$cancel_err"; then
+                state="$(gh api \
+                  -H 'Accept: application/vnd.github+json' \
+                  "/repos/${GITHUB_REPOSITORY}/actions/runs/${TARGET_RUN_ID}" \
+                  --jq '.status' 2>/dev/null || printf 'unknown')"
+                if [[ "$state" != "completed" ]]; then
+                  cat "$cancel_err" >&2
+                  echo "Failed to cancel duplicate scheduled Config's Stream run ${TARGET_RUN_ID}" >&2
+                  exit 1
+                fi
+              fi
+              exit 0
+            fi
+          fi
+
           sort -u "$tmp" | while IFS=$'\t' read -r run_id head_sha event; do
             [[ "$run_id" =~ ^[0-9]+$ ]] || continue
             if [[ "$run_id" == "$TARGET_RUN_ID" ]]; then
@@ -50,16 +89,13 @@ jobs:
               *) continue ;;
             esac
 
-            if [[ "$TARGET_RUN_ID" =~ ^[1-9][0-9]*$ ]]; then
-              # A workflow_run event identifies the exact newest run. Cancel only
-              # older runs, including duplicate same-SHA schedules, so an older
-              # preemption event can never cancel a newer production request.
-              if (( run_id > TARGET_RUN_ID )); then
-                continue
-              fi
-            elif [[ "$head_sha" == "$TARGET_SHA" ]]; then
-              # Manual preemption has no exact target run id. Preserve all
-              # same-head runs rather than risking cancellation of the newest one.
+            # Never cancel another active run for the same commit. Scheduled
+            # duplicates are handled above by cancelling the new target instead.
+            if [[ "$head_sha" == "$TARGET_SHA" ]]; then
+              continue
+            fi
+            if [[ "$TARGET_RUN_ID" =~ ^[1-9][0-9]*$ ]] && (( run_id > TARGET_RUN_ID )); then
+              # An older preemption event must never cancel a newer request.
               continue
             fi
 
