@@ -102,9 +102,7 @@ def test_generate_split_outputs(tmp_path, sample_proxies):
         vpn_conf = json.load(f)
         assert vpn_conf["inbounds"][0]["type"] == "tun"
         tags = [o["tag"] for o in vpn_conf["outbounds"]]
-        endpoint_tags = [
-            endpoint["tag"] for endpoint in vpn_conf.get("endpoints", [])
-        ]
+        endpoint_tags = [endpoint["tag"] for endpoint in vpn_conf.get("endpoints", [])]
         assert "🛡️ Secure-RU-1" not in tags
         assert "🛡️ Secure-RU-1" in endpoint_tags
 
@@ -179,7 +177,9 @@ def test_split_uniquifies_duplicate_chain_tags(tmp_path):
     with open(files["singbox"], encoding="utf-8") as f:
         data = json.load(f)
     endpoint_tags = [
-        endpoint.get("tag") for endpoint in data.get("endpoints", []) if endpoint.get("tag")
+        endpoint.get("tag")
+        for endpoint in data.get("endpoints", [])
+        if endpoint.get("tag")
     ]
     # Duplicate tag must be uniquified across modern endpoints.
     dup_count = sum(1 for t in endpoint_tags if t == dup_tag)
@@ -199,6 +199,7 @@ def test_split_uniquifies_duplicate_chain_tags(tmp_path):
     chain_tags = [t for t in selector.get("outbounds", []) if dup_tag in (t or "")]
     assert len(chain_tags) >= 2, f"Both chains must be selectable, got {chain_tags}"
 
+
 def test_split_empty_vpn_uses_direct_instead_of_empty_selector(tmp_path):
     output_dir = tmp_path / "empty"
     output_dir.mkdir()
@@ -207,15 +208,11 @@ def test_split_empty_vpn_uses_direct_instead_of_empty_selector(tmp_path):
     vpn = json.loads(files["singbox_vpn"].read_text(encoding="utf-8"))
 
     assert all(
-        not (
-            outbound.get("type") == "selector"
-            and not outbound.get("outbounds")
-        )
+        not (outbound.get("type") == "selector" and not outbound.get("outbounds"))
         for outbound in vpn["outbounds"]
     )
     assert all(
-        rule.get("outbound") != "🌍 Proxy Select"
-        for rule in vpn["route"]["rules"]
+        rule.get("outbound") != "🌍 Proxy Select" for rule in vpn["route"]["rules"]
     )
     global_rule = next(
         rule for rule in vpn["route"]["rules"] if rule.get("clash_mode") == "Global"
