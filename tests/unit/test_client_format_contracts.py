@@ -892,4 +892,3 @@ def test_singbox_contract_rejects_removed_public_outbound_shapes() -> None:
     assert any("legacy block outbound shape" in error for error in errors)
     assert any("legacy dns outbound shape" in error for error in errors)
     assert any("legacy wireguard outbound shape" in error for error in errors)
-
