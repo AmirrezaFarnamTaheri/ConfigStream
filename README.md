@@ -125,10 +125,11 @@ Key points:
 GitHub Pages is the primary publication target. The intended schedule is every four hours, but users must treat `health.json`, `metadata.json`, and `artifact_manifest.json` as the authority for current health, freshness, source commit, and artifact identity. The frontend disables copy/download controls when those checks fail.
 
 Primary outputs:
-- singbox.json: smart routing profile
-- singbox-vpn.json: TUN or VPN profile
+- singbox.json: complete sing-box smart-routing profile (one profile document)
+- singbox-vpn.json: complete sing-box TUN or VPN profile
+- nekobox.json: NekoBox multi-node JSON subscription (top-level outbound array)
 - clash.yaml: Clash-compatible
-- base64.txt: universal subscription
+- base64.txt: universal share-link subscription
 - chosen/base64.txt: curated low-latency subset
 
 Derived outputs:
@@ -140,6 +141,7 @@ Derived outputs:
 
 Output notes:
 - Base64 and plaintext subscriptions include both native and revived proxy URIs for maximum coverage.
+- `nekobox*.json` is a top-level array of independent outbounds so NekoBox imports separate nodes. Complete `singbox*.json` and `xray.json` documents remain full client profiles and are not interchangeable with node subscriptions.
 - JSON datasets expose metadata and stats used by the frontend and external tooling.
 - DNS-safe variants are available for all major outputs with the `-dns-safe` suffix (IP-only / pre-resolved endpoints). This is a strict subset — proxies that fail resolution are dropped.
 - DNS-hardened variants are available for all major outputs with the `-dns-hardened` suffix. They embed DoH/DoT/DoQ resolvers and prefer IP when available while keeping unresolved entries intact.
@@ -223,6 +225,7 @@ DNS-hardened variants:
 - Sing-box and Clash variants embed DoH/DoT/DoQ resolver configs. Adapter variants (Surge, Loon, QX, Shadowrocket) include resolver comments.
 
 Production subscription links:
+- https://amirrezafarnamtaheri.github.io/ConfigStream/nekobox.json
 - https://amirrezafarnamtaheri.github.io/ConfigStream/singbox.json
 - https://amirrezafarnamtaheri.github.io/ConfigStream/singbox-vpn.json
 - https://amirrezafarnamtaheri.github.io/ConfigStream/clash.yaml
