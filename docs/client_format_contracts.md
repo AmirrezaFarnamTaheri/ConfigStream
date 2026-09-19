@@ -38,9 +38,9 @@ Downstream consumers should expect revived relay-plus-WireGuard chains to be rep
 
 ## Xray
 
-`xray.json` is a first-class full configuration artifact. It must contain a non-empty `outbounds` list with unique tags, modern flat VMess/VLESS settings, valid proxy-chain references, and valid routing references. Built-in `direct` and `block` outbounds remain available for routing rules.
+`xray.json` is a first-class full configuration artifact. It must contain a non-empty `outbounds` list with unique tags, modern flat VMess/VLESS settings, valid proxy-chain references, and valid routing references. Chains use `streamSettings.sockopt.dialerProxy`; removed outbound `proxySettings` is rejected. Legacy HTTP/H2 transport is not silently relabeled as XHTTP because that can pass syntax validation while being wire-incompatible with an unchanged server. Built-in `direct` and `block` outbounds remain available for routing rules.
 
-The Pages validator performs structural checks before optional native-client validation. The output matrix identifies `xray.json` with `core_format: xray`, and the compatibility report must explicitly record Xray implementation status.
+The Pages validator performs structural checks before mandatory release native-client validation against the pinned Xray v26.9.9 binary. The output matrix identifies `xray.json` with `core_format: xray` and `artifact_type: full_config`; the matrix `category: subscription` value is a release/distribution bucket and does not mean that the full config is a multi-node subscription container.
 
 ## NekoBox and v2rayN subscriptions
 
