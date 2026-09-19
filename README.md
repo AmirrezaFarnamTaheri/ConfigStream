@@ -127,6 +127,7 @@ GitHub Pages is the primary publication target. The intended schedule is every f
 Primary outputs:
 - singbox.json: complete sing-box smart-routing profile (one profile document)
 - singbox-vpn.json: complete sing-box TUN or VPN profile
+- xray.json: complete Xray client profile (one profile document; not a node subscription)
 - nekobox.json: NekoBox multi-node JSON subscription (minimal outbounds/endpoints container)
 - clash.yaml: Clash-compatible
 - base64.txt: universal share-link subscription
@@ -185,13 +186,13 @@ Stable capability claims are tracked in `docs/capability_registry.json`; core/cl
 | `protocols/*.json` | singbox | json | no | json, references | Protocol-specific complete sing-box configurations; excludes the sibling *.list.json ConfigStream API arrays. |
 | `singbox-dns-hardened.json` | singbox | json | yes | json, references | Sing-box DNS-hardened configuration; JSON syntax, outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
 | `singbox-dns-safe.json` | singbox | json | yes | json, references | Sing-box DNS-safe configuration; JSON syntax, outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
-| `singbox.json` | singbox | json | yes | json, references | Sing-box universal configuration; JSON syntax, outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
+| `singbox.json` | singbox | json | yes | json, references | Complete Sing-box smart-routing profile imported as one full configuration, not a multi-node subscription. Generators emit modern route actions and WireGuard endpoints directly; JSON structure, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
 | `singbox-vpn-dns-hardened.json` | singbox-vpn | json | yes | json, references | VPN-mode DNS-hardened Sing-box configuration; outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
 | `singbox-vpn-dns-safe.json` | singbox-vpn | json | yes | json, references | VPN-mode DNS-safe Sing-box configuration; outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
 | `singbox-vpn.json` | singbox-vpn | json | yes | json, references | VPN-mode Sing-box configuration; outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
 | `base64.txt` | universal | base64 | no | presence | May be empty when no usable subscription lines exist. |
 | `proxies.txt` | universal | text | no | presence | URI subscription lines. |
-| `xray.json` | xray | json | yes | json, references | Xray full configuration with modern VMess/VLESS settings, structural reference validation, and pinned native release checks. Plaintext Trojan and unencrypted VLESS public destinations are excluded according to Xray v26.9.9 private-destination rules; incompatible chains are excluded as a whole. |
+| `xray.json` | xray | json | yes | json, references | Complete Xray client profile imported as one full configuration, not a multi-node subscription. It uses modern flat VMess/VLESS settings and streamSettings.sockopt.dialerProxy for chains; removed proxySettings and unsafe legacy HTTP/H2-to-XHTTP relabeling are rejected. Structural references and the pinned Xray v26.9.9 native release check are enforced; plaintext Trojan and unencrypted VLESS public destinations follow Xray v26.9.9 private-destination rules, and incompatible chains are excluded as a whole. |
 | `side_products-dns-hardened.zip` | side-products | zip | yes | zip, zip members | DNS-hardened side-product bundle; ZIP integrity, safe member paths, required proxies.txt, optional OpenVPN/WireGuard member patterns, and deploy-secret markers are validated. |
 | `side_products-dns-safe.zip` | side-products | zip | yes | zip, zip members | DNS-safe side-product bundle; ZIP integrity, safe member paths, required proxies.txt, optional OpenVPN/WireGuard member patterns, and deploy-secret markers are validated. |
 | `side_products.zip` | side-products | zip | yes | zip, zip members | Side-product bundle; ZIP integrity, safe member paths, required proxies.txt, optional OpenVPN/WireGuard member patterns, and deploy-secret markers are validated. |
@@ -224,10 +225,11 @@ DNS-hardened variants:
 - They keep hostnames but prefer IPs when available, which improves survivability under DNS poisoning without dropping unresolved entries.
 - Sing-box and Clash variants embed DoH/DoT/DoQ resolver configs. Adapter variants (Surge, Loon, QX, Shadowrocket) include resolver comments.
 
-Production subscription links:
+Production client/config links:
 - https://amirrezafarnamtaheri.github.io/ConfigStream/nekobox.json
 - https://amirrezafarnamtaheri.github.io/ConfigStream/singbox.json
 - https://amirrezafarnamtaheri.github.io/ConfigStream/singbox-vpn.json
+- https://amirrezafarnamtaheri.github.io/ConfigStream/xray.json
 - https://amirrezafarnamtaheri.github.io/ConfigStream/clash.yaml
 - https://amirrezafarnamtaheri.github.io/ConfigStream/base64.txt
 - https://amirrezafarnamtaheri.github.io/ConfigStream/chosen/base64.txt
