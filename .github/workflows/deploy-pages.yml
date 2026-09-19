@@ -243,10 +243,15 @@ jobs:
             repo_name="${GITHUB_REPOSITORY#*/}"
             page_url="https://${GITHUB_REPOSITORY_OWNER}.github.io/${repo_name}/"
           fi
+          snapshot_args=()
+          if [ "${ALLOW_UNSIGNED_PAGES:-false}" = true ]; then
+            snapshot_args+=(--allow-unsigned)
+          fi
           python scripts/snapshot_pages_release.py \
             "$page_url" \
             last-known-good \
-            --report-file deploy-evidence/last-known-good-snapshot.json
+            --report-file deploy-evidence/last-known-good-snapshot.json \
+            "${snapshot_args[@]}"
           signature_policy_args=()
           if [ -n "${CS_PUBLIC_KEY:-}" ]; then
             signature_policy_args+=(--public-key "$CS_PUBLIC_KEY")
@@ -275,6 +280,19 @@ jobs:
           elif [ "$ALLOW_BOOTSTRAP_WITHOUT_LKG" = true ]; then
             echo "ROLLBACK_READY=true" >> "$GITHUB_ENV"
             python scripts/resilient_stage.py record --name rollback-baseline --status success --report-dir deploy-evidence/stages --description "Explicit manual bootstrap approved without a rollback baseline"
+          elif [ "${DEPLOY_READY:-false}" = true ] && python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = Path("deploy-evidence/last-known-good-snapshot.json")
+          if not report.is_file():
+              raise SystemExit(1)
+          payload = json.loads(report.read_text(encoding="utf-8"))
+          raise SystemExit(0 if payload.get("failure_kind") == "missing_manifest" else 1)
+          PY
+          then
+            echo "ROLLBACK_READY=true" >> "$GITHUB_ENV"
+            python scripts/resilient_stage.py record --name rollback-baseline --status success --report-dir deploy-evidence/stages --description "Automatic first-deployment bootstrap approved because the trusted Pages origin has no prior artifact manifest"
           else
             echo "DEPLOY_READY=false" >> "$GITHUB_ENV"
             python scripts/resilient_stage.py record --name rollback-baseline --status failed --exit-code 1 --report-dir deploy-evidence/stages --description "Deployment blocked because no verified rollback baseline is available"
@@ -287,14 +305,14 @@ jobs:
           EXPECTED_SOURCE_SHA: ${{ steps.locate.outputs.source_head_sha }}
         run: |
           set -euo pipefail
-          if [ "${DEPLOY_READY:-false}" != true ] || [ "${ROLLBACK_READY:-false}" != true ]; then
+          if [ "${DEPLOY_READY:-false}" != true ]; then
             echo "DEPLOY_READY=false" >> "$GITHUB_ENV"
             python scripts/resilient_stage.py record \
               --name source-freshness \
               --status failed \
               --exit-code 1 \
               --report-dir deploy-evidence/stages \
-              --description "Freshness gate could not pass because earlier deployment prerequisites failed"
+              --description "Freshness gate could not pass because candidate verification failed"
             exit 0
           fi
           if [ -z "${EXPECTED_SOURCE_SHA:-}" ]; then
