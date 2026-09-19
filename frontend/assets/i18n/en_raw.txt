@@ -62,7 +62,7 @@
         "downloads.shadowrocket": "Shadowrocket",
         "downloads.shadowrocket.desc": "Optimized format for Shadowrocket on iOS. Supported clients: Shadowrocket.",
         "downloads.client.singbox.desc": "Complete sing-box JSON profile with routing and DNS. Import as one profile, not as a node subscription.",
-        "downloads.client.nekobox.desc": "NekoBox multi-node JSON subscription. Each outbound imports as a separate node.",
+        "downloads.client.nekobox.desc": "NekoBox multi-node JSON subscription. Each standalone outbound/endpoint imports as a separate node.",
         "downloads.client.shadowrocket.desc": "Configuration format optimized for Shadowrocket on iOS.",
         "downloads.client.surge.desc": "Powerful rule-based utility for iOS/macOS.",
         "downloads.client.loon.desc": "Lightweight network toolbox for iOS.",
