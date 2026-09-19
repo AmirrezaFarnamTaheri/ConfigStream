@@ -73,6 +73,9 @@ def validate(root: Path) -> list[str]:
         "python scripts/snapshot_pages_release.py",
         "last-known-good",
         "HAS_LKG=true",
+        "snapshot_args+=(--allow-unsigned)",
+        'payload.get("failure_kind") == "missing_manifest"',
+        "Automatic first-deployment bootstrap approved",
     )
     for control in snapshot_controls:
         if control not in deploy:
