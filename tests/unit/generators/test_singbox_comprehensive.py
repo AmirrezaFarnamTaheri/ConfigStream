@@ -41,7 +41,9 @@ def test_generate_singbox_config_basics():
         assert "🌍 Proxy Select" in tags
         assert "⚡ Best Latency" in tags
         assert "direct" in tags
-        assert "dns-out" in tags
+        assert "dns-out" not in tags
+        assert "block" not in tags
+        assert all(outbound.get("type") not in {"dns", "block", "wireguard"} for outbound in config["outbounds"])
 
 
 def test_generate_singbox_config_extra_outbounds():
@@ -49,8 +51,25 @@ def test_generate_singbox_config_extra_outbounds():
     # Proper chain topology: WARP is the entry point, RELAY-123 is the inner hop
     # WARP routes traffic through RELAY-123 via the detour field
     extras = [
-        {"type": "wireguard", "tag": "WARP", "detour": "RELAY-123"},
-        {"type": "vless", "tag": "RELAY-123"},
+        {
+            "type": "wireguard",
+            "tag": "WARP",
+            "detour": "RELAY-123",
+            "server": "162.159.192.1",
+            "server_port": 2408,
+            "local_address": ["10.0.0.2/32"],
+            "private_key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "peer_public_key": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+            "mtu": 1280,
+        },
+        {
+            "type": "vless",
+            "tag": "RELAY-123",
+            "server": "relay.example.com",
+            "server_port": 443,
+            "uuid": "00000000-0000-0000-0000-000000000001",
+            "tls": {"enabled": True, "server_name": "relay.example.com"},
+        },
     ]
 
     config_str = generate_singbox_config(proxies, extra_outbounds=extras)
@@ -59,8 +78,9 @@ def test_generate_singbox_config_extra_outbounds():
     outbounds = config["outbounds"]
     tags = [o.get("tag") for o in outbounds]
 
-    assert "WARP" in tags
+    assert "WARP" not in tags
     assert "RELAY-123" in tags
+    assert [endpoint["tag"] for endpoint in config["endpoints"]] == ["WARP"]
 
     # Inner hop (detour target) should NOT be in selector; entry point should
     selector = next(o for o in outbounds if o["type"] == "selector")
