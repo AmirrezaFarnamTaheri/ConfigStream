@@ -42,6 +42,8 @@ Downstream consumers should expect revived relay-plus-WireGuard chains to be rep
 
 The Pages validator performs structural checks before optional native-client validation. The output matrix identifies `xray.json` with `core_format: xray`, and the compatibility report must explicitly record Xray implementation status.
 
+Like the Sing-box JSON artifacts, `xray.json` is a **complete client configuration**, not a list of independent subscription nodes. Importers that treat complete JSON documents as profiles should therefore create one profile/configuration from this artifact.
+
 ## NekoBox and v2rayN subscriptions
 
 Plaintext subscription files and their Base64 counterparts are contract pairs:
@@ -51,6 +53,8 @@ Plaintext subscription files and their Base64 counterparts are contract pairs:
 - `proxies-dns-hardened.txt` and `base64-dns-hardened.txt`
 
 Each plaintext file must be valid UTF-8 and contain syntactically valid share-link schemes. Each Base64 file must decode as UTF-8 and match its paired plaintext file exactly. Empty paired files are valid when no usable subscription lines are available.
+
+These pairs are the **node-oriented NekoBox/NekoRay contract**: importing them creates separate proxy nodes. By contrast, `singbox.json`, `singbox-vpn*.json`, `singbox-chains*.json`, and `xray.json` are complete client configuration documents. NekoBox can import a complete Sing-box JSON document, but it is expected to appear as one full/custom profile rather than as a list of leaf nodes. The frontend must therefore direct users who want separate NekoBox nodes to the Base64/plaintext subscription pair, not to `singbox.json`.
 
 ## Compatibility and regression evidence
 
