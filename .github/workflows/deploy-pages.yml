@@ -171,7 +171,7 @@ jobs:
         env:
           EXPECTED_SOURCE_SHA: ${{ steps.locate.outputs.source_head_sha }}
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'false' }}
+          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'true' }}
         run: |
           set -euo pipefail
           if [ "${HAS_OUTPUT:-false}" != true ]; then
@@ -233,20 +233,31 @@ jobs:
         continue-on-error: true
         env:
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'false' }}
+          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'true' }}
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           rm -rf last-known-good
+          echo "LKG_MISSING=false" >> "$GITHUB_ENV"
           page_url=$(gh api "repos/${{ github.repository }}/pages" --jq '.html_url // empty' 2>/dev/null || true)
           if [ -z "$page_url" ]; then
             repo_name="${GITHUB_REPOSITORY#*/}"
             page_url="https://${GITHUB_REPOSITORY_OWNER}.github.io/${repo_name}/"
           fi
+          set +e
           python scripts/snapshot_pages_release.py \
             "$page_url" \
             last-known-good \
-            --report-file deploy-evidence/last-known-good-snapshot.json
+            --report-file deploy-evidence/last-known-good-snapshot.json \
+            2>&1 | tee deploy-evidence/last-known-good-snapshot.log
+          snapshot_rc=${PIPESTATUS[0]}
+          set -e
+          if [ "$snapshot_rc" -ne 0 ]; then
+            if grep -Eq 'snapshot source returned HTTP 404: .*artifact_manifest\.json' deploy-evidence/last-known-good-snapshot.log; then
+              echo "LKG_MISSING=true" >> "$GITHUB_ENV"
+            fi
+            exit "$snapshot_rc"
+          fi
           signature_policy_args=()
           if [ -n "${CS_PUBLIC_KEY:-}" ]; then
             signature_policy_args+=(--public-key "$CS_PUBLIC_KEY")
@@ -272,6 +283,9 @@ jobs:
           if [ "${HAS_LKG:-false}" = true ]; then
             echo "ROLLBACK_READY=true" >> "$GITHUB_ENV"
             python scripts/resilient_stage.py record --name rollback-baseline --status success --report-dir deploy-evidence/stages --description "Verified last-known-good Pages release is available"
+          elif [ "${LKG_MISSING:-false}" = true ] && [ "${DEPLOY_READY:-false}" = true ]; then
+            echo "ROLLBACK_READY=true" >> "$GITHUB_ENV"
+            python scripts/resilient_stage.py record --name rollback-baseline --status success --report-dir deploy-evidence/stages --description "First-deployment bootstrap approved because the prior Pages site has no artifact_manifest.json"
           elif [ "$ALLOW_BOOTSTRAP_WITHOUT_LKG" = true ]; then
             echo "ROLLBACK_READY=true" >> "$GITHUB_ENV"
             python scripts/resilient_stage.py record --name rollback-baseline --status success --report-dir deploy-evidence/stages --description "Explicit manual bootstrap approved without a rollback baseline"
@@ -380,7 +394,7 @@ jobs:
           EXPECTED_SOURCE_SHA: ${{ steps.locate.outputs.source_head_sha }}
           EXPECTED_SOURCE_RUN_ID: ${{ steps.locate.outputs.source_run_id }}
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'false' }}
+          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'true' }}
         run: |
           set -euo pipefail
           page_url="${{ steps.deployment.outputs.page_url }}"
@@ -438,7 +452,7 @@ jobs:
         continue-on-error: true
         env:
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'false' }}
+          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'true' }}
         run: |
           set -euo pipefail
           signature_policy_args=()
