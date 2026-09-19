@@ -139,8 +139,11 @@ def test_preemption_workflow_is_narrow_and_race_safe() -> None:
     assert "github.event_name == 'push'" not in workflow
     assert "TARGET_SHA" in workflow
     assert "TARGET_RUN_ID" in workflow
+    assert "TARGET_EVENT" in workflow
     assert "run_id > TARGET_RUN_ID" in workflow
-    assert 'elif [[ "$head_sha" == "$TARGET_SHA" ]]' in workflow
+    assert 'if [[ "$head_sha" == "$TARGET_SHA" ]]' in workflow
+    assert "Cancelling duplicate scheduled Config's Stream run" in workflow
+    assert "preserving active same-SHA run" in workflow
     assert "/actions/runs/${run_id}/cancel" in workflow
     assert 'if [[ "$state" != "completed" ]]' in workflow
     assert "Cancel active Retest runs before main execution" in workflow
