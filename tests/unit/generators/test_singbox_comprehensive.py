@@ -43,7 +43,10 @@ def test_generate_singbox_config_basics():
         assert "direct" in tags
         assert "dns-out" not in tags
         assert "block" not in tags
-        assert all(outbound.get("type") not in {"dns", "block", "wireguard"} for outbound in config["outbounds"])
+        assert all(
+            outbound.get("type") not in {"dns", "block", "wireguard"}
+            for outbound in config["outbounds"]
+        )
 
 
 def test_generate_singbox_config_extra_outbounds():
