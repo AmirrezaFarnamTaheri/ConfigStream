@@ -97,10 +97,20 @@ def test_split_generator_uses_canonical_chain_details(tmp_path) -> None:
     singbox_path = files["singbox"]
     payload = json.loads(singbox_path.read_text(encoding="utf-8"))
     outbounds = payload.get("outbounds", [])
-    tags = [str(ob.get("tag", "")) for ob in outbounds if isinstance(ob, dict)]
+    endpoints = payload.get("endpoints", [])
+    outbound_tags = [
+        str(ob.get("tag", "")) for ob in outbounds if isinstance(ob, dict)
+    ]
+    endpoint_tags = [
+        str(endpoint.get("tag", ""))
+        for endpoint in endpoints
+        if isinstance(endpoint, dict)
+    ]
 
-    assert "relay-hop" in tags
-    assert "warp-hop" in tags
+    assert "relay-hop" in outbound_tags
+    assert "warp-hop" not in outbound_tags
+    assert "warp-hop" in endpoint_tags
+    assert all(ob.get("type") != "wireguard" for ob in outbounds)
 
 
 def test_invalid_canonical_chain_does_not_restore_stale_legacy_path() -> None:
