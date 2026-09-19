@@ -68,6 +68,39 @@ def test_modernize_singbox_migrates_wireguard_and_route_contract() -> None:
     assert "\u008f" not in json.dumps(result, ensure_ascii=False)
 
 
+def test_modernize_singbox_prunes_dangling_selector_graph() -> None:
+    payload = {
+        "outbounds": [
+            {"type": "direct", "tag": "direct"},
+            {"type": "selector", "tag": "leaf", "outbounds": ["direct", "block"]},
+            {"type": "selector", "tag": "root", "outbounds": ["leaf", "dead-a"]},
+            {"type": "selector", "tag": "dead-a", "outbounds": ["dead-b"]},
+            {"type": "selector", "tag": "dead-b", "outbounds": ["dead-a"]},
+            {"type": "block", "tag": "block"},
+        ],
+        "route": {
+            "final": "dead-a",
+            "rules": [
+                {"domain": ["dead.example"], "outbound": "dead-b"},
+                {"domain": ["live.example"], "outbound": "root"},
+            ],
+        },
+    }
+
+    result = modernize_singbox(payload)
+
+    selectors = {
+        item["tag"]: item["outbounds"]
+        for item in result["outbounds"]
+        if item.get("type") == "selector"
+    }
+    assert selectors == {"leaf": ["direct"], "root": ["leaf"]}
+    assert result["route"]["final"] in {"leaf", "root"}
+    assert result["route"]["rules"] == [
+        {"domain": ["live.example"], "outbound": "root", "action": "route"}
+    ]
+
+
 def test_finalize_blockers_ignore_ordinary_test_failures() -> None:
     """TEST_FAILED / untested must not become tester_errors release blockers."""
 
