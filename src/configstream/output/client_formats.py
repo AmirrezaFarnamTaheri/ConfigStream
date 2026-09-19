@@ -761,6 +761,11 @@ def generate_nekobox_json_subscription(proxies: list[Proxy]) -> str:
     endpoints: list[dict[str, Any]] = []
     seen_tags: set[str] = set()
     for proxy in proxies:
+        # NekoBox JSON is an independently usable node subscription, not a
+        # diagnostic inventory. Unlike URI export fallback, it can represent
+        # protocols such as WireGuard directly, so never re-admit failed nodes.
+        if not proxy.is_working:
+            continue
         try:
             converted = to_singbox_outbound(proxy)
         except (AttributeError, KeyError, TypeError, ValueError):
