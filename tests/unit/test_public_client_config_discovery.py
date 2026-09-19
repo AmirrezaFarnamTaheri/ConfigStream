@@ -92,7 +92,7 @@ def test_finalizer_modernizes_nested_public_singbox_configs(tmp_path: Path) -> N
         assert payload["outbounds"] == [{"type": "direct", "tag": "direct"}]
 
 
-def test_nekobox_node_array_is_not_discovered_as_full_singbox_config(
+def test_nekobox_node_container_is_not_discovered_as_full_singbox_config(
     tmp_path: Path,
 ) -> None:
     (tmp_path / "singbox.json").write_text(
@@ -100,7 +100,7 @@ def test_nekobox_node_array_is_not_discovered_as_full_singbox_config(
         encoding="utf-8",
     )
     (tmp_path / "nekobox.json").write_text(
-        '[{"type": "vless", "tag": "node"}]',
+        '{"outbounds": [{"type": "vless", "tag": "node"}], "endpoints": []}',
         encoding="utf-8",
     )
 

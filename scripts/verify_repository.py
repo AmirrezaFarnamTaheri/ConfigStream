@@ -594,6 +594,11 @@ def verify(
         result = _run_stage(root, stage, env)
         results.append(result)
         print(f"[{stage.name}] {result.status}", flush=True)
+        if result.status == "failed" and result.output.strip():
+            print(
+                f"[{stage.name}] output:\n{result.output.rstrip()}",
+                flush=True,
+            )
         if stop_on_failure and result.status == "failed":
             break
 
