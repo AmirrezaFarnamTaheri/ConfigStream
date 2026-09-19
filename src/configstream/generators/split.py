@@ -120,6 +120,77 @@ def _is_washed_proxy(proxy: Proxy, washed_ids: Optional[Set[str]]) -> bool:
     return False
 
 
+def _append_tank_groups(
+    tank_outbounds: List[Dict[str, Any]],
+    tank_proxy_tags: List[str],
+) -> bool:
+    """Append derived Tank urltest/select groups and report selector availability."""
+    washed_tags = [
+        item["tag"]
+        for item in tank_outbounds
+        if item.get("tag") and "Secure" in item["tag"]
+    ]
+    if washed_tags:
+        tank_outbounds.append(
+            {
+                "type": "urltest",
+                "tag": "🛡️ Washed",
+                "outbounds": washed_tags,
+                "url": "http://cp.cloudflare.com/generate_204",
+                "interval": "10m",
+            }
+        )
+
+    intranet_tags = [
+        item["tag"]
+        for item in tank_outbounds
+        if item.get("tag") and "INTRANET" in item["tag"] and "EXIT" in item["tag"]
+    ]
+    if intranet_tags:
+        tank_outbounds.append(
+            {
+                "type": "urltest",
+                "tag": "🇮🇷 Intranet",
+                "outbounds": intranet_tags,
+                "url": "http://cp.cloudflare.com/generate_204",
+                "interval": "5m",
+            }
+        )
+
+    if tank_proxy_tags:
+        tank_outbounds.append(
+            {
+                "type": "urltest",
+                "tag": "🚀 Auto",
+                "outbounds": tank_proxy_tags,
+                "url": "http://cp.cloudflare.com/generate_204",
+                "interval": "10m",
+            }
+        )
+
+    main_options = ["🚀 Auto"]
+    if washed_tags:
+        main_options.append("🛡️ Washed")
+    if intranet_tags:
+        main_options.append("🇮🇷 Intranet")
+    main_options.extend(tank_proxy_tags)
+
+    existing_tags = {item.get("tag") for item in tank_outbounds}
+    main_options = [tag for tag in main_options if tag in existing_tags]
+    if not main_options:
+        return False
+
+    selector: Dict[str, Any] = {
+        "type": "selector",
+        "tag": "🌍 Proxy Select",
+        "outbounds": main_options,
+    }
+    if "🚀 Auto" in main_options:
+        selector["default"] = "🚀 Auto"
+    tank_outbounds.append(selector)
+    return True
+
+
 def generate_split_outputs(
     proxies: List[Proxy],
     output_dir: Path,
@@ -392,70 +463,7 @@ def generate_split_outputs(
                     tank_proxy_tags,
                 )
 
-    # Add Groups to Tank
-    tank_washed_tags = [
-        w["tag"] for w in tank_outbounds if w.get("tag") and "Secure" in w["tag"]
-    ]
-    if tank_washed_tags:
-        tank_outbounds.append(
-            {
-                "type": "urltest",
-                "tag": "🛡️ Washed",
-                "outbounds": tank_washed_tags,
-                "url": "http://cp.cloudflare.com/generate_204",
-                "interval": "10m",
-            }
-        )
-
-    tank_intranet_tags = [
-        w["tag"]
-        for w in tank_outbounds
-        if w.get("tag") and "INTRANET" in w["tag"] and "EXIT" in w["tag"]
-    ]
-    if tank_intranet_tags:
-        tank_outbounds.append(
-            {
-                "type": "urltest",
-                "tag": "🇮🇷 Intranet",
-                "outbounds": tank_intranet_tags,
-                "url": "http://cp.cloudflare.com/generate_204",
-                "interval": "5m",
-            }
-        )
-
-    # Auto Group (Test expects "🚀 Auto" in Tank)
-    if tank_proxy_tags:
-        tank_outbounds.append(
-            {
-                "type": "urltest",
-                "tag": "🚀 Auto",
-                "outbounds": tank_proxy_tags,
-                "url": "http://cp.cloudflare.com/generate_204",
-                "interval": "10m",
-            }
-        )
-
-    # Main Selector "🌍 Proxy Select"
-    main_options = ["🚀 Auto"]
-    if tank_washed_tags:
-        main_options.append("🛡️ Washed")
-    if tank_intranet_tags:
-        main_options.append("🇮🇷 Intranet")
-    main_options.extend(tank_proxy_tags)
-
-    # Filter out any missing tags in main_options (e.g. if Auto is empty)
-    existing_tags = set(o.get("tag") for o in tank_outbounds)
-    main_options = [t for t in main_options if t in existing_tags]
-
-    if main_options:
-        tank_selector: Dict[str, Any] = {
-            "type": "selector",
-            "tag": "🌍 Proxy Select",
-            "outbounds": main_options,
-        }
-        if "🚀 Auto" in main_options:
-            tank_selector["default"] = "🚀 Auto"
-        tank_outbounds.append(tank_selector)
+    has_proxy_selector = _append_tank_groups(tank_outbounds, tank_proxy_tags)
 
     if not any(o.get("tag") == "direct" for o in tank_outbounds):
         tank_outbounds.append({"type": "direct", "tag": "direct"})
@@ -485,7 +493,7 @@ def generate_split_outputs(
                 {"clash_mode": "Direct", "outbound": "direct"},
                 {
                     "clash_mode": "Global",
-                    "outbound": "🌍 Proxy Select" if main_options else "direct",
+                    "outbound": "🌍 Proxy Select" if has_proxy_selector else "direct",
                 },
             ]
         },
