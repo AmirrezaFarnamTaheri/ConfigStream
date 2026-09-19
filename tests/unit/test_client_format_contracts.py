@@ -871,3 +871,25 @@ def test_xray_preserves_explicit_xhttp_transport() -> None:
     assert report["emitted_records"] == 1
     assert validate_xray_config(config) == []
 
+def test_singbox_contract_rejects_removed_public_outbound_shapes() -> None:
+    payload = {
+        "outbounds": [
+            {"type": "block", "tag": "block"},
+            {"type": "dns", "tag": "dns-out"},
+            {
+                "type": "wireguard",
+                "tag": "warp",
+                "server": "162.159.192.1",
+                "server_port": 2408,
+            },
+            {"type": "direct", "tag": "direct"},
+        ],
+        "route": {"final": "direct", "rules": []},
+    }
+
+    errors = validate_singbox_config(payload, "singbox.json")
+
+    assert any("legacy block outbound shape" in error for error in errors)
+    assert any("legacy dns outbound shape" in error for error in errors)
+    assert any("legacy wireguard outbound shape" in error for error in errors)
+
