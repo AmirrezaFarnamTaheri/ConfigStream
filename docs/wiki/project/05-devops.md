@@ -63,7 +63,7 @@ python scripts/validate_pages_artifact.py output
 
 - a signed artifact always requires a valid configured `CS_PUBLIC_KEY` and cryptographic manifest verification;
 - a signed artifact can never be downgraded to unsigned treatment;
-- genuinely unsigned Pages publication is rejected unless repository Variable `ALLOW_UNSIGNED_PAGES=true` is explicitly configured;
+- genuinely unsigned Pages publication is accepted only when the resolved policy explicitly permits it: a repository-bound `config/pages-trust-policy.json` match or repository Variable `ALLOW_UNSIGNED_PAGES=true`; an explicit variable value of `false` disables the committed default;
 - the same signed/explicit-unsigned policy is applied to the candidate, last-known-good snapshot, deployed candidate, and restored rollback release.
 
 ### 4.1 Dependency Closure & Fail-Closed Publication
@@ -178,7 +178,7 @@ The deploy workflow must install its verifier environment from a pinned, complet
 Internal manifest consistency is insufficient: a consistently old site can pass self-hash checks. A successful live verification must bind the response to the candidate by checking all of the following after propagation polling and cache-bypassed fetches:
 
 1. Expected source commit or immutable candidate identifier.
-2. Expected workflow run identifier and manifest digest. In signed mode, the detached/manifest signature must verify against configured `CS_PUBLIC_KEY`. A signed artifact without that trust anchor is invalid. Genuinely unsigned Pages publication is allowed only when `ALLOW_UNSIGNED_PAGES=true` is explicitly configured.
+2. Expected workflow run identifier and manifest digest. In signed mode, the detached/manifest signature must verify against configured `CS_PUBLIC_KEY`. A signed artifact without that trust anchor is invalid. Genuinely unsigned Pages publication is allowed only by the resolved explicit policy (matching repository-bound policy or repository Variable `ALLOW_UNSIGNED_PAGES=true`).
 3. Metadata generation time against the configured freshness policy.
 4. Required route/bootstrap asset hashes, including runtime configuration.
 
