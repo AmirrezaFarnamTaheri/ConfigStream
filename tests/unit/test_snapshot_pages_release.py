@@ -247,6 +247,41 @@ def test_public_snapshot_requires_configured_key(
         )
 
 
+def test_public_snapshot_accepts_explicit_unsigned_mode(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    site = tmp_path / "site"
+    payloads = _build_site(site)
+    monkeypatch.setattr(snapshot_pages_release, "_fetch", _remote_fetcher(payloads))
+
+    report = snapshot_pages_release.snapshot(
+        "https://example.com/",
+        tmp_path / "snapshot",
+        public_key="",
+        allow_unsigned=True,
+    )
+
+    assert report["manifest_signature_verified"] is False
+    assert report["local_source"] is False
+
+
+def test_public_snapshot_never_downgrades_signed_artifact_to_unsigned(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    signer = Signer("11" * 32)
+    site = tmp_path / "site"
+    payloads = _build_site(site, signer=signer)
+    monkeypatch.setattr(snapshot_pages_release, "_fetch", _remote_fetcher(payloads))
+
+    with pytest.raises(ValueError, match="cannot be verified without CS_PUBLIC_KEY"):
+        snapshot_pages_release.snapshot(
+            "https://example.com/",
+            tmp_path / "snapshot",
+            public_key="",
+            allow_unsigned=True,
+        )
+
+
 def test_public_snapshot_verifies_signature(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
