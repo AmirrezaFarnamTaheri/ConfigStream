@@ -618,15 +618,8 @@ def main() -> int:
             print(
                 "Error: Debt matrix is out of date. Run without --check to regenerate."
             )
-            existing_entries = existing.get("entries", [])
             print(f"Current actionable markers: {len(entries)}")
-            print(f"Existing actionable markers: {len(existing_entries)}")
-            added = [entry for entry in entries if entry not in existing_entries]
-            stale = [entry for entry in existing_entries if entry not in entries]
-            print("Current-only debt entries:")
-            print(json.dumps(added[:50], indent=2))
-            print("Stale debt entries:")
-            print(json.dumps(stale[:50], indent=2))
+            print(f"Existing actionable markers: {len(existing.get('entries', []))}")
             return 1
 
         errors = validate_artifacts()
