@@ -115,7 +115,7 @@ def validate(root: Path) -> list[str]:
     for control in (
         "Resolve Pages unsigned trust policy",
         "config/pages-trust-policy.json",
-        'bound_repository == repository and committed_allow',
+        "bound_repository == repository and committed_allow",
         'echo "ALLOW_UNSIGNED_PAGES=$resolved" >> "$GITHUB_ENV"',
     ):
         if control not in deploy:
