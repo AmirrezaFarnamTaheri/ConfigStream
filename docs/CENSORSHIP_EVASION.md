@@ -113,9 +113,9 @@ The ISP only sees a connection to a Cloudflare IP — indistinguishable from vis
 
 ### Using Gold Connections
 
-1. Download **Nekobox** or **Sing-box** client.
-2. Import subscription: `singbox-chains.json`.
-3. Select proxies with `GOLD-` prefix — these are shielded.
+1. Download a **Sing-box**-compatible client.
+2. Import `singbox-chains.json` as a **complete profile**. In NekoBox/NekoRay this intentionally appears as one full/custom profile, not as separate subscription nodes.
+3. Select proxies with `GOLD-` prefix — these are shielded. For ordinary separate NekoBox nodes, use the Base64/plaintext subscription instead.
 
 ---
 
