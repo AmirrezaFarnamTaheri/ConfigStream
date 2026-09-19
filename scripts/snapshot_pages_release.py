@@ -34,6 +34,15 @@ MAX_ROLLBACK_MAX_AGE_HOURS = 48
 _SOURCE_COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 
 
+class SnapshotHTTPError(ValueError):
+    """HTTP status failure while reading the trusted rollback source."""
+
+    def __init__(self, status_code: int, url: str) -> None:
+        self.status_code = status_code
+        self.url = url
+        super().__init__(f"snapshot source returned HTTP {status_code}: {url}")
+
+
 def _origin(parsed: urllib.parse.ParseResult) -> tuple[str, str, int]:
     scheme = parsed.scheme.lower()
     host = (parsed.hostname or "").rstrip(".").lower()
@@ -152,9 +161,7 @@ def _fetch(
                     current_url = urllib.parse.urljoin(current_url, location)
                     continue
                 if response.status_code < 200 or response.status_code >= 300:
-                    raise ValueError(
-                        f"snapshot source returned HTTP {response.status_code}: {current_url}"
-                    )
+                    raise SnapshotHTTPError(response.status_code, current_url)
                 body = bytearray()
                 for chunk in response.iter_bytes():
                     body.extend(chunk)
@@ -267,19 +274,18 @@ def _validate_release_eligibility(
     *,
     is_local: bool,
     public_key_value: str,
+    allow_unsigned: bool = False,
 ) -> tuple[bool, int, str]:
     max_age_seconds = _rollback_max_age_seconds(metadata)
-    public_key_hex = normalize_public_key_hex(public_key_value)
-    signature_required = not is_local
+    raw_public_key = (public_key_value or "").strip()
+    public_key_hex = normalize_public_key_hex(raw_public_key)
     signature_present = isinstance(manifest.get("manifest_signature"), dict)
 
-    if signature_required and not public_key_hex:
-        raise ValueError("public rollback snapshot requires a configured CS_PUBLIC_KEY")
-    if signature_required and not signature_present:
-        raise ValueError("public rollback snapshot requires a signed artifact manifest")
+    if raw_public_key and not public_key_hex:
+        raise ValueError("configured CS_PUBLIC_KEY is not a valid Ed25519 public key")
 
     signature_verified = False
-    if signature_present or public_key_hex:
+    if signature_present:
         if not public_key_hex:
             raise ValueError(
                 "signed artifact manifest cannot be verified without CS_PUBLIC_KEY"
@@ -290,6 +296,13 @@ def _validate_release_eligibility(
         )
         if not signature_verified:
             raise ValueError("artifact manifest signature is invalid")
+    elif public_key_hex:
+        raise ValueError("public rollback snapshot requires a signed artifact manifest")
+    elif not is_local and not allow_unsigned:
+        raise ValueError(
+            "public rollback snapshot requires a configured CS_PUBLIC_KEY "
+            "or explicit unsigned mode"
+        )
 
     source_commit = manifest.get("source_commit")
     if not is_local and (
@@ -347,6 +360,7 @@ def snapshot(
     *,
     timeout: float = 20.0,
     public_key: str | None = None,
+    allow_unsigned: bool = False,
 ) -> dict[str, Any]:
     _, is_local = _parse_base_url(base_url)
     destination = Path(destination)
@@ -415,6 +429,7 @@ def snapshot(
             if public_key is not None
             else os.environ.get("CS_PUBLIC_KEY", "")
         ),
+        allow_unsigned=allow_unsigned,
     )
 
     with tempfile.TemporaryDirectory(
@@ -475,6 +490,11 @@ def main() -> int:
         default=None,
         help="Ed25519 public key (Base64 SPKI or raw hex); defaults to CS_PUBLIC_KEY.",
     )
+    parser.add_argument(
+        "--allow-unsigned",
+        action="store_true",
+        help="explicitly permit a genuinely unsigned public rollback snapshot",
+    )
     args = parser.parse_args()
     try:
         report = snapshot(
@@ -482,8 +502,30 @@ def main() -> int:
             args.destination,
             timeout=args.timeout,
             public_key=args.public_key,
+            allow_unsigned=args.allow_unsigned,
         )
     except (OSError, ValueError, httpx.HTTPError) as exc:
+        failure_kind = "snapshot_failed"
+        if (
+            isinstance(exc, SnapshotHTTPError)
+            and exc.status_code == 404
+            and PurePosixPath(urllib.parse.urlparse(exc.url).path).name
+            == "artifact_manifest.json"
+        ):
+            failure_kind = "missing_manifest"
+        failure_report = {
+            "schema_version": 2,
+            "status": "failed",
+            "failure_kind": failure_kind,
+            "error_type": type(exc).__name__,
+            "error": str(exc),
+        }
+        if args.report_file:
+            args.report_file.parent.mkdir(parents=True, exist_ok=True)
+            args.report_file.write_text(
+                json.dumps(failure_report, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
         print(f"ERROR: rollback snapshot failed: {type(exc).__name__}: {exc}")
         return 1
     if args.report_file:
