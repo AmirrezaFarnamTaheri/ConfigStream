@@ -259,7 +259,6 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
     proxy.details.pop("username", None)
     proxy.details.pop("password", None)
 
-
     # Reparse the query specifically for WireGuard so common aliases and
     # repeated address parameters survive the generic single-value URL helper.
     repaired = _quote_wireguard_userinfo(c.strip())
@@ -462,26 +461,29 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
     if reserved not in (None, "", []):
         normalized_reserved: list[int] | None = None
         if isinstance(reserved, list):
-            if (
-                len(reserved) == 3
-                and all(
-                    isinstance(item, int)
-                    and not isinstance(item, bool)
-                    and 0 <= item <= 255
-                    for item in reserved
-                )
+            if len(reserved) == 3 and all(
+                isinstance(item, int)
+                and not isinstance(item, bool)
+                and 0 <= item <= 255
+                for item in reserved
             ):
                 normalized_reserved = list(reserved)
         elif isinstance(reserved, str):
             text = reserved.strip()
-            csv_text = text[1:-1] if text.startswith("[") and text.endswith("]") else text
+            csv_text = (
+                text[1:-1] if text.startswith("[") and text.endswith("]") else text
+            )
             if _RESERVED_CSV_RE.fullmatch(csv_text):
                 try:
-                    values = [int(item.strip()) for item in csv_text.split(",")]
+                    reserved_values: list[int] = [
+                        int(item.strip()) for item in csv_text.split(",")
+                    ]
                 except ValueError:
-                    values = []
-                if len(values) == 3 and all(0 <= item <= 255 for item in values):
-                    normalized_reserved = values
+                    reserved_values = []
+                if len(reserved_values) == 3 and all(
+                    0 <= item <= 255 for item in reserved_values
+                ):
+                    normalized_reserved = reserved_values
             if normalized_reserved is None:
                 encoded = text.replace("-", "+").replace("_", "/")
                 encoded += "=" * ((4 - len(encoded) % 4) % 4)
