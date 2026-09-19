@@ -24,7 +24,7 @@ If your client fails to import the configuration:
     1.  Copy the "Universal Subscription" link.
     2.  Open v2rayNG -> Menu -> Subscription Group Setup -> Add.
     3.  Paste link -> Update Subscription.
-*   **NekoBox**: Best for Sing-box configs.
+*   **NekoBox / NekoRay**: For separate server nodes, use the **Base64 Subscription** (or plaintext URI subscription). Importing `singbox.json` is a different operation: it loads one complete Sing-box profile with its routing/DNS policy.
 *   **Clash Meta**: Required for our Clash configs (standard Clash doesn't support VLESS).
 
 ### iOS
