@@ -26,7 +26,7 @@
       "structural_validator": "scripts/validate_pages_artifact.py",
       "optional_native_validator": "sing-box check -c <artifact>",
       "native_validation_status": "mandatory-release-ci",
-      "notes": "All listed artifacts are complete sing-box configurations, not bare outbound fragments or ConfigStream record arrays; release finalization and native checks cover root, chosen, country, and protocol configs."
+      "notes": "All listed artifacts are complete sing-box configurations, not bare outbound fragments or ConfigStream record arrays. Generators emit modern route actions and WireGuard endpoints directly; release finalization remains a defensive normalizer, and native checks target Sing-box 1.14.1 across root, chosen, country, and protocol configs."
     },
     {
       "core": "clash",
@@ -54,7 +54,7 @@
       "structural_validator": "scripts/validate_pages_artifact.py",
       "optional_native_validator": "xray run -test -config <artifact>",
       "native_validation_status": "mandatory-release-ci",
-      "notes": "Modern flat VMess/VLESS settings with outbound, chaining, and routing reference validation."
+      "notes": "Modern flat VMess/VLESS settings with outbound, chaining, and routing reference validation. Chains use streamSettings.sockopt.dialerProxy (removed proxySettings is rejected), legacy HTTP/H2 is not silently relabeled as XHTTP, and release CI validates with Xray v26.9.9."
     }
   ],
   "planned_pipeline_outputs_requiring_implementation": [],
