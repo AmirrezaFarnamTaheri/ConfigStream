@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sys
 import threading
 from datetime import datetime, timedelta, timezone
 from http.server import (
@@ -233,6 +234,35 @@ def test_snapshot_recovers_interrupted_directory_swap(
 def test_snapshot_rejects_manifest_paths_with_url_components(value: str) -> None:
     with pytest.raises(ValueError, match="unsafe manifest path"):
         snapshot_pages_release._safe_relative(value)
+
+
+def test_snapshot_cli_records_missing_manifest_for_safe_bootstrap(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    def missing_manifest(url: str, timeout: float, pins=None) -> bytes:
+        del timeout, pins
+        raise snapshot_pages_release.SnapshotHTTPError(404, url)
+
+    report_file = tmp_path / "snapshot-report.json"
+    monkeypatch.setattr(snapshot_pages_release, "_fetch", missing_manifest)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "snapshot_pages_release.py",
+            "https://example.com/",
+            str(tmp_path / "snapshot"),
+            "--report-file",
+            str(report_file),
+            "--allow-unsigned",
+        ],
+    )
+
+    assert snapshot_pages_release.main() == 1
+    report = json.loads(report_file.read_text(encoding="utf-8"))
+    assert report["status"] == "failed"
+    assert report["failure_kind"] == "missing_manifest"
+    assert report["error_type"] == "SnapshotHTTPError"
 
 
 def test_public_snapshot_requires_configured_key(
