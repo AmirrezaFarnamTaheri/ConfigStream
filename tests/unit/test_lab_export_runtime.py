@@ -20,12 +20,15 @@ def test_lab_exports_match_current_core_contracts() -> None:
 import {singboxOutboundToXray, singboxOutboundToClash} from './frontend/assets/js/lab/exporters.js';
 const base = {tag:'test',server:'example.com',server_port:443,uuid:'123e4567-e89b-12d3-a456-426614174000',password:'test-password',method:'aes-128-gcm',tls:{enabled:true,insecure:true,server_name:'example.com'}};
 const outbounds = ['vless','vmess','trojan','shadowsocks','socks','http'].map(type => singboxOutboundToXray({...base,type,tag:type}));
-const xhttp = singboxOutboundToXray({...base,type:'vless',tag:'xhttp',transport:{type:'http',path:'/xhttp',host:['edge.example','backup.example']}});
+const xhttp = singboxOutboundToXray({...base,type:'vless',tag:'xhttp',transport:{type:'xhttp',path:'/xhttp',host:['edge.example','backup.example']}});
 const httpupgrade = singboxOutboundToXray({...base,type:'vless',tag:'httpupgrade',transport:{type:'httpupgrade',path:'/upgrade',host:['upgrade.example','ignored.example']}});
 const plain = singboxOutboundToClash({...base,type:'vless',tls:undefined});
 let rejected = false;
+let legacyHttpRejected = false;
 try { singboxOutboundToXray({...base,type:'tuic'}); } catch { rejected = true; }
-console.log(JSON.stringify({outbounds,xhttp,httpupgrade,plain,rejected}));
+try { singboxOutboundToXray({...base,type:'vless',transport:{type:'http',path:'/legacy'}}); } catch { legacyHttpRejected = true; }
+const chained = singboxOutboundToXray({...base,type:'vless',tag:'chained',detour:'relay'});
+console.log(JSON.stringify({outbounds,xhttp,httpupgrade,plain,rejected,legacyHttpRejected,chained}));
 """
     result = subprocess.run(
         [node, "--input-type=module", "-e", script],
@@ -47,6 +50,11 @@ console.log(JSON.stringify({outbounds,xhttp,httpupgrade,plain,rejected}));
     }
     assert data["plain"]["tls"] is False
     assert data["rejected"] is True
+    assert data["legacyHttpRejected"] is True
+    assert "proxySettings" not in data["chained"]
+    assert (
+        data["chained"]["streamSettings"]["sockopt"]["dialerProxy"] == "relay"
+    )
     assert all(
         "allowInsecure" not in row["streamSettings"].get("tlsSettings", {})
         for row in data["outbounds"]
