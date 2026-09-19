@@ -97,7 +97,14 @@ def test_save_metadata(proxies, output_dir):
 
 
 def test_generate_split_outputs(proxies, output_dir):
-    washed = [{"tag": "🛡️ Secure Washed", "type": "urltest"}]
+    washed = [
+        {
+            "tag": "🛡️ Secure Washed",
+            "type": "socks",
+            "server": "127.0.0.1",
+            "server_port": 1080,
+        }
+    ]
     # Proxy.id is now always the 16-char SHA-256 hash (P1-5 fix), so the
     # washed_ids set must use the computed id rather than the raw UUID string.
     washed_ids = {proxies[1].id}  # p2 — the "washed" proxy
