@@ -290,7 +290,6 @@ jobs:
           fi
           if [ "${ALLOW_UNSIGNED_PAGES:-false}" = true ]; then
             signature_policy_args+=(--allow-unsigned)
-            verify_args+=(--allow-unsigned)
           fi
           python scripts/validate_pages_signature_policy.py last-known-good "${signature_policy_args[@]}"
       - name: Record last-known-good availability
@@ -499,6 +498,7 @@ jobs:
           fi
           if [ "${ALLOW_UNSIGNED_PAGES:-false}" = true ]; then
             signature_policy_args+=(--allow-unsigned)
+            verify_args+=(--allow-unsigned)
           fi
           python scripts/validate_pages_signature_policy.py last-known-good "${signature_policy_args[@]}"
           page_url="${{ steps.rollback_deployment.outputs.page_url }}"

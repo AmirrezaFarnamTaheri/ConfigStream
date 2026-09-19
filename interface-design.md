@@ -210,7 +210,7 @@ As codified in [`docs/client_format_contracts.md`](docs/client_format_contracts.
 1. **Sing-box JSON**: Emits validated `outbounds` and `endpoints`. Stale selector/URL-test groups fall back safely to `direct`.
 2. **Mihomo YAML**: Emits modern `dialer-proxy` chains, eliminating legacy `relay` groups.
 3. **Xray JSON**: Flat VMess/VLESS settings with non-empty outbounds and built-in routing rules.
-4. **NekoBox Node Arrays**: `nekobox*.json` emits a top-level array of independent outbounds for separate-node imports; full `singbox*.json` and `xray.json` remain complete profile documents.
+4. **NekoBox Multi-node JSON**: `nekobox*.json` emits a minimal JSON object containing only independent `outbounds` and modern `endpoints` arrays; current NekoBox expands those arrays into separate nodes, while full `singbox*.json` and `xray.json` remain complete profile documents.
 5. **Subscription Pairs**: Strict 1:1 UTF-8 plaintext $\leftrightarrow$ Base64 parity across `proxies.txt`, `proxies-dns-safe.txt`, and `proxies-dns-hardened.txt`.
 
 ### 8.3 Error Semantics & Boundary Validation
