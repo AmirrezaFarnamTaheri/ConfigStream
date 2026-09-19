@@ -338,8 +338,8 @@ def test_pages_requires_verified_rollback_baseline_before_mutation() -> None:
     assert "env.ROLLBACK_READY == 'true'" in str(deployment["if"])
 
 
-def test_pages_bootstrap_without_lkg_is_manual_only() -> None:
-    """Prevent workflow_run events from bypassing the rollback-baseline requirement."""
+def test_pages_bootstrap_without_lkg_is_narrowly_proven_or_manual() -> None:
+    """Allow automation only when the trusted origin proves no prior manifest exists."""
 
     data = _load_local_workflow("deploy-pages.yml")
     deploy = data["jobs"]["deploy"]
@@ -347,5 +347,8 @@ def test_pages_bootstrap_without_lkg_is_manual_only() -> None:
         deploy, "Require rollback baseline before production mutation"
     )
     expression = str(baseline["env"]["ALLOW_BOOTSTRAP_WITHOUT_LKG"])
+    command = str(baseline["run"])
     assert "github.event_name == 'workflow_dispatch'" in expression
     assert "inputs.allow_bootstrap_without_lkg" in expression
+    assert 'payload.get("failure_kind") == "missing_manifest"' in command
+    assert "Automatic first-deployment bootstrap approved" in command
