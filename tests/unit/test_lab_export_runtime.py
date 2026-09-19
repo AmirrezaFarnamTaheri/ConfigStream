@@ -52,9 +52,7 @@ console.log(JSON.stringify({outbounds,xhttp,httpupgrade,plain,rejected,legacyHtt
     assert data["rejected"] is True
     assert data["legacyHttpRejected"] is True
     assert "proxySettings" not in data["chained"]
-    assert (
-        data["chained"]["streamSettings"]["sockopt"]["dialerProxy"] == "relay"
-    )
+    assert data["chained"]["streamSettings"]["sockopt"]["dialerProxy"] == "relay"
     assert all(
         "allowInsecure" not in row["streamSettings"].get("tlsSettings", {})
         for row in data["outbounds"]
