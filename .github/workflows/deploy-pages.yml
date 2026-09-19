@@ -96,6 +96,40 @@ jobs:
           echo "HAS_LKG=false" >> "$GITHUB_ENV"
           echo "ROLLBACK_READY=false" >> "$GITHUB_ENV"
           echo "SMOKE_OK=false" >> "$GITHUB_ENV"
+      - name: Resolve Pages unsigned trust policy
+        env:
+          REPOSITORY: ${{ github.repository }}
+          VARIABLE_ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES }}
+        run: |
+          set -euo pipefail
+          resolved=$(python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          policy_path = Path("config/pages-trust-policy.json")
+          payload = json.loads(policy_path.read_text(encoding="utf-8"))
+          if payload.get("schema_version") != 1:
+              raise SystemExit("unsupported Pages trust policy schema")
+          bound_repository = payload.get("repository")
+          if not isinstance(bound_repository, str) or not bound_repository:
+              raise SystemExit("Pages trust policy repository binding is invalid")
+          committed_allow = payload.get("allow_unsigned_pages")
+          if not isinstance(committed_allow, bool):
+              raise SystemExit("Pages trust policy allow_unsigned_pages must be boolean")
+
+          repository = os.environ["REPOSITORY"]
+          raw_override = os.environ.get("VARIABLE_ALLOW_UNSIGNED_PAGES", "").strip().lower()
+          if raw_override not in {"", "true", "false"}:
+              raise SystemExit("ALLOW_UNSIGNED_PAGES variable must be true, false, or unset")
+          if raw_override:
+              enabled = raw_override == "true"
+          else:
+              enabled = bound_repository == repository and committed_allow
+          print("true" if enabled else "false")
+          PY
+          )
+          echo "ALLOW_UNSIGNED_PAGES=$resolved" >> "$GITHUB_ENV"
       - name: Locate and download exact canonical artifact
         id: locate
         env:
@@ -171,7 +205,6 @@ jobs:
         env:
           EXPECTED_SOURCE_SHA: ${{ steps.locate.outputs.source_head_sha }}
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'false' }}
         run: |
           set -euo pipefail
           if [ "${HAS_OUTPUT:-false}" != true ]; then
@@ -233,7 +266,6 @@ jobs:
         continue-on-error: true
         env:
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'false' }}
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
@@ -399,7 +431,6 @@ jobs:
           EXPECTED_SOURCE_SHA: ${{ steps.locate.outputs.source_head_sha }}
           EXPECTED_SOURCE_RUN_ID: ${{ steps.locate.outputs.source_run_id }}
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'false' }}
         run: |
           set -euo pipefail
           page_url="${{ steps.deployment.outputs.page_url }}"
@@ -458,7 +489,6 @@ jobs:
         continue-on-error: true
         env:
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'false' }}
         run: |
           set -euo pipefail
           signature_policy_args=()
