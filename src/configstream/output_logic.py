@@ -33,6 +33,7 @@ from .output.metadata import (
     write_public_artifact_contract as write_public_artifact_contract,
 )
 from .output.public_lists import generate_categorized_lists
+from .output.client_formats import generate_nekobox_json_subscription
 from .output.native_configs import (
     build_dns_safe_proxies as _build_dns_safe_proxies,
     build_dns_hardened_proxies as _build_dns_hardened_proxies,
@@ -132,6 +133,12 @@ def generate_categorized_outputs(
     AtomicFileWriter.write_text(base64_path, base64_content)
     generated_files["base64"] = base64_path
 
+    nekobox_path = output_dir / "nekobox.json"
+    AtomicFileWriter.write_text(
+        nekobox_path, generate_nekobox_json_subscription(ordered_pool)
+    )
+    generated_files["nekobox_json"] = nekobox_path
+
     # 3b. Chosen subset
     chosen_dir = output_dir / "chosen"
     chosen_dir.mkdir(exist_ok=True)
@@ -143,6 +150,10 @@ def generate_categorized_outputs(
         "base64.txt": (generate_base64_subscription(chosen), "chosen_base64"),
         "proxies.txt": (generate_plaintext_subscription(chosen), "chosen_proxies_txt"),
         "singbox.json": (generate_singbox_config(chosen), "chosen_singbox"),
+        "nekobox.json": (
+            generate_nekobox_json_subscription(_order_export_proxies(chosen)),
+            "chosen_nekobox_json",
+        ),
         "clash.yaml": (
             generate_clash_config(chosen, ignore_status=True),
             "chosen_clash",
@@ -335,6 +346,12 @@ def _gen_dns_variation(
     AtomicFileWriter.write_text(base64_path, base64)
     generated_files[f"base64_{suffix_key}"] = base64_path
 
+    nekobox_path = output_dir / f"nekobox-{suffix}.json"
+    AtomicFileWriter.write_text(
+        nekobox_path, generate_nekobox_json_subscription(ordered)
+    )
+    generated_files[f"nekobox_{suffix_key}"] = nekobox_path
+
     # Side products
     zip_path = output_dir / f"side_products-{suffix}.zip"
     if generate_side_products_pack(ordered, zip_path, raw, output_dir):
@@ -346,10 +363,17 @@ def _gen_dns_variation(
     chosen_var = _select_chosen_proxies(
         proxies, CHOSEN_TOP_PER_PROTOCOL, CHOSEN_TOTAL_TARGET
     )
+    chosen_ordered = _order_export_proxies(chosen_var)
     chosen_base64 = generate_base64_subscription(chosen_var)
     chosen_path = chosen_dir / f"base64-{suffix}.txt"
     AtomicFileWriter.write_text(chosen_path, chosen_base64)
     generated_files[f"chosen_base64_{suffix_key}"] = chosen_path
+
+    chosen_nekobox_path = chosen_dir / f"nekobox-{suffix}.json"
+    AtomicFileWriter.write_text(
+        chosen_nekobox_path, generate_nekobox_json_subscription(chosen_ordered)
+    )
+    generated_files[f"chosen_nekobox_{suffix_key}"] = chosen_nekobox_path
 
     # Third-party client profiles (DNS-hardened only)
     if is_hardened:
