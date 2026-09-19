@@ -447,14 +447,15 @@ def generate_split_outputs(
     existing_tags = set(o.get("tag") for o in tank_outbounds)
     main_options = [t for t in main_options if t in existing_tags]
 
-    tank_selector: Dict[str, Any] = {
-        "type": "selector",
-        "tag": "🌍 Proxy Select",
-        "outbounds": main_options,
-    }
-    if "🚀 Auto" in main_options:
-        tank_selector["default"] = "🚀 Auto"
-    tank_outbounds.append(tank_selector)
+    if main_options:
+        tank_selector: Dict[str, Any] = {
+            "type": "selector",
+            "tag": "🌍 Proxy Select",
+            "outbounds": main_options,
+        }
+        if "🚀 Auto" in main_options:
+            tank_selector["default"] = "🚀 Auto"
+        tank_outbounds.append(tank_selector)
 
     if not any(o.get("tag") == "direct" for o in tank_outbounds):
         tank_outbounds.append({"type": "direct", "tag": "direct"})
@@ -482,7 +483,10 @@ def generate_split_outputs(
             "rules": [
                 {"protocol": "dns", "action": "hijack-dns"},
                 {"clash_mode": "Direct", "outbound": "direct"},
-                {"clash_mode": "Global", "outbound": "🌍 Proxy Select"},
+                {
+                    "clash_mode": "Global",
+                    "outbound": "🌍 Proxy Select" if main_options else "direct",
+                },
             ]
         },
     }
