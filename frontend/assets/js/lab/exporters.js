@@ -160,6 +160,56 @@ function wireguardOutboundToEndpoint(sbOut) {
     return endpoint;
 }
 
+function pruneSelectorOutbounds(outbounds, endpoints) {
+    const selectors = outbounds.filter(item => ['selector', 'urltest'].includes(item.type));
+    const concreteTags = new Set(
+        [...outbounds, ...endpoints]
+            .filter(item => item && item.tag && !['selector', 'urltest'].includes(item.type))
+            .map(item => String(item.tag))
+    );
+    const resolved = new Set();
+    for (let pass = 0; pass < selectors.length; pass += 1) {
+        let progress = false;
+        for (const selector of selectors) {
+            const tag = String(selector.tag || '');
+            if (!tag || resolved.has(tag) || !Array.isArray(selector.outbounds)) continue;
+            if (selector.outbounds.some(member => concreteTags.has(String(member)) || resolved.has(String(member)))) {
+                resolved.add(tag);
+                progress = true;
+            }
+        }
+        if (!progress) break;
+    }
+
+    const validTags = new Set([...concreteTags, ...resolved]);
+    const retained = [];
+    for (const outbound of outbounds) {
+        if (!['selector', 'urltest'].includes(outbound.type)) {
+            retained.push(outbound);
+            continue;
+        }
+        const tag = String(outbound.tag || '');
+        if (!resolved.has(tag) || !Array.isArray(outbound.outbounds)) continue;
+        const members = [];
+        for (const member of outbound.outbounds) {
+            const memberTag = String(member);
+            if (memberTag !== tag && validTags.has(memberTag) && !members.includes(memberTag)) {
+                members.push(memberTag);
+            }
+            if (members.length >= 96) break;
+        }
+        if (!members.length) continue;
+        outbound.outbounds = members;
+        if (!members.includes(outbound.default)) delete outbound.default;
+        retained.push(outbound);
+    }
+    return {
+        outbounds: retained,
+        tags: new Set([...retained, ...endpoints].filter(item => item && item.tag).map(item => String(item.tag))),
+    };
+}
+
+
 export function buildSingboxConfig(chainConfig) {
     if (!chainConfig || typeof chainConfig !== 'object') {
         throw new TypeError('Missing chain config');
@@ -183,22 +233,42 @@ export function buildSingboxConfig(chainConfig) {
             outbounds.push(outbound);
         }
     }
-    config.outbounds = outbounds;
+    const pruned = pruneSelectorOutbounds(outbounds, endpoints);
+    config.outbounds = pruned.outbounds;
     if (endpoints.length) config.endpoints = endpoints;
     else delete config.endpoints;
 
-    if (config.route && Array.isArray(config.route.rules) && removedSpecialTags.size) {
+    if (config.route && Array.isArray(config.route.rules)) {
         for (const rule of config.route.rules) {
             if (!rule || typeof rule !== 'object') continue;
             const action = removedSpecialTags.get(String(rule.outbound || ''));
             if (action) {
                 delete rule.outbound;
                 rule.action = action;
+            } else if (rule.outbound && !pruned.tags.has(String(rule.outbound))) {
+                rule.__configstreamDrop = true;
             }
+        }
+        config.route.rules = config.route.rules.filter(
+            rule => !rule || typeof rule !== 'object' || rule.__configstreamDrop !== true
+        );
+        for (const rule of config.route.rules) {
+            if (rule && typeof rule === 'object') delete rule.__configstreamDrop;
         }
     }
     if (config.route && removedSpecialTags.has(String(config.route.final || ''))) {
         throw new TypeError('Legacy special outbound cannot be used as route final');
+    }
+    if (config.route) {
+        const currentFinal = String(config.route.final || '');
+        if (!pruned.tags.has(currentFinal)) {
+            const preferred = ['🌍 Proxy Select', '🚀 Mode Selector', '🚀 Auto']
+                .find(tag => pruned.tags.has(tag));
+            config.route.final = preferred
+                || [...pruned.tags].find(tag => tag !== 'direct')
+                || (pruned.tags.has('direct') ? 'direct' : undefined);
+            if (!config.route.final) delete config.route.final;
+        }
     }
     return config;
 }
