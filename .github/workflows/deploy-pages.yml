@@ -96,6 +96,40 @@ jobs:
           echo "HAS_LKG=false" >> "$GITHUB_ENV"
           echo "ROLLBACK_READY=false" >> "$GITHUB_ENV"
           echo "SMOKE_OK=false" >> "$GITHUB_ENV"
+      - name: Resolve Pages unsigned trust policy
+        env:
+          REPOSITORY: ${{ github.repository }}
+          VARIABLE_ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES }}
+        run: |
+          set -euo pipefail
+          resolved=$(python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          policy_path = Path("config/pages-trust-policy.json")
+          payload = json.loads(policy_path.read_text(encoding="utf-8"))
+          if payload.get("schema_version") != 1:
+              raise SystemExit("unsupported Pages trust policy schema")
+          bound_repository = payload.get("repository")
+          if not isinstance(bound_repository, str) or not bound_repository:
+              raise SystemExit("Pages trust policy repository binding is invalid")
+          committed_allow = payload.get("allow_unsigned_pages")
+          if not isinstance(committed_allow, bool):
+              raise SystemExit("Pages trust policy allow_unsigned_pages must be boolean")
+
+          repository = os.environ["REPOSITORY"]
+          raw_override = os.environ.get("VARIABLE_ALLOW_UNSIGNED_PAGES", "").strip().lower()
+          if raw_override not in {"", "true", "false"}:
+              raise SystemExit("ALLOW_UNSIGNED_PAGES variable must be true, false, or unset")
+          if raw_override:
+              enabled = raw_override == "true"
+          else:
+              enabled = bound_repository == repository and committed_allow
+          print("true" if enabled else "false")
+          PY
+          )
+          echo "ALLOW_UNSIGNED_PAGES=$resolved" >> "$GITHUB_ENV"
       - name: Locate and download exact canonical artifact
         id: locate
         env:
@@ -171,7 +205,6 @@ jobs:
         env:
           EXPECTED_SOURCE_SHA: ${{ steps.locate.outputs.source_head_sha }}
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'true' }}
         run: |
           set -euo pipefail
           if [ "${HAS_OUTPUT:-false}" != true ]; then
@@ -233,37 +266,31 @@ jobs:
         continue-on-error: true
         env:
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'true' }}
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           rm -rf last-known-good
-          echo "LKG_MISSING=false" >> "$GITHUB_ENV"
           page_url=$(gh api "repos/${{ github.repository }}/pages" --jq '.html_url // empty' 2>/dev/null || true)
           if [ -z "$page_url" ]; then
             repo_name="${GITHUB_REPOSITORY#*/}"
             page_url="https://${GITHUB_REPOSITORY_OWNER}.github.io/${repo_name}/"
           fi
-          set +e
+          snapshot_args=()
+          if [ "${ALLOW_UNSIGNED_PAGES:-false}" = true ]; then
+            snapshot_args+=(--allow-unsigned)
+          fi
           python scripts/snapshot_pages_release.py \
             "$page_url" \
             last-known-good \
             --report-file deploy-evidence/last-known-good-snapshot.json \
-            2>&1 | tee deploy-evidence/last-known-good-snapshot.log
-          snapshot_rc=${PIPESTATUS[0]}
-          set -e
-          if [ "$snapshot_rc" -ne 0 ]; then
-            if grep -Eq 'snapshot source returned HTTP 404: .*artifact_manifest\.json' deploy-evidence/last-known-good-snapshot.log; then
-              echo "LKG_MISSING=true" >> "$GITHUB_ENV"
-            fi
-            exit "$snapshot_rc"
-          fi
+            "${snapshot_args[@]}"
           signature_policy_args=()
           if [ -n "${CS_PUBLIC_KEY:-}" ]; then
             signature_policy_args+=(--public-key "$CS_PUBLIC_KEY")
           fi
           if [ "${ALLOW_UNSIGNED_PAGES:-false}" = true ]; then
             signature_policy_args+=(--allow-unsigned)
+            verify_args+=(--allow-unsigned)
           fi
           python scripts/validate_pages_signature_policy.py last-known-good "${signature_policy_args[@]}"
       - name: Record last-known-good availability
@@ -283,12 +310,22 @@ jobs:
           if [ "${HAS_LKG:-false}" = true ]; then
             echo "ROLLBACK_READY=true" >> "$GITHUB_ENV"
             python scripts/resilient_stage.py record --name rollback-baseline --status success --report-dir deploy-evidence/stages --description "Verified last-known-good Pages release is available"
-          elif [ "${LKG_MISSING:-false}" = true ] && [ "${DEPLOY_READY:-false}" = true ]; then
-            echo "ROLLBACK_READY=true" >> "$GITHUB_ENV"
-            python scripts/resilient_stage.py record --name rollback-baseline --status success --report-dir deploy-evidence/stages --description "First-deployment bootstrap approved because the prior Pages site has no artifact_manifest.json"
           elif [ "$ALLOW_BOOTSTRAP_WITHOUT_LKG" = true ]; then
             echo "ROLLBACK_READY=true" >> "$GITHUB_ENV"
             python scripts/resilient_stage.py record --name rollback-baseline --status success --report-dir deploy-evidence/stages --description "Explicit manual bootstrap approved without a rollback baseline"
+          elif [ "${DEPLOY_READY:-false}" = true ] && python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = Path("deploy-evidence/last-known-good-snapshot.json")
+          if not report.is_file():
+              raise SystemExit(1)
+          payload = json.loads(report.read_text(encoding="utf-8"))
+          raise SystemExit(0 if payload.get("failure_kind") == "missing_manifest" else 1)
+          PY
+          then
+            echo "ROLLBACK_READY=true" >> "$GITHUB_ENV"
+            python scripts/resilient_stage.py record --name rollback-baseline --status success --report-dir deploy-evidence/stages --description "Automatic first-deployment bootstrap approved because the trusted Pages origin has no prior artifact manifest"
           else
             echo "DEPLOY_READY=false" >> "$GITHUB_ENV"
             python scripts/resilient_stage.py record --name rollback-baseline --status failed --exit-code 1 --report-dir deploy-evidence/stages --description "Deployment blocked because no verified rollback baseline is available"
@@ -301,14 +338,14 @@ jobs:
           EXPECTED_SOURCE_SHA: ${{ steps.locate.outputs.source_head_sha }}
         run: |
           set -euo pipefail
-          if [ "${DEPLOY_READY:-false}" != true ] || [ "${ROLLBACK_READY:-false}" != true ]; then
+          if [ "${DEPLOY_READY:-false}" != true ]; then
             echo "DEPLOY_READY=false" >> "$GITHUB_ENV"
             python scripts/resilient_stage.py record \
               --name source-freshness \
               --status failed \
               --exit-code 1 \
               --report-dir deploy-evidence/stages \
-              --description "Freshness gate could not pass because earlier deployment prerequisites failed"
+              --description "Freshness gate could not pass because candidate verification failed"
             exit 0
           fi
           if [ -z "${EXPECTED_SOURCE_SHA:-}" ]; then
@@ -394,7 +431,6 @@ jobs:
           EXPECTED_SOURCE_SHA: ${{ steps.locate.outputs.source_head_sha }}
           EXPECTED_SOURCE_RUN_ID: ${{ steps.locate.outputs.source_run_id }}
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'true' }}
         run: |
           set -euo pipefail
           page_url="${{ steps.deployment.outputs.page_url }}"
@@ -412,6 +448,7 @@ jobs:
             fi
             if [ "${ALLOW_UNSIGNED_PAGES:-false}" = true ]; then
               signature_policy_args+=(--allow-unsigned)
+              verify_args+=(--allow-unsigned)
             fi
             python scripts/validate_pages_signature_policy.py output "${signature_policy_args[@]}"
             python scripts/resilient_stage.py run \
@@ -452,7 +489,6 @@ jobs:
         continue-on-error: true
         env:
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-          ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'true' }}
         run: |
           set -euo pipefail
           signature_policy_args=()
