@@ -298,13 +298,13 @@
                         <h3 style="color: #ffd700; margin: 0; font-size: 1.2rem; font-weight: 700;">Gold Connection</h3>
                     </div>
                     <p style="margin-bottom: 0.75rem; line-height: 1.5; color: var(--text-secondary); font-size: 0.9rem;">
-                        WARP-shielded candidate chains for severe censorship. Retest in your own network with Sing-box or Nekobox.
+                        WARP-shielded candidate chains for severe censorship. Retest in your own network with Sing-box. NekoBox imports this chain document as one full profile.
                     </p>
                     <button class="btn btn-primary copy-btn" data-file="singbox-chains.json" data-dns-file="chains-dns-safe.json" data-dns-hardened-file="chains-dns-hardened.json" style="background: #ffd700; color: #000; font-weight: 600;">
                         <i data-feather="copy" aria-hidden="true"></i>
                         <span>Copy Gold Subscription</span>
                     </button>
-                    <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-secondary);">Requires Sing-box / Nekobox. Standard V2RayNG is not compatible.</p>
+                    <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-secondary);">Requires Sing-box-compatible full-profile import. For separate NekoBox nodes, use the NekoBox / NekoRay subscription option below.</p>
                 </div>
             </div>
 
@@ -381,7 +381,8 @@
                                             <!-- Redesigned Dropdown for Clients -->
                                             <div class="client-dropdown-wrapper">
                                                 <select id="client-selector-dropdown" class="client-select" aria-label="Configuration client">
-                                                <option value="singbox" data-icon="shield">Sing-box (V2rayN / NekoRay)</option>
+                                                <option value="singbox" data-icon="shield">Sing-box Full Config</option>
+                                                <option value="nekobox" data-icon="list">NekoBox / NekoRay (Separate Nodes)</option>
                                                 <option value="singboxvpn" data-icon="lock">Sing-box VPN (TUN)</option>
                                                 <option value="clash" data-icon="layers">Clash (Mihomo / Stash)</option>
                                                 <option value="base64" data-icon="file-text">Base64 Subscription</option>
@@ -396,7 +397,7 @@
                                                 </select>
                                                 <i data-feather="chevron-down" class="dropdown-arrow" aria-hidden="true"></i>
                                             </div>
-                                            <p class="download-desc" id="client-desc" style="margin-top: 1rem;" data-i18n="downloads.client.singbox.desc">Sing-box JSON config (V2rayN, NekoRay, NekoBox, Hiddify).</p>
+                                            <p class="download-desc" id="client-desc" style="margin-top: 1rem;" data-i18n="downloads.client.singbox.desc">Complete Sing-box JSON profile. NekoBox imports it as one full/custom profile; choose NekoBox Nodes for separate servers.</p>
                                         </div>
                                         <button id="dynamic-copy-btn" class="btn btn-primary copy-btn" data-file="singbox.json">
                                             <i data-feather="copy" aria-hidden="true"></i>
