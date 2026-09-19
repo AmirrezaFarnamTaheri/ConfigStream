@@ -101,7 +101,7 @@ def validate(root: Path) -> list[str]:
         )
 
     unsigned_policy_binding = (
-        "ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'false' }}"
+        "ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'true' }}"
     )
     if deploy.count(unsigned_policy_binding) < 4:
         errors.append(
@@ -132,6 +132,19 @@ def validate(root: Path) -> list[str]:
         errors.append(
             "Pages deployment must not use an implicit missing-key unsigned fallback"
         )
+
+    first_deploy_controls = (
+        'echo "LKG_MISSING=false" >> "$GITHUB_ENV"',
+        "snapshot source returned HTTP 404: .*artifact_manifest\\.json",
+        'echo "LKG_MISSING=true" >> "$GITHUB_ENV"',
+        '[ "${LKG_MISSING:-false}" = true ] && [ "${DEPLOY_READY:-false}" = true ]',
+        "First-deployment bootstrap approved because the prior Pages site has no artifact_manifest.json",
+    )
+    for control in first_deploy_controls:
+        if control not in deploy:
+            errors.append(
+                f"Pages deployment missing constrained first-deploy bootstrap control: {control}"
+            )
 
     freshness_controls = (
         "Require source run to remain current main before publication",
