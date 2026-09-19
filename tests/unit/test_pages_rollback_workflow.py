@@ -36,4 +36,4 @@ def test_pages_workflow_requires_rollback_baseline_or_proven_first_deploy() -> N
     assert "inputs.allow_bootstrap_without_lkg" in workflow
     assert 'payload.get("failure_kind") == "missing_manifest"' in workflow
     assert "Automatic first-deployment bootstrap approved" in workflow
-    assert 'snapshot_args+=(--allow-unsigned)' in workflow
+    assert "snapshot_args+=(--allow-unsigned)" in workflow
