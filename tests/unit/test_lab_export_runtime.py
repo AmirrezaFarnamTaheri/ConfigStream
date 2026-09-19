@@ -88,9 +88,7 @@ console.log(JSON.stringify(result));
     }
     assert selectors == {"leaf": ["direct"], "root": ["leaf"]}
     assert data["route"]["final"] in {"leaf", "root"}
-    assert data["route"]["rules"] == [
-        {"domain": ["live.example"], "outbound": "root"}
-    ]
+    assert data["route"]["rules"] == [{"domain": ["live.example"], "outbound": "root"}]
 
 
 def test_cache_keeps_explicit_delta_snapshot_version() -> None:
