@@ -15,7 +15,7 @@ import uuid as uuid_lib
 
 # pylint: disable=no-member
 from typing import Optional
-from urllib.parse import parse_qs, unquote, urlparse
+from urllib.parse import parse_qs, quote, unquote, urlparse
 from pydantic import ValidationError
 from ..models import Proxy
 from .base import normalize_proxy_details
@@ -32,6 +32,28 @@ _RESERVED_B64_RE = re.compile(r"^[a-zA-Z0-9+/=]+$")
 _SSH_HOSTNAME_RE = re.compile(r"^[a-zA-Z0-9\.\-\_]+$")
 
 
+def _quote_wireguard_userinfo(config: str) -> str:
+    """Protect raw Base64 userinfo from URL parsers treating '/' as a path."""
+    scheme_sep = config.find("://")
+    if scheme_sep < 0:
+        return config
+
+    rest = config[scheme_sep + 3 :]
+    cuts = [index for marker in ("?", "#") if (index := rest.find(marker)) >= 0]
+    cut = min(cuts) if cuts else len(rest)
+    authority = rest[:cut]
+    if "@" not in authority:
+        return config
+
+    credential, endpoint = authority.rsplit("@", 1)
+    if not credential or not endpoint:
+        return config
+
+    # '%' stays safe so already-percent-encoded keys are not double encoded.
+    encoded = quote(credential, safe="%")
+    return config[: scheme_sep + 3] + encoded + "@" + endpoint + rest[cut:]
+
+
 def _parse_url_scheme(config: str, protocol: str, default_port: int) -> Optional[Proxy]:
     try:
         # Clean config
@@ -40,6 +62,10 @@ def _parse_url_scheme(config: str, protocol: str, default_port: int) -> Optional
         # Enforce MAX_CONFIG_LINE_LENGTH
         if MAX_CONFIG_LINE_LENGTH > 0 and len(config) > MAX_CONFIG_LINE_LENGTH:
             return None
+
+        source_config = config
+        if protocol in {"wireguard", "wg"} or config.lower().startswith("exclave://"):
+            config = _quote_wireguard_userinfo(config)
 
         parsed = urlparse(config)
 
@@ -81,7 +107,7 @@ def _parse_url_scheme(config: str, protocol: str, default_port: int) -> Optional
         cred = unquote(parsed.username or "")
 
         proxy = Proxy(
-            config=config,
+            config=source_config,
             protocol=protocol,
             address=parsed.hostname,
             port=port,
@@ -233,6 +259,53 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
     proxy.details.pop("username", None)
     proxy.details.pop("password", None)
 
+    # Reparse the query specifically for WireGuard so common aliases and
+    # repeated address parameters survive the generic single-value URL helper.
+    repaired = _quote_wireguard_userinfo(c.strip())
+    parsed_wireguard = urlparse(repaired)
+    raw_params = parse_qs(parsed_wireguard.query, keep_blank_values=True)
+    params = {str(key).lower(): values for key, values in raw_params.items()}
+
+    peer_key = ""
+    for alias in ("peer_public_key", "publickey", "public_key", "public-key"):
+        values = params.get(alias)
+        if values:
+            peer_key = str(values[0]).strip().replace(" ", "+")
+            if peer_key:
+                break
+    if peer_key:
+        proxy.details["peer_public_key"] = peer_key
+
+    psk = ""
+    for alias in ("pre_shared_key", "presharedkey", "pre-shared-key"):
+        values = params.get(alias)
+        if values:
+            psk = str(values[0]).strip().replace(" ", "+")
+            if psk:
+                break
+    if psk:
+        proxy.details["pre_shared_key"] = psk
+
+    allowed_values: list[str] = []
+    for alias in ("allowed_ips", "allowedips", "allowed-ips"):
+        for raw in params.get(alias, []):
+            allowed_values.extend(
+                item.strip() for item in str(raw).split(",") if item.strip()
+            )
+    if allowed_values:
+        proxy.details["allowed_ips"] = list(dict.fromkeys(allowed_values))
+
+    if proxy.address != "wg":
+        local_addresses: list[str] = []
+        for raw in params.get("address", []):
+            local_addresses.extend(
+                item.strip()
+                for item in str(raw).split(",")
+                if item.strip() and "/" in item
+            )
+        if local_addresses:
+            proxy.details["local_address"] = list(dict.fromkeys(local_addresses))
+
     # Recover real endpoint address if hostname is 'wg' or if endpoint/peer is present
     if "endpoint" in proxy.details:
         ep_val = proxy.details.pop("endpoint")
@@ -333,58 +406,41 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
 
         def validate_wg_key(key: str, name: str) -> bool:
             if not key:
-                return True  # Let later checks handle missing optional keys if any
+                logger.debug("WireGuard %s is missing.", safe_log_text(name))
+                return False
 
-            # Handle URL-encoded keys (e.g. %2B for +)
-            if "%" in key:
-                try:
-                    from urllib.parse import unquote
+            key_clean = unquote(key).strip().replace(" ", "+")
+            if len(key_clean) == 64 and all(
+                char in "0123456789abcdefABCDEF" for char in key_clean
+            ):
+                return True
 
-                    key = unquote(key)
-                except (ValueError, TypeError):  # nosec B110
-                    logging.getLogger(__name__).debug("Suppressed unquote exception")
-                    pass
-
-            key_clean = key.strip().replace(" ", "+")
-
-            # Heuristic length check first
-            if len(key_clean) < 40 or len(key_clean) > 50:
-                # Check if it's hex (64 chars)
-                if len(key_clean) == 64 and all(
-                    c in "0123456789abcdefABCDEF" for c in key_clean
-                ):
-                    return True
-                else:
-                    logger.debug(
-                        "WireGuard %s length invalid (%d).",
-                        safe_log_text(name),
-                        len(key_clean),
-                    )
-                    return False
-
-            # Verify decoding if it looks like Base64
-            if len(key_clean) >= 40 and len(key_clean) <= 50:
-                pad = len(key_clean) % 4
-                if pad:
-                    key_clean += "=" * (4 - pad)
-
-                decoded = base64.b64decode(key_clean, validate=False)
-                if len(decoded) != 32:
-                    logger.debug(
-                        "WireGuard %s decoded length mismatch (%d != 32).",
-                        safe_log_text(name),
-                        len(decoded),
-                    )
-                    return False
+            normalized = key_clean.replace("-", "+").replace("_", "/")
+            normalized += "=" * ((4 - len(normalized) % 4) % 4)
+            try:
+                decoded = base64.b64decode(normalized, validate=True)
+            except (binascii.Error, ValueError):
+                logger.debug("WireGuard %s is not valid Base64.", safe_log_text(name))
+                return False
+            if len(decoded) != 32:
+                logger.debug(
+                    "WireGuard %s decoded length mismatch (%d != 32).",
+                    safe_log_text(name),
+                    len(decoded),
+                )
+                return False
             return True
 
         if not validate_wg_key(private_key, "private_key"):
             return None
 
-        # Also validate peer_public_key if present
         peer_pub = proxy.details.get("peer_public_key")
-        if peer_pub and not validate_wg_key(peer_pub, "peer_public_key"):
+        if not isinstance(peer_pub, str) or not validate_wg_key(
+            peer_pub, "peer_public_key"
+        ):
+            logger.debug("Dropping WireGuard proxy missing/invalid peer_public_key")
             return None
+        proxy.details["peer_public_key"] = peer_pub.strip().replace(" ", "+")
 
     except (
         ValidationError,
@@ -399,37 +455,49 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
         logger.debug("WireGuard key validation failed: %s", safe_log_text(e))
         return None
 
-    # Reserved bytes check (for WARP/WireGuard)
+    # Reserved bytes are optional, but when present must normalize to
+    # exactly three bytes so downstream adapters do not silently discard them.
     reserved = proxy.details.get("reserved")
-    if reserved:
-        if isinstance(reserved, str):
-            # Validate format [x, y, z] or base64
-            # Support [1,2,3], 1,2,3 and base64
-            is_bracketed = _RESERVED_BRACKETED_RE.match(reserved)
-            is_csv = _RESERVED_CSV_RE.match(reserved)
-            is_b64 = _RESERVED_B64_RE.match(reserved)
-
-            if not (is_bracketed or is_csv or is_b64):
-                logger.warning(
-                    "Invalid reserved bytes format for WireGuard: %s. Removing invalid field.",
-                    safe_log_text(reserved),
-                )
-                del proxy.details["reserved"]
-            elif (
-                len(reserved) > 128
-            ):  # Enforce max length (standard key is 32 bytes/44 chars b64)
-                logger.warning("Reserved bytes too long: %d", len(reserved))
-                del proxy.details["reserved"]
-        else:
-            # If it's not a string (e.g. list from some internal process), assume valid if it's a list of ints
-            if not (
-                isinstance(reserved, list) and all(isinstance(x, int) for x in reserved)
+    if reserved not in (None, "", []):
+        normalized_reserved: list[int] | None = None
+        if isinstance(reserved, list):
+            if len(reserved) == 3 and all(
+                isinstance(item, int)
+                and not isinstance(item, bool)
+                and 0 <= item <= 255
+                for item in reserved
             ):
-                logger.debug(
-                    "Invalid reserved bytes type for WireGuard: %s",
-                    safe_log_text(type(reserved)),
-                )
-                del proxy.details["reserved"]
+                normalized_reserved = list(reserved)
+        elif isinstance(reserved, str):
+            text = reserved.strip()
+            csv_text = (
+                text[1:-1] if text.startswith("[") and text.endswith("]") else text
+            )
+            if _RESERVED_CSV_RE.fullmatch(csv_text):
+                try:
+                    reserved_values: list[int] = [
+                        int(item.strip()) for item in csv_text.split(",")
+                    ]
+                except ValueError:
+                    reserved_values = []
+                if len(reserved_values) == 3 and all(
+                    0 <= item <= 255 for item in reserved_values
+                ):
+                    normalized_reserved = reserved_values
+            if normalized_reserved is None:
+                encoded = text.replace("-", "+").replace("_", "/")
+                encoded += "=" * ((4 - len(encoded) % 4) % 4)
+                try:
+                    raw_reserved = base64.b64decode(encoded, validate=True)
+                except (binascii.Error, ValueError):
+                    raw_reserved = b""
+                if len(raw_reserved) == 3:
+                    normalized_reserved = list(raw_reserved)
+
+        if normalized_reserved is None:
+            logger.debug("Dropping WireGuard proxy with invalid reserved bytes")
+            return None
+        proxy.details["reserved"] = normalized_reserved
 
     return proxy
 

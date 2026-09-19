@@ -176,6 +176,66 @@ def _dns_server(server: dict[str, Any]) -> dict[str, Any]:
     return sanitized if isinstance(sanitized, dict) else {}
 
 
+def _prune_selector_outbounds(
+    outbounds: list[dict[str, Any]], endpoints: list[dict[str, Any]]
+) -> tuple[list[dict[str, Any]], set[str]]:
+    """Keep selectors only when their member graph reaches a concrete target."""
+    selectors = [
+        item for item in outbounds if item.get("type") in {"selector", "urltest"}
+    ]
+    concrete_tags = {
+        str(item.get("tag"))
+        for item in [*outbounds, *endpoints]
+        if item.get("tag") and item.get("type") not in {"selector", "urltest"}
+    }
+    resolved: set[str] = set()
+    for _ in range(len(selectors)):
+        progress = False
+        for selector in selectors:
+            tag = str(selector.get("tag") or "")
+            members = selector.get("outbounds")
+            if not tag or tag in resolved or not isinstance(members, list):
+                continue
+            if any(str(member) in concrete_tags | resolved for member in members):
+                resolved.add(tag)
+                progress = True
+        if not progress:
+            break
+
+    valid_tags = concrete_tags | resolved
+    retained: list[dict[str, Any]] = []
+    for outbound in outbounds:
+        if outbound.get("type") not in {"selector", "urltest"}:
+            retained.append(outbound)
+            continue
+        tag = str(outbound.get("tag") or "")
+        if tag not in resolved:
+            continue
+        members = outbound.get("outbounds")
+        if not isinstance(members, list):
+            continue
+        unique: list[str] = []
+        for member in members:
+            member_tag = str(member)
+            if member_tag in valid_tags - {tag} and member_tag not in unique:
+                unique.append(member_tag)
+            if len(unique) >= MAX_SELECTOR_MEMBERS:
+                break
+        if not unique:
+            continue
+        outbound["outbounds"] = unique
+        if outbound.get("default") not in unique:
+            outbound.pop("default", None)
+        retained.append(outbound)
+
+    final_tags = {
+        str(item.get("tag"))
+        for item in [*retained, *endpoints]
+        if item.get("tag") and item.get("tag") is not None
+    }
+    return retained, final_tags
+
+
 def modernize_singbox(payload: Any) -> Any:
     if not isinstance(payload, dict):
         return payload
@@ -259,6 +319,13 @@ def modernize_singbox(payload: Any) -> Any:
         item.get("action") == "hijack-dns" for item in rules
     ):
         rules.insert(1, {"protocol": "dns", "action": "hijack-dns"})
+    outbounds, known = _prune_selector_outbounds(outbounds, endpoints)
+    config["outbounds"] = outbounds
+    rules = [
+        rule
+        for rule in rules
+        if not rule.get("outbound") or str(rule.get("outbound")) in known
+    ]
     route["rules"] = rules
     tags = [
         str(item.get("tag")) for item in [*outbounds, *endpoints] if item.get("tag")
@@ -267,42 +334,17 @@ def modernize_singbox(payload: Any) -> Any:
         (
             tag
             for tag in ("🌍 Proxy Select", "🚀 Mode Selector", "🚀 Auto")
-            if tag in tags
+            if tag in known
         ),
         None,
     )
+    current_final = str(route.get("final") or "")
     route["final"] = (
-        route.get("final")
-        or preferred
-        or next((tag for tag in tags if tag != "direct"), "direct")
+        current_final
+        if current_final in known
+        else preferred or next((tag for tag in tags if tag != "direct"), "direct")
     )
     config["route"] = route
-
-    known = set(tags)
-    retained_outbounds: list[dict[str, Any]] = []
-    for outbound in outbounds:
-        if outbound.get("type") not in {"selector", "urltest"}:
-            retained_outbounds.append(outbound)
-            continue
-        members = outbound.get("outbounds")
-        if not isinstance(members, list):
-            continue
-        unique: list[str] = []
-        for member in members:
-            tag = str(member)
-            if tag in known and tag not in unique:
-                unique.append(tag)
-            if len(unique) >= MAX_SELECTOR_MEMBERS:
-                break
-        if not unique and "direct" in known:
-            unique = ["direct"]
-        if not unique:
-            continue
-        outbound["outbounds"] = unique
-        if outbound.get("default") not in unique:
-            outbound.pop("default", None)
-        retained_outbounds.append(outbound)
-    config["outbounds"] = retained_outbounds
     return config
 
 

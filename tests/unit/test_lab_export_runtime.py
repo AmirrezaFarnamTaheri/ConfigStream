@@ -53,6 +53,44 @@ console.log(JSON.stringify({outbounds,xhttp,httpupgrade,plain,rejected}));
     )
 
 
+def test_lab_singbox_prunes_dangling_selector_graph() -> None:
+    node = shutil.which("node")
+    if not node:
+        pytest.skip("Node unavailable")
+    script = """
+import {buildSingboxConfig} from './frontend/assets/js/lab/exporters.js';
+const result = buildSingboxConfig({
+  outbounds:[
+    {type:'direct',tag:'direct'},
+    {type:'selector',tag:'leaf',outbounds:['direct','block']},
+    {type:'selector',tag:'root',outbounds:['leaf','dead-a']},
+    {type:'selector',tag:'dead-a',outbounds:['dead-b']},
+    {type:'selector',tag:'dead-b',outbounds:['dead-a']},
+    {type:'block',tag:'block'}
+  ],
+  route:{final:'dead-a',rules:[{domain:['dead.example'],outbound:'dead-b'},{domain:['live.example'],outbound:'root'}]}
+});
+console.log(JSON.stringify(result));
+"""
+    result = subprocess.run(
+        [node, "--input-type=module", "-e", script],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+        timeout=30,
+    )
+    data = json.loads(result.stdout)
+    selectors = {
+        item["tag"]: item["outbounds"]
+        for item in data["outbounds"]
+        if item.get("type") == "selector"
+    }
+    assert selectors == {"leaf": ["direct"], "root": ["leaf"]}
+    assert data["route"]["final"] in {"leaf", "root"}
+    assert data["route"]["rules"] == [{"domain": ["live.example"], "outbound": "root"}]
+
+
 def test_cache_keeps_explicit_delta_snapshot_version() -> None:
     node = shutil.which("node")
     if not node:

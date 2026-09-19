@@ -639,21 +639,20 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "peer_public_key": ppk,
         }
 
-        # Handle local_address (List -> IPv4/IPv6 strings)
-        # Modern Sing-box requires separate fields for v4 and v6
-        ipv4_addr = []
-        ipv6_addr = []
-        for addr in local_addresses:
-            addr_str = str(addr)
-            if ":" in addr_str:
-                ipv6_addr.append(addr_str)
-            else:
-                ipv4_addr.append(addr_str)
+        # Preserve every parsed prefix; the compatibility layer validates CIDRs.
+        ipv4_addr = [str(addr) for addr in local_addresses if ":" not in str(addr)]
+        ipv6_addr = [str(addr) for addr in local_addresses if ":" in str(addr)]
 
         if ipv4_addr:
-            out["local_address"] = ipv4_addr[0]  # Sing-box expects single CIDR string
+            out["local_address"] = ipv4_addr[0] if len(ipv4_addr) == 1 else ipv4_addr
         if ipv6_addr:
-            out["local_address_v6"] = ipv6_addr[0]
+            out["local_address_v6"] = ipv6_addr[0] if len(ipv6_addr) == 1 else ipv6_addr
+        allowed_ips = proxy.details.get("allowed_ips")
+        if allowed_ips not in (None, "", []):
+            out["allowed_ips"] = allowed_ips
+        keepalive = proxy.details.get("persistent_keepalive_interval")
+        if keepalive not in (None, ""):
+            out["persistent_keepalive_interval"] = keepalive
 
         if "reserved" in proxy.details:
             reserved_val = proxy.details["reserved"]

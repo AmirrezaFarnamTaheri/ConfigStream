@@ -239,7 +239,7 @@ PARSER_TO_FRONTEND_FIXTURES: dict[str, tuple[Any, str, str]] = {
     ),
     "wireguard": (
         parse_wireguard,
-        "wireguard://fixture@fixture.example:2408?private_key=YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE=&public_key=pub&address=10.0.0.2/32#fixture-wg",
+        "wireguard://fixture@fixture.example:2408?private_key=YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE=&public_key=YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE=&address=10.0.0.2/32#fixture-wg",
         "wireguard",
     ),
     "naive": (

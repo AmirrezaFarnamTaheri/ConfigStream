@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
+from ..converters.singbox import wireguard_outbound_to_endpoint
 from .xray_security import transport_security_error
 
 _URI_SCHEME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*$")
@@ -258,34 +259,52 @@ def _xray_outbound(outbound: dict[str, Any], tag: str) -> dict[str, Any] | None:
             settings["flow"] = outbound["flow"]
         result.update({"protocol": "vless", "settings": settings})
     elif kind == "wireguard":
-        peers = outbound.get("peers") or []
-        if not peers or not isinstance(peers[0], dict):
-            return None
-        peer = peers[0]
-        peer_settings: dict[str, Any] = {
-            "endpoint": f"{peer.get('address')}:{int(peer.get('port') or 0)}",
-            "publicKey": peer.get("public_key"),
-        }
-        if peer.get("pre_shared_key"):
-            peer_settings["preSharedKey"] = peer["pre_shared_key"]
-        if peer.get("persistent_keepalive_interval") is not None:
-            peer_settings["keepAlive"] = int(
-                peer.get("persistent_keepalive_interval") or 0
+        try:
+            normalized = wireguard_outbound_to_endpoint(
+                {
+                    "type": "wireguard",
+                    "tag": tag,
+                    "address": outbound.get("address") or outbound.get("local_address"),
+                    "private_key": outbound.get("private_key"),
+                    "mtu": outbound.get("mtu"),
+                    "peers": outbound.get("peers"),
+                }
             )
-        allowed_ips = _string_list(peer.get("allowed_ips"))
-        if allowed_ips:
-            peer_settings["allowedIPs"] = allowed_ips
+        except (TypeError, ValueError):
+            return None
+
+        peer_settings: list[dict[str, Any]] = []
+        peers = normalized["peers"]
+        for peer in peers:
+            peer_host = str(peer["address"]).strip().strip("[]")
+            endpoint_host = f"[{peer_host}]" if ":" in peer_host else peer_host
+            rendered_peer: dict[str, Any] = {
+                "endpoint": f"{endpoint_host}:{peer['port']}",
+                "publicKey": peer["public_key"],
+            }
+            if peer.get("pre_shared_key"):
+                rendered_peer["preSharedKey"] = peer["pre_shared_key"]
+            if peer.get("persistent_keepalive_interval") is not None:
+                rendered_peer["keepAlive"] = peer["persistent_keepalive_interval"]
+            allowed_ips = _string_list(peer.get("allowed_ips"))
+            if allowed_ips:
+                rendered_peer["allowedIPs"] = allowed_ips
+            peer_settings.append(rendered_peer)
+
+        reserved_values = [peer.get("reserved") for peer in peers]
+        if any(value is not None for value in reserved_values) and any(
+            value != reserved_values[0] for value in reserved_values[1:]
+        ):
+            return None
         settings = {
-            "secretKey": outbound.get("private_key"),
-            "address": _string_list(
-                outbound.get("address") or outbound.get("local_address")
-            ),
-            "peers": [peer_settings],
+            "secretKey": normalized["private_key"],
+            "address": normalized["address"],
+            "peers": peer_settings,
             "noKernelTun": True,
-            "mtu": int(outbound.get("mtu") or 1420),
+            "mtu": int(normalized.get("mtu") or 1420),
         }
-        if peer.get("reserved") is not None:
-            settings["reserved"] = peer["reserved"]
+        if reserved_values and reserved_values[0] is not None:
+            settings["reserved"] = reserved_values[0]
         result.update({"protocol": "wireguard", "settings": settings})
     else:
         return None
