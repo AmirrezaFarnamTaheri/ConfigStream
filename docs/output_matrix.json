@@ -219,7 +219,7 @@
       "degraded_valid": true,
       "core_format": "sing-box",
       "artifact_type": "full_config",
-      "notes": "Sing-box universal configuration; JSON syntax, outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated."
+      "notes": "Complete Sing-box smart-routing profile imported as one full configuration, not a multi-node subscription. Generators emit modern route actions and WireGuard endpoints directly; JSON structure, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated."
     },
     {
       "path": "singbox-dns-safe.json",
@@ -745,7 +745,7 @@
       "degraded_valid": true,
       "core_format": "xray",
       "artifact_type": "full_config",
-      "notes": "Xray full configuration with modern VMess/VLESS settings, structural reference validation, and pinned native release checks. Plaintext Trojan and unencrypted VLESS public destinations are excluded according to Xray v26.9.9 private-destination rules; incompatible chains are excluded as a whole."
+      "notes": "Complete Xray client profile imported as one full configuration, not a multi-node subscription. It uses modern flat VMess/VLESS settings and streamSettings.sockopt.dialerProxy for chains; removed proxySettings and unsafe legacy HTTP/H2-to-XHTTP relabeling are rejected. Structural references and the pinned Xray v26.9.9 native release check are enforced; plaintext Trojan and unencrypted VLESS public destinations follow Xray v26.9.9 private-destination rules, and incompatible chains are excluded as a whole."
     }
   ],
   "remaining_work": []
