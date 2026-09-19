@@ -75,3 +75,4 @@ def test_pages_signature_policy_is_explicit_at_every_trust_boundary() -> None:
     )
     assert workflow.count('signature_policy_args+=(--public-key "$CS_PUBLIC_KEY")') >= 4
     assert workflow.count("signature_policy_args+=(--allow-unsigned)") >= 4
+    assert workflow.count("verify_args+=(--allow-unsigned)") >= 2
