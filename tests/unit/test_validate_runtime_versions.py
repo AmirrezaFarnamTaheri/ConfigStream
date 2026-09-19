@@ -46,7 +46,7 @@ def _write_fixture(
                 },
                 "go": go_payload,
                 "sing_box": {
-                    "release_validator": "1.13.18",
+                    "release_validator": "1.14.1",
                     "embedded_tester": "1.9.7",
                     "embedded_linker_compat": {
                         "flag": linker_flag,
@@ -74,7 +74,7 @@ def _write_fixture(
     (root / ".github/workflows/ci.yml").write_text(
         f"go-version: '{workflow_go}'\n"
         "node-version: '24'\n"
-        "SING_BOX_VERSION: '1.13.18'\n"
+        "SING_BOX_VERSION: '1.14.1'\n"
         "- name: unit\n"
         "  run: |\n"
         "    cd src/go/tester\n"
