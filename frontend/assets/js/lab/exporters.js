@@ -480,7 +480,21 @@ export function singboxOutboundToXray(sbOut) {
             };
             delete stream.tlsSettings;
         }
-        if (transport.type === 'ws') {
+        const transportType = String(transport.type || '').toLowerCase();
+        const supportedTransports = new Set([
+            '', 'tcp', 'raw', 'ws', 'websocket', 'grpc',
+            'httpupgrade', 'http-upgrade', 'xhttp', 'kcp', 'mkcp',
+        ]);
+        if (!supportedTransports.has(transportType)) {
+            if (transportType === 'http' || transportType === 'h2') {
+                throw new TypeError(
+                    'Legacy HTTP/H2 transport is not wire-compatible with XHTTP; '
+                    + 'use an explicitly XHTTP-capable endpoint.'
+                );
+            }
+            throw new TypeError(`Unsupported Xray transport: ${transportType}`);
+        }
+        if (transportType === 'ws' || transportType === 'websocket') {
             stream.method = 'websocket';
             stream.wsSettings = {
                 path: String(transport.path || '/'),
@@ -488,21 +502,24 @@ export function singboxOutboundToXray(sbOut) {
                     ? transport.headers
                     : {},
             };
-        } else if (transport.type === 'grpc') {
+        } else if (transportType === 'grpc') {
             stream.method = 'grpc';
             stream.grpcSettings = { serviceName: String(transport.service_name || '') };
-        } else if (transport.type === 'httpupgrade') {
+        } else if (transportType === 'httpupgrade' || transportType === 'http-upgrade') {
             stream.method = 'httpupgrade';
             stream.httpupgradeSettings = {
                 path: String(transport.path || '/'),
                 host: firstHost(transport.host, sni),
             };
-        } else if (transport.type === 'http') {
+        } else if (transportType === 'xhttp') {
             stream.method = 'xhttp';
             stream.xhttpSettings = {
                 path: String(transport.path || '/'),
                 host: firstHost(transport.host, sni),
             };
+        } else if (transportType === 'kcp' || transportType === 'mkcp') {
+            stream.method = 'mkcp';
+            stream.kcpSettings = {};
         }
         if (stream.method === 'raw') stream.rawSettings = { header: { type: 'none' } };
         return stream;
@@ -554,7 +571,13 @@ export function singboxOutboundToXray(sbOut) {
         && requiresXrayTransportSecurity(address)) {
         throw new TypeError(`${type} to a public destination requires TLS in Xray.`);
     }
-    if (sbOut.detour) xOut.proxySettings = { tag: String(sbOut.detour) };
+    if (sbOut.detour) {
+        if (!xOut.streamSettings) {
+            xOut.streamSettings = { method: 'raw', rawSettings: {}, security: 'none' };
+        }
+        if (!xOut.streamSettings.sockopt) xOut.streamSettings.sockopt = {};
+        xOut.streamSettings.sockopt.dialerProxy = String(sbOut.detour);
+    }
     return xOut;
 }
 
