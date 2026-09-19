@@ -39,6 +39,36 @@ def test_singbox_endpoints_are_reference_targets() -> None:
     assert validate_singbox_config(payload, "singbox.json") == []
 
 
+def test_singbox_endpoint_only_config_is_valid_reference_surface() -> None:
+    payload = {
+        "endpoints": [
+            {
+                "type": "wireguard",
+                "tag": "warp",
+                "address": ["172.16.0.2/32"],
+                "private_key": "QUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUE=",
+                "peers": [
+                    {
+                        "address": "162.159.192.1",
+                        "port": 2408,
+                        "public_key": "QkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkI=",
+                        "allowed_ips": ["0.0.0.0/0"],
+                    }
+                ],
+            }
+        ],
+        "route": {"final": "warp"},
+    }
+
+    assert validate_singbox_config(payload, "endpoint-only.json") == []
+
+
+def test_singbox_requires_at_least_one_outbound_or_endpoint() -> None:
+    assert validate_singbox_config({"outbounds": [], "endpoints": []}, "empty.json") == [
+        "empty.json must define at least one outbound or endpoint"
+    ]
+
+
 def test_mihomo_accepts_dialer_proxy_and_rejects_relay() -> None:
     valid = {
         "proxies": [
@@ -86,6 +116,148 @@ def test_xray_generator_emits_modern_vless_shape() -> None:
     assert "vnext" not in outbound["settings"]
     assert validate_xray_config(config) == []
     assert report["emitted_records"] == 1
+
+
+def test_xray_wireguard_normalizes_ipv6_endpoint_and_keepalive() -> None:
+    config, report = generate_xray_config(
+        [
+            {
+                "id": "wg-v6",
+                "protocol": "wireguard",
+                "address": "2606:4700:d0::a29f:c001",
+                "port": 2408,
+                "remarks": "wg-v6",
+                "is_working": True,
+                "details": {
+                    "private_key": "00" * 32,
+                    "peer_public_key": "11" * 32,
+                    "local_address": ["172.16.0.2/32"],
+                    "allowed_ips": ["0.0.0.0/0", "::/0"],
+                    "persistent_keepalive_interval": "30",
+                    "mtu": "1280",
+                },
+            }
+        ]
+    )
+
+    outbound = config["outbounds"][0]
+    peer = outbound["settings"]["peers"][0]
+    assert peer["endpoint"] == "[2606:4700:d0::a29f:c001]:2408"
+    assert peer["keepAlive"] == 30
+    assert outbound["settings"]["mtu"] == 1280
+    assert report["emitted_records"] == 1
+
+
+def test_xray_wireguard_preserves_multiple_validated_peers() -> None:
+    endpoint = {
+        "type": "wireguard",
+        "tag": "wg-multi",
+        "address": ["172.16.0.2/32"],
+        "private_key": "00" * 32,
+        "peers": [
+            {
+                "address": "162.159.192.1",
+                "port": 2408,
+                "public_key": "11" * 32,
+                "allowed_ips": ["0.0.0.0/1"],
+                "reserved": [1, 2, 3],
+            },
+            {
+                "address": "2606:4700:d0::a29f:c001",
+                "port": 2408,
+                "public_key": "22" * 32,
+                "allowed_ips": ["128.0.0.0/1", "::/0"],
+                "reserved": [1, 2, 3],
+            },
+        ],
+    }
+    config, report = generate_xray_config(
+        [
+            {
+                "id": "multi-peer-chain",
+                "protocol": "chain",
+                "is_working": True,
+                "config": json.dumps({"outbounds": [], "endpoints": [endpoint]}),
+            }
+        ]
+    )
+
+    settings = config["outbounds"][0]["settings"]
+    assert len(settings["peers"]) == 2
+    assert settings["peers"][1]["endpoint"] == "[2606:4700:d0::a29f:c001]:2408"
+    assert settings["reserved"] == [1, 2, 3]
+    assert report["emitted_records"] == 1
+
+
+def test_xray_wireguard_drops_unrepresentable_peer_reserved_conflict() -> None:
+    endpoint = {
+        "type": "wireguard",
+        "tag": "wg-conflict",
+        "address": ["172.16.0.2/32"],
+        "private_key": "00" * 32,
+        "peers": [
+            {
+                "address": "162.159.192.1",
+                "port": 2408,
+                "public_key": "11" * 32,
+                "allowed_ips": ["0.0.0.0/1"],
+                "reserved": [1, 2, 3],
+            },
+            {
+                "address": "162.159.192.2",
+                "port": 2408,
+                "public_key": "22" * 32,
+                "allowed_ips": ["128.0.0.0/1"],
+                "reserved": [3, 2, 1],
+            },
+        ],
+    }
+    config, report = generate_xray_config(
+        [
+            {
+                "id": "reserved-conflict",
+                "protocol": "chain",
+                "is_working": True,
+                "config": json.dumps({"outbounds": [], "endpoints": [endpoint]}),
+            }
+        ]
+    )
+
+    assert [item["tag"] for item in config["outbounds"]] == ["direct", "block"]
+    assert report["unsupported"] == {"chain": 1}
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [("mtu", "invalid"), ("persistent_keepalive_interval", "invalid")],
+)
+def test_xray_wireguard_drops_malformed_numeric_metadata(
+    field: str, value: object
+) -> None:
+    details = {
+        "private_key": "00" * 32,
+        "peer_public_key": "11" * 32,
+        "local_address": ["172.16.0.2/32"],
+        "allowed_ips": ["0.0.0.0/0"],
+        "mtu": "1280",
+        "persistent_keepalive_interval": "30",
+    }
+    details[field] = value
+    config, report = generate_xray_config(
+        [
+            {
+                "id": "bad-wg",
+                "protocol": "wireguard",
+                "address": "162.159.192.1",
+                "port": 2408,
+                "is_working": True,
+                "details": details,
+            }
+        ]
+    )
+
+    assert [item["tag"] for item in config["outbounds"]] == ["direct", "block"]
+    assert report["unsupported"] == {"wireguard": 1}
 
 
 def test_xray_rejects_obsolete_vnext_layout() -> None:
