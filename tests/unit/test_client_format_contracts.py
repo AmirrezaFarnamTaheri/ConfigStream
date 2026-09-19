@@ -557,3 +557,47 @@ def test_output_matrix_declares_xray_contract() -> None:
     xray = next(item for item in matrix["outputs"] if item["path"] == "xray.json")
     assert xray["core_format"] == "xray"
     assert xray["artifact_type"] == "full_config"
+
+
+def test_nekobox_nodes_are_not_advertised_as_full_singbox_config() -> None:
+    root = Path(__file__).resolve().parents[2]
+    matrix = json.loads((root / "docs" / "output_matrix.json").read_text(encoding="utf-8"))
+    singbox = next(item for item in matrix["outputs"] if item["path"] == "singbox.json")
+    base64_subscription = next(
+        item for item in matrix["outputs"] if item["path"] == "base64.txt"
+    )
+
+    assert singbox["artifact_type"] == "full_config"
+    assert "NekoBox" not in singbox.get("client_compatibility", [])
+    assert "NekoBox" in base64_subscription["client_compatibility"]
+
+    compatibility = json.loads(
+        (root / "docs" / "core_compatibility_report.json").read_text(encoding="utf-8")
+    )
+    nekobox = next(
+        item
+        for item in compatibility["subscription_clients"]
+        if item["client"] == "NekoBox / NekoRay"
+    )
+    outputs = set(nekobox["pipeline_outputs"])
+    assert {"proxies.txt", "base64.txt"} <= outputs
+    assert "singbox.json" not in outputs
+
+
+def test_frontend_nekobox_download_uses_multi_node_subscription() -> None:
+    root = Path(__file__).resolve().parents[2]
+    downloads = (root / "frontend" / "assets" / "js" / "dynamic-downloads.js").read_text(
+        encoding="utf-8"
+    )
+    start = downloads.index("        nekobox: {")
+    end = downloads.index("        },", start) + len("        },")
+    nekobox_block = downloads[start:end]
+
+    assert 'file: "base64.txt"' in nekobox_block
+    assert 'dnsFile: "base64-dns-safe.txt"' in nekobox_block
+    assert 'dnsHardenedFile: "base64-dns-hardened.txt"' in nekobox_block
+    assert "separate nodes" in nekobox_block.lower()
+
+    page = (root / "frontend" / "index.html").read_text(encoding="utf-8")
+    assert 'value="nekobox"' in page
+    assert "NekoBox / NekoRay (Separate Nodes)" in page
