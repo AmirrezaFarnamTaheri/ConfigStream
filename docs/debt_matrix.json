@@ -616,7 +616,7 @@
     },
     {
       "path": "src/configstream/generators/split.py",
-      "line": 194,
+      "line": 196,
       "marker": "LARGE_FUNCTION",
       "category": "production",
       "priority": "P1 - High",
