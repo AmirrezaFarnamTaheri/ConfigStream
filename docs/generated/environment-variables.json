@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "80c80de6859f721439370abf7cbb3fa08d3dce63e3501d7e22b03e946020829e",
+  "source_digest": "e23879a01bbac1f652e7aa3ccdcadfe8acb070d17a1fe16a788bb35e562e060e",
   "variable_count": 163,
   "variables": [
     {
@@ -347,7 +347,7 @@
       "sources": [
         "scripts/release_gate.py:365",
         "scripts/snapshot_pages_release.py:416",
-        "scripts/validate_pages_artifact.py:202",
+        "scripts/validate_pages_artifact.py:208",
         "scripts/verify_pages_deployment.py:471"
       ],
       "type": null
@@ -747,8 +747,8 @@
         "scripts/release_gate.py:191",
         "scripts/release_gate.py:434",
         "scripts/resilient_stage.py:491",
-        "scripts/validate_pages_artifact.py:1203",
-        "scripts/validate_pages_artifact.py:1236",
+        "scripts/validate_pages_artifact.py:1209",
+        "scripts/validate_pages_artifact.py:1242",
         "src/configstream/output/metadata.py:559",
         "src/configstream/output/metadata.py:594"
       ],
@@ -768,8 +768,8 @@
         "scripts/release_gate.py:190",
         "scripts/release_gate.py:431",
         "scripts/resilient_stage.py:490",
-        "scripts/validate_pages_artifact.py:1202",
-        "scripts/validate_pages_artifact.py:1235",
+        "scripts/validate_pages_artifact.py:1208",
+        "scripts/validate_pages_artifact.py:1241",
         "src/configstream/output/metadata.py:558",
         "src/configstream/output/metadata.py:593"
       ],
@@ -789,8 +789,8 @@
         "scripts/release_gate.py:189",
         "scripts/release_gate.py:428",
         "scripts/resilient_stage.py:492",
-        "scripts/validate_pages_artifact.py:1201",
-        "scripts/validate_pages_artifact.py:1234",
+        "scripts/validate_pages_artifact.py:1207",
+        "scripts/validate_pages_artifact.py:1240",
         "src/configstream/output/metadata.py:557",
         "src/configstream/output/metadata.py:592"
       ],
