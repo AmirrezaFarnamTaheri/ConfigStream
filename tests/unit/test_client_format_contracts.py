@@ -8,9 +8,13 @@ import json
 import pytest
 from pathlib import Path
 
+from configstream.models import Proxy
+
 from configstream.output.client_formats import (
+    generate_nekobox_json_subscription,
     generate_xray_config,
     validate_mihomo_config,
+    validate_nekobox_json_subscription,
     validate_nekobox_subscriptions,
     validate_xray_config,
 )
@@ -557,3 +561,56 @@ def test_output_matrix_declares_xray_contract() -> None:
     xray = next(item for item in matrix["outputs"] if item["path"] == "xray.json")
     assert xray["core_format"] == "xray"
     assert xray["artifact_type"] == "full_config"
+
+
+def test_nekobox_json_subscription_is_flat_multi_node_array() -> None:
+    proxies = [
+        Proxy(
+            config="vless://00000000-0000-0000-0000-000000000001@example.com:443#node-a",
+            protocol="vless",
+            address="example.com",
+            port=443,
+            uuid="00000000-0000-0000-0000-000000000001",
+            remarks="node-a",
+            is_working=True,
+            details={"security": "tls", "sni": "example.com"},
+        ),
+        Proxy(
+            config="vless://00000000-0000-0000-0000-000000000002@example.net:443#node-b",
+            protocol="vless",
+            address="example.net",
+            port=443,
+            uuid="00000000-0000-0000-0000-000000000002",
+            remarks="node-b",
+            is_working=True,
+            details={"security": "tls", "sni": "example.net"},
+        ),
+    ]
+
+    payload = json.loads(generate_nekobox_json_subscription(proxies))
+
+    assert isinstance(payload, list)
+    assert [item["tag"] for item in payload] == ["node-a", "node-b"]
+    assert all(item["type"] == "vless" for item in payload)
+    assert all("detour" not in item for item in payload)
+    assert validate_nekobox_json_subscription(payload) == []
+
+
+def test_nekobox_json_subscription_rejects_full_config_shape() -> None:
+    errors = validate_nekobox_json_subscription(
+        {"outbounds": [{"type": "vless", "tag": "node"}]}
+    )
+
+    assert errors == ["nekobox.json must be a top-level JSON array of outbounds"]
+
+
+def test_nekobox_json_subscription_rejects_helper_and_detour_nodes() -> None:
+    errors = validate_nekobox_json_subscription(
+        [
+            {"type": "selector", "tag": "group", "outbounds": ["node"]},
+            {"type": "vless", "tag": "node", "detour": "relay"},
+        ]
+    )
+
+    assert any("helper outbound type selector" in error for error in errors)
+    assert any("has detour" in error for error in errors)
