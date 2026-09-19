@@ -747,7 +747,6 @@ def validate_mihomo_config(payload: object, file_name: str) -> list[str]:
     return errors
 
 
-
 def generate_nekobox_json_subscription(proxies: list[Proxy]) -> str:
     """Render NekoBox's multi-node JSON subscription container.
 
