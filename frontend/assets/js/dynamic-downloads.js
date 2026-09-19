@@ -17,11 +17,19 @@ function initDynamicDownloads() {
     const clients = {
         singbox: {
             descKey: "downloads.client.singbox.desc",
-            desc: "Sing-box JSON config (V2rayN, NekoRay, NekoBox, Hiddify).",
+            desc: "Complete Sing-box JSON profile. NekoBox imports this as one full/custom profile; choose NekoBox Nodes for separate servers.",
             file: "singbox.json",
             dnsFile: "singbox-dns-safe.json",
             dnsHardenedFile: "singbox-dns-hardened.json",
             icon: "shield"
+        },
+        nekobox: {
+            descKey: null,
+            desc: "NekoBox/NekoRay multi-node subscription. Imports servers as separate nodes instead of one full JSON profile.",
+            file: "base64.txt",
+            dnsFile: "base64-dns-safe.txt",
+            dnsHardenedFile: "base64-dns-hardened.txt",
+            icon: "list"
         },
         singboxvpn: {
             descKey: "downloads.client.singboxvpn.desc",
