@@ -608,7 +608,7 @@
     },
     {
       "path": "src/configstream/generators/singbox.py",
-      "line": 155,
+      "line": 157,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -616,7 +616,7 @@
     },
     {
       "path": "src/configstream/generators/split.py",
-      "line": 196,
+      "line": 204,
       "marker": "LARGE_FUNCTION",
       "category": "production",
       "priority": "P1 - High",

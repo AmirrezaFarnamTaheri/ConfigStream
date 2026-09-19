@@ -85,6 +85,8 @@ def _append_chain_uniquified(
     for ob in chain:
         if not isinstance(ob, dict):
             continue
+        if ob.get("type") in {"block", "dns"}:
+            continue
         ob = copy.deepcopy(ob)
         detour = ob.get("detour")
         if isinstance(detour, str) and detour in tag_remap:
@@ -127,6 +129,12 @@ def _append_tank_groups(
     tank_proxy_tags: List[str],
 ) -> bool:
     """Append derived Tank urltest/select groups and report selector availability."""
+    tank_outbounds[:] = [
+        item for item in tank_outbounds if item.get("type") not in {"block", "dns"}
+    ]
+    available_tags = {item.get("tag") for item in tank_outbounds}
+    tank_proxy_tags[:] = [tag for tag in tank_proxy_tags if tag in available_tags]
+
     washed_tags = [
         item["tag"]
         for item in tank_outbounds
