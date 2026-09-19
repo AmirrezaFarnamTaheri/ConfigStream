@@ -30,7 +30,7 @@
     "maturity": "experimental"
   },
   "sing_box": {
-    "release_validator": "1.13.18",
+    "release_validator": "1.14.1",
     "embedded_tester": "1.9.7",
     "embedded_contract": "pre-release-connectivity-screen-only; release artifacts require native release-validator conformance",
     "release_authority": "native-validator-only",
