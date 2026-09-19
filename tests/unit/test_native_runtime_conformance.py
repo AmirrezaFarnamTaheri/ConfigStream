@@ -47,11 +47,11 @@ def test_expected_version_comes_from_release_authority_contract(tmp_path: Path) 
     config = tmp_path / "config"
     config.mkdir()
     (config / "runtime-versions.json").write_text(
-        json.dumps({"sing_box": {"release_validator": "1.13.18"}}),
+        json.dumps({"sing_box": {"release_validator": "1.14.1"}}),
         encoding="utf-8",
     )
 
-    assert expected_singbox_version(tmp_path) == "1.13.18"
+    assert expected_singbox_version(tmp_path) == "1.14.1"
 
 
 def test_conformance_checks_fail_closed_when_probe_evidence_is_missing() -> None:
