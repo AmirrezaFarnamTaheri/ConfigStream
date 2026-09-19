@@ -3,8 +3,8 @@
 
 The private destinations intentionally match Xray rather than Python's
 version-dependent ``ipaddress.is_private`` classification:
-https://github.com/XTLS/Xray-core/blob/v26.7.28/common/geodata/consts.go
-https://github.com/XTLS/Xray-core/blob/v26.7.28/infra/conf/xray.go
+https://github.com/XTLS/Xray-core/blob/v26.9.9/common/geodata/consts.go
+https://github.com/XTLS/Xray-core/blob/v26.9.9/infra/conf/xray.go
 """
 
 from __future__ import annotations
