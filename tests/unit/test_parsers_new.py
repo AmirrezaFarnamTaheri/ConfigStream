@@ -43,13 +43,14 @@ class TestParsers:
     def test_parse_wireguard_reserved(self):
         # Use valid Base64 32-byte private key
         valid_key = "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE="
-        config = f"wireguard://user@1.2.3.4:51820?public_key=pub&private_key={valid_key}&reserved=[1,2,3]&address=10.0.0.1/24#WG"
+        config = f"wireguard://user@1.2.3.4:51820?public_key={valid_key}&private_key={valid_key}&reserved=[1,2,3]&address=10.0.0.1/24#WG"
         proxy = parse_wireguard(config)
         assert proxy is not None
         assert proxy.protocol == "wireguard"
-        config_bad = f"wireguard://user@1.2.3.4:51820?public_key=pub&private_key={valid_key}&reserved=badformat&address=10.0.0.1/24#WG"
+        assert proxy.details["reserved"] == [1, 2, 3]
+        config_bad = f"wireguard://user@1.2.3.4:51820?public_key={valid_key}&private_key={valid_key}&reserved=badformat&address=10.0.0.1/24#WG"
         proxy_bad = parse_wireguard(config_bad)
-        assert proxy_bad is not None
+        assert proxy_bad is None
 
     def test_extract_config_lines(self):
         payload = """
