@@ -65,7 +65,15 @@ def test_generate_categorized_outputs(tmp_path, sample_proxies, warp_keys):
     assert "singbox_full" in files
     assert "clash_full" in files
     assert "base64" in files
+    assert "nekobox_json" in files
     assert "singbox_chains" in files
+
+    nekobox_nodes = json.loads(files["nekobox_json"].read_text(encoding="utf-8"))
+    assert isinstance(nekobox_nodes, list)
+    assert all(
+        item.get("type") not in {"selector", "urltest", "direct", "block", "dns"}
+        for item in nekobox_nodes
+    )
 
     # Check Singbox content
     with open(files["singbox_full"], encoding="utf-8") as f:
@@ -91,6 +99,10 @@ def test_chosen_outputs_generated(tmp_path, sample_proxies):
     assert "chosen_base64" in files
     assert "chosen_proxies_txt" in files
     assert "chosen_singbox" in files
+    assert "chosen_nekobox_json" in files
+    assert isinstance(
+        json.loads(files["chosen_nekobox_json"].read_text(encoding="utf-8")), list
+    )
     # chosen_clash may not be present if generate_clash_config returns empty for few proxies
     # but at least the other three must exist
 
@@ -147,6 +159,8 @@ def test_disabled_dns_modes_emit_empty_required_artifacts_without_building(
     assert files["base64_dns_hardened"].read_text(encoding="utf-8") == ""
     assert files["singbox_dns_safe"].exists()
     assert files["singbox_dns_hardened"].exists()
+    assert files["nekobox_dns_safe"].exists()
+    assert files["nekobox_dns_hardened"].exists()
 
 
 def test_protocol_txt_files_generated(tmp_path, sample_proxies):
