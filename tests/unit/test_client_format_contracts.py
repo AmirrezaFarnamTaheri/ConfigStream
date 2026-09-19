@@ -597,6 +597,52 @@ def test_nekobox_json_subscription_uses_minimal_node_container() -> None:
     assert validate_nekobox_json_subscription(payload) == []
 
 
+def test_nekobox_json_subscription_excludes_nonworking_nodes() -> None:
+    working = Proxy(
+        config="vless://00000000-0000-0000-0000-000000000001@example.com:443#working",
+        protocol="vless",
+        address="example.com",
+        port=443,
+        uuid="00000000-0000-0000-0000-000000000001",
+        remarks="working",
+        is_working=True,
+        details={"security": "tls", "sni": "example.com"},
+    )
+    failed = Proxy(
+        config="vless://00000000-0000-0000-0000-000000000002@example.net:443#failed",
+        protocol="vless",
+        address="example.net",
+        port=443,
+        uuid="00000000-0000-0000-0000-000000000002",
+        remarks="failed",
+        is_working=False,
+        details={"security": "tls", "sni": "example.net"},
+    )
+
+    payload = json.loads(generate_nekobox_json_subscription([failed, working]))
+
+    assert [item["tag"] for item in payload["outbounds"]] == ["working"]
+    assert payload["endpoints"] == []
+
+
+def test_nekobox_json_subscription_is_empty_when_no_nodes_are_working() -> None:
+    failed = Proxy(
+        config="vless://00000000-0000-0000-0000-000000000003@example.org:443#failed",
+        protocol="vless",
+        address="example.org",
+        port=443,
+        uuid="00000000-0000-0000-0000-000000000003",
+        remarks="failed",
+        is_working=False,
+        details={"security": "tls", "sni": "example.org"},
+    )
+
+    payload = json.loads(generate_nekobox_json_subscription([failed]))
+
+    assert payload == {"outbounds": [], "endpoints": []}
+    assert validate_nekobox_json_subscription(payload) == []
+
+
 def test_nekobox_json_subscription_rejects_raw_root_array() -> None:
     errors = validate_nekobox_json_subscription([{"type": "vless", "tag": "node"}])
 
