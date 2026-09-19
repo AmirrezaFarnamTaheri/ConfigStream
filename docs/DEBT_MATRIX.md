@@ -265,7 +265,7 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - L144 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/generators/split.py`
-- L123 [`LARGE_FUNCTION`] **P1 - High**: `Function generate_split_outputs spans 392 lines (threshold: 300).`
+- L194 [`LARGE_FUNCTION`] **P1 - High**: `Function generate_split_outputs spans 329 lines (threshold: 300).`
 
 ### `src/configstream/geoip.py`
 - L98 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
