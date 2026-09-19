@@ -548,7 +548,7 @@
       "marker": "LARGE_FUNCTION",
       "category": "production",
       "priority": "P1 - High",
-      "text": "Function to_singbox_outbound spans 558 lines (threshold: 300)."
+      "text": "Function to_singbox_outbound spans 557 lines (threshold: 300)."
     },
     {
       "path": "src/configstream/converters/singbox.py",
