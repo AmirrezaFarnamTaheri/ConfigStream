@@ -113,18 +113,14 @@ def test_split_generator_uses_canonical_chain_details(tmp_path) -> None:
         assert "warp-hop" not in outbound_tags
         assert "warp-hop" in endpoint_tags
         assert all(
-            ob.get("type") not in {"wireguard", "block", "dns"}
-            for ob in outbounds
+            ob.get("type") not in {"wireguard", "block", "dns"} for ob in outbounds
         )
         assert validate_singbox_config(payload, files[key].name) == []
 
     vpn = json.loads(files["singbox_vpn"].read_text(encoding="utf-8"))
     assert vpn["inbounds"][0]["address"] == ["172.19.0.1/30"]
     assert "inet4_address" not in vpn["inbounds"][0]
-    assert any(
-        rule.get("action") == "hijack-dns"
-        for rule in vpn["route"]["rules"]
-    )
+    assert any(rule.get("action") == "hijack-dns" for rule in vpn["route"]["rules"])
 
 
 def test_invalid_canonical_chain_does_not_restore_stale_legacy_path() -> None:
