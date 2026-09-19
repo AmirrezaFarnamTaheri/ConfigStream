@@ -45,6 +45,15 @@ def _collect_tagged_items(
             tag = item.get("tag")
             if not isinstance(item_type, str) or not item_type:
                 errors.append(f"{file_name} {collection_name}[{index}] missing type")
+            elif collection_name == "outbounds" and item_type in {
+                "block",
+                "dns",
+                "wireguard",
+            }:
+                errors.append(
+                    f"{file_name} {collection_name}[{index}] uses legacy "
+                    f"{item_type} outbound shape"
+                )
             if not isinstance(tag, str) or not tag:
                 errors.append(f"{file_name} {collection_name}[{index}] missing tag")
                 continue
