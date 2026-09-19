@@ -64,9 +64,9 @@ def test_singbox_endpoint_only_config_is_valid_reference_surface() -> None:
 
 
 def test_singbox_requires_at_least_one_outbound_or_endpoint() -> None:
-    assert validate_singbox_config({"outbounds": [], "endpoints": []}, "empty.json") == [
-        "empty.json must define at least one outbound or endpoint"
-    ]
+    assert validate_singbox_config(
+        {"outbounds": [], "endpoints": []}, "empty.json"
+    ) == ["empty.json must define at least one outbound or endpoint"]
 
 
 def test_mihomo_accepts_dialer_proxy_and_rejects_relay() -> None:
@@ -234,7 +234,7 @@ def test_xray_wireguard_drops_unrepresentable_peer_reserved_conflict() -> None:
 def test_xray_wireguard_drops_malformed_numeric_metadata(
     field: str, value: object
 ) -> None:
-    details = {
+    details: dict[str, object] = {
         "private_key": "00" * 32,
         "peer_public_key": "11" * 32,
         "local_address": ["172.16.0.2/32"],
