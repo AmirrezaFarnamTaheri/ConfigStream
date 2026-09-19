@@ -239,6 +239,32 @@ def test_verify_pages_deployment_accepts_valid_site(tmp_path: Path) -> None:
         server.server_close()
 
 
+def test_verify_pages_deployment_explicit_unsigned_allows_empty_runtime_key(
+    tmp_path: Path,
+) -> None:
+    _write_site(
+        tmp_path,
+        runtime_config='window.CS_RUNTIME_CONFIG = { PUBLIC_KEY: "", STEGO_KEY: "stego-key" };\n',
+    )
+    server, url = _serve(tmp_path)
+    try:
+        strict_errors = verify_pages_deployment(url, timeout=5.0)
+        unsigned_errors = verify_pages_deployment(
+            url,
+            timeout=5.0,
+            allow_unsigned=True,
+        )
+    finally:
+        server.shutdown()
+        server.server_close()
+
+    assert any(
+        "missing PUBLIC_KEY outside explicit unsigned mode" in error
+        for error in strict_errors
+    )
+    assert unsigned_errors == []
+
+
 def test_verify_pages_deployment_rejects_stale_metadata(tmp_path: Path) -> None:
     _write_site(tmp_path)
     metadata_path = tmp_path / "metadata.json"

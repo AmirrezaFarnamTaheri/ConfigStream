@@ -279,6 +279,7 @@ def verify_pages_deployment(
     expected_run_id: str | None = None,
     expected_digest: str | None = None,
     public_key: str | None = None,
+    allow_unsigned: bool = False,
 ) -> list[str]:
     errors: list[str] = []
     parsed = urllib.parse.urlparse(base_url)
@@ -301,8 +302,10 @@ def verify_pages_deployment(
     _assert_ok(runtime_config, errors)
     runtime_text = runtime_config.text
     _assert_no_placeholders("assets/js/runtime-config.js", runtime_text, errors)
-    if 'PUBLIC_KEY: ""' in runtime_text:
-        errors.append("assets/js/runtime-config.js is missing PUBLIC_KEY")
+    if 'PUBLIC_KEY: ""' in runtime_text and not allow_unsigned:
+        errors.append(
+            "assets/js/runtime-config.js is missing PUBLIC_KEY outside explicit unsigned mode"
+        )
     if 'STEGO_KEY: ""' in runtime_text:
         errors.append("assets/js/runtime-config.js is missing STEGO_KEY")
 
@@ -471,6 +474,11 @@ def main(argv: list[str] | None = None) -> int:
         default=os.getenv("CS_PUBLIC_KEY"),
         help="Public key hex or base64 SPKI to verify manifest detached signature",
     )
+    parser.add_argument(
+        "--allow-unsigned",
+        action="store_true",
+        help="allow an empty browser public key for an explicitly unsigned deployment",
+    )
     parser.add_argument("--report-file", help="Path to save JSON report")
     args = parser.parse_args(argv)
 
@@ -481,6 +489,7 @@ def main(argv: list[str] | None = None) -> int:
         expected_run_id=args.expected_run_id,
         expected_digest=args.expected_digest,
         public_key=args.public_key,
+        allow_unsigned=args.allow_unsigned,
     )
 
     if args.report_file:

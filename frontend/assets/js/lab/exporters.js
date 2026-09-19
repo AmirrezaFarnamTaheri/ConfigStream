@@ -577,6 +577,9 @@ export function buildXrayJson(chainConfig) {
     return JSON.stringify(xray, null, 2);
 }
 
+// Laboratory chains are dependency graphs, so this export intentionally uses
+// NekoBox's full sing-box profile import URI. It is not the flat multi-node
+// subscription shape published as /nekobox.json.
 export function buildNekoboxLink(chainConfig) {
     if (!chainConfig) return '';
     const modern = buildSingboxConfig(chainConfig);

@@ -90,3 +90,24 @@ def test_finalizer_modernizes_nested_public_singbox_configs(tmp_path: Path) -> N
     ):
         payload = json.loads((output / relative).read_text(encoding="utf-8"))
         assert payload["outbounds"] == [{"type": "direct", "tag": "direct"}]
+
+
+def test_nekobox_node_container_is_not_discovered_as_full_singbox_config(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "singbox.json").write_text(
+        '{"outbounds": [{"type": "direct", "tag": "direct"}]}',
+        encoding="utf-8",
+    )
+    (tmp_path / "nekobox.json").write_text(
+        '{"outbounds": [{"type": "vless", "tag": "node"}], "endpoints": []}',
+        encoding="utf-8",
+    )
+
+    discovered = {
+        path.relative_to(tmp_path).as_posix()
+        for path in discover_singbox_configs(tmp_path)
+    }
+
+    assert "singbox.json" in discovered
+    assert "nekobox.json" not in discovered

@@ -48,7 +48,7 @@ def test_pages_deployment_requires_rollback_baseline() -> None:
     assert "--required-stage rollback-baseline" in workflow_text
 
 
-def test_pages_bootstrap_exception_is_explicit_manual_input_only() -> None:
+def test_pages_bootstrap_requires_manual_override_or_proven_missing_manifest() -> None:
     workflow = _workflow()
     triggers = workflow.get("on") or workflow.get(True)
     assert isinstance(triggers, dict)
@@ -73,6 +73,7 @@ def test_pages_bootstrap_exception_is_explicit_manual_input_only() -> None:
     assert "github.event_name == 'workflow_dispatch'" in expression
     assert "inputs.allow_bootstrap_without_lkg" in expression
     assert "workflow_run" not in expression
-    assert "Explicit manual bootstrap approved without a rollback baseline" in str(
-        gate.get("run") or ""
-    )
+    gate_run = str(gate.get("run") or "")
+    assert "Explicit manual bootstrap approved without a rollback baseline" in gate_run
+    assert 'payload.get("failure_kind") == "missing_manifest"' in gate_run
+    assert "Automatic first-deployment bootstrap approved" in gate_run

@@ -66,7 +66,7 @@ Export the chain configuration to any supported format:
 | **Sing-Box JSON** | Native sing-box configuration with full outbound chain |
 | **Clash YAML** | Clash Meta (Mihomo) compatible YAML with proxy groups |
 | **Xray JSON** | V2Ray/Xray JSON configuration with transport and TLS |
-| **Nekobox Link** | Shareable link for NekoBox import |
+| **NekoBox Full-Profile Link** | Shareable full sing-box profile import; the chain remains one custom profile because its outbounds depend on each other |
 | **URI** | Standard proxy URI for clipboard sharing |
 | **QR Code** | Scannable QR code for mobile import |
 | **Python Script** | Standalone Python script that runs the chain |

@@ -2,6 +2,8 @@
 """Ratchet the release controls that must never be weakened."""
 
 from __future__ import annotations
+
+import json
 from pathlib import Path
 
 
@@ -73,6 +75,9 @@ def validate(root: Path) -> list[str]:
         "python scripts/snapshot_pages_release.py",
         "last-known-good",
         "HAS_LKG=true",
+        "snapshot_args+=(--allow-unsigned)",
+        'payload.get("failure_kind") == "missing_manifest"',
+        "Automatic first-deployment bootstrap approved",
     )
     for control in snapshot_controls:
         if control not in deploy:
@@ -101,12 +106,36 @@ def validate(root: Path) -> list[str]:
         )
 
     unsigned_policy_binding = (
-        "ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'false' }}"
+        "VARIABLE_ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES }}"
     )
-    if deploy.count(unsigned_policy_binding) < 4:
+    if unsigned_policy_binding not in deploy:
         errors.append(
-            "Pages deployment must bind the explicit unsigned-mode policy at every verification boundary"
+            "Pages deployment must expose the repository variable to the trust-policy resolver"
         )
+    for control in (
+        "Resolve Pages unsigned trust policy",
+        "config/pages-trust-policy.json",
+        "bound_repository == repository and committed_allow",
+        'echo "ALLOW_UNSIGNED_PAGES=$resolved" >> "$GITHUB_ENV"',
+    ):
+        if control not in deploy:
+            errors.append(
+                f"Pages deployment missing repository-bound unsigned policy control: {control}"
+            )
+
+    policy_path = root / "config/pages-trust-policy.json"
+    try:
+        policy = json.loads(policy_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        errors.append(f"Pages trust policy is unreadable: {exc}")
+    else:
+        if policy.get("schema_version") != 1:
+            errors.append("Pages trust policy schema_version must be 1")
+        repository = policy.get("repository")
+        if not isinstance(repository, str) or not repository.strip():
+            errors.append("Pages trust policy must bind a non-empty repository")
+        if not isinstance(policy.get("allow_unsigned_pages"), bool):
+            errors.append("Pages trust policy allow_unsigned_pages must be boolean")
 
     if deploy.count("validate_pages_signature_policy.py output") < 2:
         errors.append(
@@ -123,6 +152,10 @@ def validate(root: Path) -> list[str]:
     if "signature_policy_args+=(--allow-unsigned)" not in deploy:
         errors.append(
             "unsigned Pages publication must require an explicit policy argument"
+        )
+    if deploy.count("verify_args+=(--allow-unsigned)") < 2:
+        errors.append(
+            "explicit unsigned Pages policy must reach candidate and rollback live smoke verification"
         )
     if 'verify_args+=(--public-key "$CS_PUBLIC_KEY")' not in deploy:
         errors.append(

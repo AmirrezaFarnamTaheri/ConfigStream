@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+- **Pages deployment and NekoBox subscription repair**: Aligned Pages with the pipeline's optional-signing mode while preserving fail-closed verification for signed artifacts, added exact-404 first-deployment bootstrap when no rollback manifest exists, and introduced dedicated minimal `nekobox*.json` outbounds/endpoints containers so NekoBox can import separate nodes without misusing complete sing-box/Xray profile documents. Updated validators, output contracts, frontend client routing, localized descriptions, compatibility docs, and regression coverage.
+
 - **Sing-box 1.13 WireGuard and dependency security repair**: Migrated legacy WireGuard outbounds to canonical top-level endpoints across native probes, release finalization, and the live/browser Laboratory; added fail-closed endpoint validation with client-safe 400 responses while preserving multi-peer, dual-stack, and documented zero-default semantics; upgraded SoupSieve to 2.9.0 for CVE-2026-85999/CVE-2026-86000 with regenerated supply-chain evidence; and hardened Laboratory scanner custom-proxy URI parsing, including bracketed IPv6.
 
 - **Partial-run availability**: Lowered usable-source coverage from 80% to 70% and allow tester infrastructure errors up to 5% of attempted tests when working results exist. Timing-based resharding accepts 50% runtime-source coverage while requiring 80% canonical identity mapping. Native validation and working-output requirements remain enforced; invalid threshold overrides are rejected.

@@ -25,7 +25,7 @@ The main pipeline runs on schedule, manual dispatch, and pushes to `main`. Sourc
 
 Current concurrency rules:
 
-- `main.yml`: one run per workflow/ref; non-main refs can cancel in progress. A dedicated preemption workflow cancels obsolete main runs while preserving the newest production request.
+- `main.yml`: one run per workflow/ref; non-main refs can cancel in progress. A dedicated preemption workflow cancels obsolete different-SHA main runs. If a cron request targets the exact commit already being processed, the new scheduled duplicate is cancelled so completed shard work on the active same-SHA run is preserved.
 - `retest.yml`: one active retest per workflow/ref. Its schedule is offset between main cycles, and any queued/running main pipeline has priority; when a main run is requested, the preemption workflow cancels queued/running Retest work so production validation never competes with it.
 - `deploy-pages.yml`: one Pages deployment at a time.
 
@@ -45,7 +45,7 @@ The production pipeline uses dynamic source batch discovery:
 
 The deploy workflow must consume exactly one canonical `pipeline-output` artifact from exactly one successful `Config's Stream` run on `main`. It must not assemble mixed artifacts from multiple runs, accept `Retest` as a release producer, or accept pull-request/fork workflow output. Retest can regenerate an output contract after rechecking proxies, but it does not execute the full production release-gate/native/promotion sequence and is therefore intentionally non-deployable.
 
-Before deployment the workflow snapshots the currently served, policy-verified release. The candidate and rollback uploads use distinct Pages artifact names; a failed candidate smoke triggers restoration and still leaves the workflow failed closed.
+Before deployment the workflow snapshots the currently served, policy-verified release. On a true first deployment, an exact HTTP 404 for `artifact_manifest.json` from the trusted Pages origin is recorded as machine-readable `missing_manifest` evidence and may bootstrap the rollback gate; other snapshot failures remain blocking. The candidate and rollback uploads use distinct Pages artifact names; a failed candidate smoke triggers restoration and still leaves the workflow failed closed.
 
 ## 4. Pages Artifact Contract & Deployment Dependency Closure
 
@@ -63,7 +63,7 @@ python scripts/validate_pages_artifact.py output
 
 - a signed artifact always requires a valid configured `CS_PUBLIC_KEY` and cryptographic manifest verification;
 - a signed artifact can never be downgraded to unsigned treatment;
-- genuinely unsigned Pages publication is rejected unless repository Variable `ALLOW_UNSIGNED_PAGES=true` is explicitly configured;
+- genuinely unsigned Pages publication is accepted only when the resolved policy explicitly permits it: a repository-bound `config/pages-trust-policy.json` match or repository Variable `ALLOW_UNSIGNED_PAGES=true`; an explicit variable value of `false` disables the committed default;
 - the same signed/explicit-unsigned policy is applied to the candidate, last-known-good snapshot, deployed candidate, and restored rollback release.
 
 ### 4.1 Dependency Closure & Fail-Closed Publication
@@ -178,7 +178,7 @@ The deploy workflow must install its verifier environment from a pinned, complet
 Internal manifest consistency is insufficient: a consistently old site can pass self-hash checks. A successful live verification must bind the response to the candidate by checking all of the following after propagation polling and cache-bypassed fetches:
 
 1. Expected source commit or immutable candidate identifier.
-2. Expected workflow run identifier and manifest digest. In signed mode, the detached/manifest signature must verify against configured `CS_PUBLIC_KEY`. A signed artifact without that trust anchor is invalid. Genuinely unsigned Pages publication is allowed only when `ALLOW_UNSIGNED_PAGES=true` is explicitly configured.
+2. Expected workflow run identifier and manifest digest. In signed mode, the detached/manifest signature must verify against configured `CS_PUBLIC_KEY`. A signed artifact without that trust anchor is invalid. Genuinely unsigned Pages publication is allowed only by the resolved explicit policy (matching repository-bound policy or repository Variable `ALLOW_UNSIGNED_PAGES=true`).
 3. Metadata generation time against the configured freshness policy.
 4. Required route/bootstrap asset hashes, including runtime configuration.
 

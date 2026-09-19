@@ -8,9 +8,13 @@ import json
 import pytest
 from pathlib import Path
 
+from configstream.models import Proxy
+
 from configstream.output.client_formats import (
+    generate_nekobox_json_subscription,
     generate_xray_config,
     validate_mihomo_config,
+    validate_nekobox_json_subscription,
     validate_nekobox_subscriptions,
     validate_xray_config,
 )
@@ -557,3 +561,115 @@ def test_output_matrix_declares_xray_contract() -> None:
     xray = next(item for item in matrix["outputs"] if item["path"] == "xray.json")
     assert xray["core_format"] == "xray"
     assert xray["artifact_type"] == "full_config"
+
+
+def test_nekobox_json_subscription_uses_minimal_node_container() -> None:
+    proxies = [
+        Proxy(
+            config="vless://00000000-0000-0000-0000-000000000001@example.com:443#node-a",
+            protocol="vless",
+            address="example.com",
+            port=443,
+            uuid="00000000-0000-0000-0000-000000000001",
+            remarks="node-a",
+            is_working=True,
+            details={"security": "tls", "sni": "example.com"},
+        ),
+        Proxy(
+            config="vless://00000000-0000-0000-0000-000000000002@example.net:443#node-b",
+            protocol="vless",
+            address="example.net",
+            port=443,
+            uuid="00000000-0000-0000-0000-000000000002",
+            remarks="node-b",
+            is_working=True,
+            details={"security": "tls", "sni": "example.net"},
+        ),
+    ]
+
+    payload = json.loads(generate_nekobox_json_subscription(proxies))
+
+    assert set(payload) == {"outbounds", "endpoints"}
+    assert [item["tag"] for item in payload["outbounds"]] == ["node-a", "node-b"]
+    assert payload["endpoints"] == []
+    assert all(item["type"] == "vless" for item in payload["outbounds"])
+    assert all("detour" not in item for item in payload["outbounds"])
+    assert validate_nekobox_json_subscription(payload) == []
+
+
+def test_nekobox_json_subscription_rejects_raw_root_array() -> None:
+    errors = validate_nekobox_json_subscription([{"type": "vless", "tag": "node"}])
+
+    assert errors == [
+        "nekobox.json must be a JSON object containing outbounds/endpoints arrays"
+    ]
+
+
+def test_nekobox_json_subscription_rejects_full_profile_keys() -> None:
+    errors = validate_nekobox_json_subscription(
+        {
+            "outbounds": [{"type": "vless", "tag": "node"}],
+            "endpoints": [],
+            "route": {"final": "node"},
+        }
+    )
+
+    assert any("unsupported top-level keys: route" in error for error in errors)
+
+
+def test_nekobox_json_subscription_rejects_helper_and_detour_nodes() -> None:
+    errors = validate_nekobox_json_subscription(
+        {
+            "outbounds": [
+                {"type": "selector", "tag": "group", "outbounds": ["node"]},
+                {"type": "vless", "tag": "node", "detour": "relay"},
+            ],
+            "endpoints": [],
+        }
+    )
+
+    assert any("helper type selector" in error for error in errors)
+    assert any("has detour" in error for error in errors)
+
+
+def test_nekobox_json_subscription_modernizes_wireguard_to_endpoint() -> None:
+    private_key = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    public_key = "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE="
+    proxy = Proxy(
+        config=f"wireguard://{private_key}@162.159.192.1:2408#warp",
+        protocol="wireguard",
+        address="162.159.192.1",
+        port=2408,
+        remarks="warp",
+        is_working=True,
+        details={
+            "private_key": private_key,
+            "peer_public_key": public_key,
+            "local_address": ["10.0.0.2/32"],
+            "allowed_ips": ["0.0.0.0/0"],
+            "mtu": 1280,
+        },
+    )
+
+    payload = json.loads(generate_nekobox_json_subscription([proxy]))
+
+    assert payload["outbounds"] == []
+    assert len(payload["endpoints"]) == 1
+    endpoint = payload["endpoints"][0]
+    assert endpoint["type"] == "wireguard"
+    assert endpoint["tag"] == "warp"
+    assert endpoint["address"] == ["10.0.0.2/32"]
+    assert endpoint["peers"][0]["address"] == "162.159.192.1"
+    assert endpoint["peers"][0]["port"] == 2408
+    assert validate_nekobox_json_subscription(payload) == []
+
+
+def test_nekobox_json_subscription_rejects_legacy_wireguard_outbound() -> None:
+    errors = validate_nekobox_json_subscription(
+        {
+            "outbounds": [{"type": "wireguard", "tag": "legacy"}],
+            "endpoints": [],
+        }
+    )
+
+    assert any("legacy WireGuard outbound shape" in error for error in errors)

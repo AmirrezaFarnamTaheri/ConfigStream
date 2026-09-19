@@ -44,6 +44,23 @@ The Pages validator performs structural checks before optional native-client val
 
 ## NekoBox and v2rayN subscriptions
 
+NekoBox has two materially different JSON import surfaces. A complete sing-box
+configuration object with routing, DNS, or inbound policy is a **profile** and
+therefore imports as one custom configuration. ConfigStream publishes
+`nekobox.json`, `nekobox-dns-safe.json`, and
+`nekobox-dns-hardened.json` specifically for NekoBox's **multi-node**
+subscription updater: the document is a minimal JSON object whose top-level
+`outbounds` and `endpoints` arrays are expanded into separate nodes. It
+contains no routing/DNS/inbound profile policy; tags are unique, helper groups
+and dependency-bearing detours are absent, and WireGuard is emitted under the
+sing-box 1.13+ `endpoints` array. Chosen variants use the same contract under
+`chosen/nekobox*.json`.
+
+The complete `singbox*.json` and `xray.json` artifacts remain full client
+configuration documents. They must not be relabeled or reshaped as node
+subscriptions because doing so would discard their DNS, routing, inbound, and
+policy semantics.
+
 Plaintext subscription files and their Base64 counterparts are contract pairs:
 
 - `proxies.txt` and `base64.txt`
@@ -54,7 +71,7 @@ Each plaintext file must be valid UTF-8 and contain syntactically valid share-li
 
 ## Compatibility and regression evidence
 
-Fixtures and regression tests exercise valid and invalid endpoint references, selector fallback, Mihomo chaining, Xray structure, subscription parity, metadata schema compliance, public sanitisation, and complete generated Pages artifacts. The pre-fix CI runs demonstrated the previous contract mismatches; the repair-focused suite passes only after the generator, validator, fixture, matrix, and documentation assumptions are aligned.
+Fixtures and regression tests exercise valid and invalid endpoint references, selector fallback, Mihomo chaining, Xray structure, NekoBox node-container shape, subscription parity, metadata schema compliance, public sanitisation, and complete generated Pages artifacts. The pre-fix CI runs demonstrated the previous contract mismatches; the repair-focused suite passes only after the generator, validator, fixture, matrix, and documentation assumptions are aligned.
 
 
 ### HTTP authentication and native fallback lifecycle

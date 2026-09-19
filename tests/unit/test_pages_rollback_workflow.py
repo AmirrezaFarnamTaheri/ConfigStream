@@ -24,7 +24,7 @@ def test_pages_workflow_snapshots_and_restores_last_known_good() -> None:
     assert "artifact_name: github-pages-last-known-good" in workflow
 
 
-def test_pages_workflow_requires_verified_rollback_baseline_before_deploy() -> None:
+def test_pages_workflow_requires_rollback_baseline_or_proven_first_deploy() -> None:
     workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
     assert "allow_bootstrap_without_lkg" in workflow
     assert "Require rollback baseline before production mutation" in workflow
@@ -34,3 +34,6 @@ def test_pages_workflow_requires_verified_rollback_baseline_before_deploy() -> N
     assert "env.DEPLOY_READY == 'true' && env.ROLLBACK_READY == 'true'" in workflow
     assert "github.event_name == 'workflow_dispatch'" in workflow
     assert "inputs.allow_bootstrap_without_lkg" in workflow
+    assert 'payload.get("failure_kind") == "missing_manifest"' in workflow
+    assert "Automatic first-deployment bootstrap approved" in workflow
+    assert "snapshot_args+=(--allow-unsigned)" in workflow

@@ -238,7 +238,7 @@ def _write_output_fixture(root: Path) -> None:
         }:
             _write_text(target, _proxy_fixture())
         elif rel_path.endswith(".json"):
-            _write_text(target, "{}")
+            _write_text(target, '{"outbounds":[]}' if "nekobox" in rel_path else "{}")
         else:
             _write_text(target)
     (root / ".nojekyll").touch()

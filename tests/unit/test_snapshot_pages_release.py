@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sys
 import threading
 from datetime import datetime, timedelta, timezone
 from http.server import (
@@ -235,6 +236,35 @@ def test_snapshot_rejects_manifest_paths_with_url_components(value: str) -> None
         snapshot_pages_release._safe_relative(value)
 
 
+def test_snapshot_cli_records_missing_manifest_for_safe_bootstrap(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    def missing_manifest(url: str, timeout: float, pins=None) -> bytes:
+        del timeout, pins
+        raise snapshot_pages_release.SnapshotHTTPError(404, url)
+
+    report_file = tmp_path / "snapshot-report.json"
+    monkeypatch.setattr(snapshot_pages_release, "_fetch", missing_manifest)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "snapshot_pages_release.py",
+            "https://example.com/",
+            str(tmp_path / "snapshot"),
+            "--report-file",
+            str(report_file),
+            "--allow-unsigned",
+        ],
+    )
+
+    assert snapshot_pages_release.main() == 1
+    report = json.loads(report_file.read_text(encoding="utf-8"))
+    assert report["status"] == "failed"
+    assert report["failure_kind"] == "missing_manifest"
+    assert report["error_type"] == "SnapshotHTTPError"
+
+
 def test_public_snapshot_requires_configured_key(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -244,6 +274,41 @@ def test_public_snapshot_requires_configured_key(
     with pytest.raises(ValueError, match="configured CS_PUBLIC_KEY"):
         snapshot_pages_release.snapshot(
             "https://example.com/", tmp_path / "snapshot", public_key=""
+        )
+
+
+def test_public_snapshot_accepts_explicit_unsigned_mode(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    site = tmp_path / "site"
+    payloads = _build_site(site)
+    monkeypatch.setattr(snapshot_pages_release, "_fetch", _remote_fetcher(payloads))
+
+    report = snapshot_pages_release.snapshot(
+        "https://example.com/",
+        tmp_path / "snapshot",
+        public_key="",
+        allow_unsigned=True,
+    )
+
+    assert report["manifest_signature_verified"] is False
+    assert report["local_source"] is False
+
+
+def test_public_snapshot_never_downgrades_signed_artifact_to_unsigned(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    signer = Signer("11" * 32)
+    site = tmp_path / "site"
+    payloads = _build_site(site, signer=signer)
+    monkeypatch.setattr(snapshot_pages_release, "_fetch", _remote_fetcher(payloads))
+
+    with pytest.raises(ValueError, match="cannot be verified without CS_PUBLIC_KEY"):
+        snapshot_pages_release.snapshot(
+            "https://example.com/",
+            tmp_path / "snapshot",
+            public_key="",
+            allow_unsigned=True,
         )
 
 

@@ -142,7 +142,7 @@ All chain configs are exported in formats compatible with the three major proxy 
 *   **Manual Fallback**: On static hosting such as GitHub Pages, labels the page as manual-test mode and provides `sing-box run -c` commands for local testing.
 
 ### Step 5: Export
-*   **Formats**: Sing-box JSON, Clash YAML, Xray JSON, Nekobox link, raw URI, offline QR payload, Python script, Bash script.
+*   **Formats**: Sing-box JSON, Clash YAML, Xray JSON, NekoBox full-profile link, raw URI, offline QR payload, Python script, Bash script. The Lab link intentionally imports a chain as one profile; the pipeline's `nekobox.json` artifact is the separate-node subscription surface.
 *   **File Download**: One-click download of the generated config.
 *   **Import Guide**: Step-by-step instructions for Hiddify, Clash Verge, V2RayN, V2RayNG, Nekobox.
 

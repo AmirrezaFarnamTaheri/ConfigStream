@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Regression coverage for the Pages workflow-run deployment contract."""
 
+import json
 from pathlib import Path
 
 WORKFLOW = (
@@ -67,11 +68,16 @@ def test_pages_signature_policy_is_explicit_at_every_trust_boundary() -> None:
     workflow = _workflow_text()
 
     assert workflow.count("CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}") >= 4
-    assert (
-        workflow.count(
-            "ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES || 'false' }}"
+    assert "VARIABLE_ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES }}" in workflow
+    assert "Resolve Pages unsigned trust policy" in workflow
+    assert "config/pages-trust-policy.json" in workflow
+    policy = json.loads(
+        (WORKFLOW.parents[2] / "config" / "pages-trust-policy.json").read_text(
+            encoding="utf-8"
         )
-        >= 4
     )
+    assert policy["repository"] == "AmirrezaFarnamTaheri/ConfigStream"
+    assert policy["allow_unsigned_pages"] is True
     assert workflow.count('signature_policy_args+=(--public-key "$CS_PUBLIC_KEY")') >= 4
     assert workflow.count("signature_policy_args+=(--allow-unsigned)") >= 4
+    assert workflow.count("verify_args+=(--allow-unsigned)") >= 2

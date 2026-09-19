@@ -164,6 +164,51 @@
       "validation": "UTF-8 share-link syntax"
     },
     {
+      "path": "nekobox.json",
+      "family": "nekobox",
+      "category": "subscription",
+      "format": "json",
+      "required": true,
+      "nonempty": false,
+      "schema_validation": false,
+      "degraded_valid": true,
+      "notes": "NekoBox multi-node JSON subscription. A minimal object exposes standalone nodes through outbounds/endpoints arrays; unlike singbox.json it has no routing, DNS, or inbound profile policy.",
+      "client_compatibility": [
+        "NekoBox"
+      ],
+      "validation": "minimal JSON object with outbounds/endpoints arrays; unique tags; no profile keys, helper groups, or detours; WireGuard under endpoints"
+    },
+    {
+      "path": "nekobox-dns-safe.json",
+      "family": "nekobox",
+      "category": "subscription",
+      "format": "json",
+      "required": true,
+      "nonempty": false,
+      "schema_validation": false,
+      "degraded_valid": true,
+      "notes": "DNS-safe NekoBox multi-node JSON subscription; empty is valid when no compatible nodes are available.",
+      "client_compatibility": [
+        "NekoBox"
+      ],
+      "validation": "minimal JSON object with outbounds/endpoints arrays; unique tags; no profile keys, helper groups, or detours; WireGuard under endpoints"
+    },
+    {
+      "path": "nekobox-dns-hardened.json",
+      "family": "nekobox",
+      "category": "subscription",
+      "format": "json",
+      "required": true,
+      "nonempty": false,
+      "schema_validation": false,
+      "degraded_valid": true,
+      "notes": "DNS-hardened NekoBox multi-node JSON subscription; empty is valid when no compatible nodes are available.",
+      "client_compatibility": [
+        "NekoBox"
+      ],
+      "validation": "minimal JSON object with outbounds/endpoints arrays; unique tags; no profile keys, helper groups, or detours; WireGuard under endpoints"
+    },
+    {
       "path": "singbox.json",
       "family": "singbox",
       "category": "subscription",
@@ -470,6 +515,51 @@
       "schema_validation": false,
       "degraded_valid": true,
       "notes": "Chosen top-N newline-delimited share-link subscription; empty is valid when no proxies are selected."
+    },
+    {
+      "path": "chosen/nekobox.json",
+      "family": "chosen",
+      "category": "subscription",
+      "format": "json",
+      "required": true,
+      "nonempty": false,
+      "schema_validation": false,
+      "degraded_valid": true,
+      "notes": "Chosen top-N NekoBox multi-node JSON subscription.",
+      "client_compatibility": [
+        "NekoBox"
+      ],
+      "validation": "minimal JSON object with outbounds/endpoints arrays; unique tags; no profile keys, helper groups, or detours; WireGuard under endpoints"
+    },
+    {
+      "path": "chosen/nekobox-dns-safe.json",
+      "family": "chosen",
+      "category": "subscription",
+      "format": "json",
+      "required": true,
+      "nonempty": false,
+      "schema_validation": false,
+      "degraded_valid": true,
+      "notes": "Chosen DNS-safe NekoBox multi-node JSON subscription.",
+      "client_compatibility": [
+        "NekoBox"
+      ],
+      "validation": "minimal JSON object with outbounds/endpoints arrays; unique tags; no profile keys, helper groups, or detours; WireGuard under endpoints"
+    },
+    {
+      "path": "chosen/nekobox-dns-hardened.json",
+      "family": "chosen",
+      "category": "subscription",
+      "format": "json",
+      "required": true,
+      "nonempty": false,
+      "schema_validation": false,
+      "degraded_valid": true,
+      "notes": "Chosen DNS-hardened NekoBox multi-node JSON subscription.",
+      "client_compatibility": [
+        "NekoBox"
+      ],
+      "validation": "minimal JSON object with outbounds/endpoints arrays; unique tags; no profile keys, helper groups, or detours; WireGuard under endpoints"
     },
     {
       "path": "chosen/singbox.json",

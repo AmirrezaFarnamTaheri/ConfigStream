@@ -125,10 +125,11 @@ Key points:
 GitHub Pages is the primary publication target. The intended schedule is every four hours, but users must treat `health.json`, `metadata.json`, and `artifact_manifest.json` as the authority for current health, freshness, source commit, and artifact identity. The frontend disables copy/download controls when those checks fail.
 
 Primary outputs:
-- singbox.json: smart routing profile
-- singbox-vpn.json: TUN or VPN profile
+- singbox.json: complete sing-box smart-routing profile (one profile document)
+- singbox-vpn.json: complete sing-box TUN or VPN profile
+- nekobox.json: NekoBox multi-node JSON subscription (minimal outbounds/endpoints container)
 - clash.yaml: Clash-compatible
-- base64.txt: universal subscription
+- base64.txt: universal share-link subscription
 - chosen/base64.txt: curated low-latency subset
 
 Derived outputs:
@@ -140,6 +141,7 @@ Derived outputs:
 
 Output notes:
 - Base64 and plaintext subscriptions include both native and revived proxy URIs for maximum coverage.
+- `nekobox*.json` is a minimal JSON object containing only independent `outbounds`/`endpoints` arrays, which NekoBox expands into separate nodes. Complete `singbox*.json` and `xray.json` documents remain full client profiles and are not interchangeable with node subscriptions.
 - JSON datasets expose metadata and stats used by the frontend and external tooling.
 - DNS-safe variants are available for all major outputs with the `-dns-safe` suffix (IP-only / pre-resolved endpoints). This is a strict subset — proxies that fail resolution are dropped.
 - DNS-hardened variants are available for all major outputs with the `-dns-hardened` suffix. They embed DoH/DoT/DoQ resolvers and prefer IP when available while keeping unresolved entries intact.
@@ -163,6 +165,9 @@ Stable capability claims are tracked in `docs/capability_registry.json`; core/cl
 | `chosen/base64-dns-hardened.txt` | chosen | base64 | no | presence | Chosen DNS-hardened base64 output. |
 | `chosen/base64-dns-safe.txt` | chosen | base64 | no | presence | Chosen DNS-safe base64 output. |
 | `chosen/base64.txt` | chosen | base64 | no | presence | Chosen top-N base64 output; empty is valid when chosen lines are unavailable. |
+| `chosen/nekobox-dns-hardened.json` | chosen | json | no | json | Chosen DNS-hardened NekoBox multi-node JSON subscription. |
+| `chosen/nekobox-dns-safe.json` | chosen | json | no | json | Chosen DNS-safe NekoBox multi-node JSON subscription. |
+| `chosen/nekobox.json` | chosen | json | no | json | Chosen top-N NekoBox multi-node JSON subscription. |
 | `chosen/proxies.txt` | chosen | text | no | presence | Chosen top-N newline-delimited share-link subscription; empty is valid when no proxies are selected. |
 | `chosen/clash.yaml` | clash | yaml | yes | yaml, references | Chosen top-N complete Mihomo/Clash configuration; repaired and validated with the same contract as root Clash artifacts. |
 | `clash-dns-hardened.yaml` | clash | yaml | yes | yaml, references | Clash DNS-hardened configuration; YAML syntax, proxy/group list shape, unique names, group references, and rule policy references are validated. |
@@ -172,6 +177,9 @@ Stable capability claims are tracked in `docs/capability_registry.json`; core/cl
 | `proxies-dns-hardened.txt` | dns-hardened | text | no | presence | DNS-hardened URI subscription lines. |
 | `base64-dns-safe.txt` | dns-safe | base64 | no | presence | DNS-safe subset; empty is valid under degraded data. |
 | `proxies-dns-safe.txt` | dns-safe | text | no | presence | DNS-safe URI subscription lines. |
+| `nekobox-dns-hardened.json` | nekobox | json | no | json | DNS-hardened NekoBox multi-node JSON subscription; empty is valid when no compatible nodes are available. |
+| `nekobox-dns-safe.json` | nekobox | json | no | json | DNS-safe NekoBox multi-node JSON subscription; empty is valid when no compatible nodes are available. |
+| `nekobox.json` | nekobox | json | no | json | NekoBox multi-node JSON subscription. A minimal object exposes standalone nodes through outbounds/endpoints arrays; unlike singbox.json it has no routing, DNS, or inbound profile policy. |
 | `chosen/singbox.json` | singbox | json | yes | json, references | Chosen top-N complete sing-box configuration; finalized and validated with the same contract as root sing-box artifacts. |
 | `countries/*.json` | singbox | json | no | json, references | Country-specific complete sing-box configurations; excludes the sibling *.list.json ConfigStream API arrays. |
 | `protocols/*.json` | singbox | json | no | json, references | Protocol-specific complete sing-box configurations; excludes the sibling *.list.json ConfigStream API arrays. |
@@ -217,6 +225,7 @@ DNS-hardened variants:
 - Sing-box and Clash variants embed DoH/DoT/DoQ resolver configs. Adapter variants (Surge, Loon, QX, Shadowrocket) include resolver comments.
 
 Production subscription links:
+- https://amirrezafarnamtaheri.github.io/ConfigStream/nekobox.json
 - https://amirrezafarnamtaheri.github.io/ConfigStream/singbox.json
 - https://amirrezafarnamtaheri.github.io/ConfigStream/singbox-vpn.json
 - https://amirrezafarnamtaheri.github.io/ConfigStream/clash.yaml
