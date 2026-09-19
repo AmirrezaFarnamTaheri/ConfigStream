@@ -46,7 +46,9 @@ def _modernize_singbox_nodes(
             try:
                 endpoints.append(wireguard_outbound_to_endpoint(outbound))
             except (TypeError, ValueError):
-                logger.debug("Dropping incompatible WireGuard endpoint from split output")
+                logger.debug(
+                    "Dropping incompatible WireGuard endpoint from split output"
+                )
             continue
         if kind in {"block", "dns"}:
             continue
