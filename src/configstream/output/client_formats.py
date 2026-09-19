@@ -86,13 +86,17 @@ def _xray_stream_settings(outbound: dict[str, Any]) -> dict[str, Any] | None:
         "grpc": "grpc",
         "httpupgrade": "httpupgrade",
         "http-upgrade": "httpupgrade",
-        "h2": "xhttp",
-        "http": "xhttp",
         "xhttp": "xhttp",
         "kcp": "mkcp",
         "mkcp": "mkcp",
     }
-    method = method_map.get(method_raw, "raw")
+    # Legacy HTTP/2 transports are not wire-compatible with XHTTP. Silently
+    # renaming h2/http to xhttp can produce configs that pass `xray run -test`
+    # but cannot connect to an unchanged remote server. Unknown explicit
+    # transports must fail closed for the same reason.
+    if method_raw not in method_map:
+        return None
+    method = method_map[method_raw]
     stream: dict[str, Any] = {"method": method}
 
     path = transport_obj.get("path") or outbound.get("path")
@@ -313,16 +317,21 @@ def _xray_outbound(outbound: dict[str, Any], tag: str) -> dict[str, Any] | None:
         return None
 
     if kind != "wireguard":
-        result["streamSettings"] = _xray_stream_settings(outbound)
+        stream_settings = _xray_stream_settings(outbound)
+        if stream_settings is None:
+            return None
+        result["streamSettings"] = stream_settings
     stream = result.get("streamSettings") or {}
     if transport_security_error(result["protocol"], result["settings"], stream):
         return None
     detour = outbound.get("detour")
     if detour:
-        result["proxySettings"] = {
-            "tag": str(detour),
-            "transportLayer": True,
-        }
+        stream_settings = result.setdefault(
+            "streamSettings",
+            {"method": "raw", "rawSettings": {}, "security": "none"},
+        )
+        sockopt = stream_settings.setdefault("sockopt", {})
+        sockopt["dialerProxy"] = str(detour)
     return result
 
 
@@ -465,7 +474,12 @@ def generate_xray_config(
                 converted_batch.append(converted)
         batch_tags = {item["tag"] for item in converted_batch} | _XRAY_BUILTIN_TAGS
         missing_detour = any(
-            item.get("proxySettings", {}).get("tag", "direct") not in batch_tags
+            (
+                item.get("streamSettings", {})
+                .get("sockopt", {})
+                .get("dialerProxy", "direct")
+                not in batch_tags
+            )
             for item in converted_batch
         )
         # A partially converted chain changes routing or leaves dangling hops.
@@ -523,7 +537,7 @@ def generate_xray_config(
     }
     report = {
         "status": "generated",
-        "target": "Xray-core v26.7.28",
+        "target": "Xray-core v26.7.28+ (dialerProxy chain contract)",
         "emitted_records": emitted_records,
         "outbound_count": len(outbounds),
         "unsupported": dict(unsupported),
@@ -636,13 +650,10 @@ def validate_xray_config(payload: object, file_name: str = "xray.json") -> list[
                         errors.append(
                             f"{file_name} outbounds[{index}] wireguard peers[{peer_index}] missing publicKey"
                         )
-        proxy_settings = outbound.get("proxySettings")
-        if isinstance(proxy_settings, dict) and proxy_settings.get("tag"):
-            references.append(
-                (
-                    f"outbounds[{index}].proxySettings.tag",
-                    str(proxy_settings["tag"]),
-                )
+        if outbound.get("proxySettings") is not None:
+            errors.append(
+                f"{file_name} outbounds[{index}] uses removed proxySettings; "
+                "use streamSettings.sockopt.dialerProxy"
             )
         stream_settings = outbound.get("streamSettings")
         if protocol in _XRAY_GENERATED_PROXY_PROTOCOLS and not isinstance(
@@ -659,6 +670,26 @@ def validate_xray_config(payload: object, file_name: str = "xray.json") -> list[
             )
             if security_error:
                 errors.append(f"{file_name} outbounds[{index}] {security_error}")
+            sockopt = stream_settings.get("sockopt")
+            if sockopt is not None and not isinstance(sockopt, dict):
+                errors.append(
+                    f"{file_name} outbounds[{index}] streamSettings.sockopt must be an object"
+                )
+            elif isinstance(sockopt, dict):
+                dialer_proxy = sockopt.get("dialerProxy")
+                if dialer_proxy is not None:
+                    if not isinstance(dialer_proxy, str) or not dialer_proxy:
+                        errors.append(
+                            f"{file_name} outbounds[{index}] has invalid "
+                            "streamSettings.sockopt.dialerProxy"
+                        )
+                    else:
+                        references.append(
+                            (
+                                f"outbounds[{index}].streamSettings.sockopt.dialerProxy",
+                                dialer_proxy,
+                            )
+                        )
             stream_method = stream_settings.get("method")
             if (
                 not isinstance(stream_method, str)
