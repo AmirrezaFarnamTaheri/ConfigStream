@@ -111,6 +111,9 @@ Capability status is tracked in `docs/capability_registry.json`, and client-core
 | `chosen/base64-dns-hardened.txt` | chosen | base64 | no | presence | Chosen DNS-hardened base64 output. |
 | `chosen/base64-dns-safe.txt` | chosen | base64 | no | presence | Chosen DNS-safe base64 output. |
 | `chosen/base64.txt` | chosen | base64 | no | presence | Chosen top-N base64 output; empty is valid when chosen lines are unavailable. |
+| `chosen/nekobox-dns-hardened.json` | chosen | json | no | json | Chosen DNS-hardened NekoBox multi-node JSON subscription. |
+| `chosen/nekobox-dns-safe.json` | chosen | json | no | json | Chosen DNS-safe NekoBox multi-node JSON subscription. |
+| `chosen/nekobox.json` | chosen | json | no | json | Chosen top-N NekoBox multi-node JSON subscription. |
 | `chosen/proxies.txt` | chosen | text | no | presence | Chosen top-N newline-delimited share-link subscription; empty is valid when no proxies are selected. |
 | `chosen/clash.yaml` | clash | yaml | yes | yaml, references | Chosen top-N complete Mihomo/Clash configuration; repaired and validated with the same contract as root Clash artifacts. |
 | `clash-dns-hardened.yaml` | clash | yaml | yes | yaml, references | Clash DNS-hardened configuration; YAML syntax, proxy/group list shape, unique names, group references, and rule policy references are validated. |
@@ -120,6 +123,9 @@ Capability status is tracked in `docs/capability_registry.json`, and client-core
 | `proxies-dns-hardened.txt` | dns-hardened | text | no | presence | DNS-hardened URI subscription lines. |
 | `base64-dns-safe.txt` | dns-safe | base64 | no | presence | DNS-safe subset; empty is valid under degraded data. |
 | `proxies-dns-safe.txt` | dns-safe | text | no | presence | DNS-safe URI subscription lines. |
+| `nekobox-dns-hardened.json` | nekobox | json | no | json | DNS-hardened NekoBox multi-node JSON subscription; empty is valid when no compatible nodes are available. |
+| `nekobox-dns-safe.json` | nekobox | json | no | json | DNS-safe NekoBox multi-node JSON subscription; empty is valid when no compatible nodes are available. |
+| `nekobox.json` | nekobox | json | no | json | NekoBox multi-node JSON subscription. Each array item is an independently importable outbound; unlike singbox.json this is not a complete profile. |
 | `chosen/singbox.json` | singbox | json | yes | json, references | Chosen top-N complete sing-box configuration; finalized and validated with the same contract as root sing-box artifacts. |
 | `countries/*.json` | singbox | json | no | json, references | Country-specific complete sing-box configurations; excludes the sibling *.list.json ConfigStream API arrays. |
 | `protocols/*.json` | singbox | json | no | json, references | Protocol-specific complete sing-box configurations; excludes the sibling *.list.json ConfigStream API arrays. |
