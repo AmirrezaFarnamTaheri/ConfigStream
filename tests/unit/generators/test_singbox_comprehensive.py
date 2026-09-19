@@ -73,6 +73,8 @@ def test_generate_singbox_config_extra_outbounds():
             "uuid": "00000000-0000-0000-0000-000000000001",
             "tls": {"enabled": True, "server_name": "relay.example.com"},
         },
+        {"type": "block", "tag": "legacy-block"},
+        {"type": "dns", "tag": "legacy-dns"},
     ]
 
     config_str = generate_singbox_config(proxies, extra_outbounds=extras)
@@ -83,17 +85,23 @@ def test_generate_singbox_config_extra_outbounds():
 
     assert "WARP" not in tags
     assert "RELAY-123" in tags
+    assert "legacy-block" not in tags
+    assert "legacy-dns" not in tags
     assert [endpoint["tag"] for endpoint in config["endpoints"]] == ["WARP"]
 
     # Inner hop (detour target) should NOT be in selector; entry point should
     selector = next(o for o in outbounds if o["type"] == "selector")
     assert "WARP" in selector["outbounds"]
     assert "RELAY-123" not in selector["outbounds"]
+    assert "legacy-block" not in selector["outbounds"]
+    assert "legacy-dns" not in selector["outbounds"]
 
     # Entry point should also be in urltest for auto-select
     urltest = next(o for o in outbounds if o["type"] == "urltest")
     assert "WARP" in urltest["outbounds"]
     assert "RELAY-123" not in urltest["outbounds"]
+    assert "legacy-block" not in urltest["outbounds"]
+    assert "legacy-dns" not in urltest["outbounds"]
 
 
 def test_generate_singbox_config_has_no_dead_legacy_selector_outbounds():

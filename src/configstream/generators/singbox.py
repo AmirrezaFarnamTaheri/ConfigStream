@@ -62,6 +62,8 @@ class SingBoxGenerator:
         def _append_outbound(
             outbound: Dict[str, Any], *, add_to_selector: bool
         ) -> Optional[str]:
+            if outbound.get("type") in {"block", "dns"}:
+                return None
             self._clean_outbound(outbound)
             # Resolve detour if target was uniquified
             detour = outbound.get("detour")

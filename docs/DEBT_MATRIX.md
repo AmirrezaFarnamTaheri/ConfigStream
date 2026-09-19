@@ -252,7 +252,7 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - L56 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/dns_cache.py`
-- L155 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L144 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/fetcher_worker.py`
 - L98 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
@@ -262,10 +262,10 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - L147 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/generators/singbox.py`
-- L144 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L157 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/generators/split.py`
-- L196 [`LARGE_FUNCTION`] **P1 - High**: `Function generate_split_outputs spans 329 lines (threshold: 300).`
+- L204 [`LARGE_FUNCTION`] **P1 - High**: `Function generate_split_outputs spans 329 lines (threshold: 300).`
 
 ### `src/configstream/geoip.py`
 - L98 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`

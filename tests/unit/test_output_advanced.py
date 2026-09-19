@@ -2,6 +2,7 @@
 """Unit tests for advanced output generation logic."""
 
 import json
+from pathlib import Path
 
 import pytest
 
@@ -200,7 +201,42 @@ def test_split_uniquifies_duplicate_chain_tags(tmp_path):
     assert len(chain_tags) >= 2, f"Both chains must be selectable, got {chain_tags}"
 
 
-def test_split_empty_vpn_uses_direct_instead_of_empty_selector(tmp_path):
+def test_split_filters_legacy_outbounds_before_group_membership(
+    tmp_path: Path,
+) -> None:
+    output_dir = tmp_path / "legacy"
+    output_dir.mkdir()
+    smart_chains = {
+        "legacy": [
+            [
+                {"type": "vless", "tag": "usable", "server": "1.1.1.1"},
+                {"type": "block", "tag": "legacy-block"},
+                {"type": "dns", "tag": "legacy-dns"},
+            ]
+        ]
+    }
+
+    files = generate_split_outputs([], output_dir, smart_chains=smart_chains)
+
+    for key in ("singbox", "singbox_vpn"):
+        config = json.loads(files[key].read_text(encoding="utf-8"))
+        assert all(
+            outbound.get("type") not in {"block", "dns"}
+            for outbound in config["outbounds"]
+        )
+        group_members = {
+            member
+            for outbound in config["outbounds"]
+            if outbound.get("type") in {"selector", "urltest"}
+            for member in outbound.get("outbounds", [])
+        }
+        assert "usable" in group_members
+        assert group_members.isdisjoint({"legacy-block", "legacy-dns"})
+
+
+def test_split_empty_vpn_uses_direct_instead_of_empty_selector(
+    tmp_path: Path,
+) -> None:
     output_dir = tmp_path / "empty"
     output_dir.mkdir()
 
