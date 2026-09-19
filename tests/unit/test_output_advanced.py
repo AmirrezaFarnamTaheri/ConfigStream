@@ -178,7 +178,6 @@ def test_split_uniquifies_duplicate_chain_tags(tmp_path):
     files = generate_split_outputs([], output_dir, smart_chains=smart_chains)
     with open(files["singbox"], encoding="utf-8") as f:
         data = json.load(f)
-    tags = [o.get("tag") for o in data["outbounds"] if o.get("tag")]
     endpoint_tags = [
         endpoint.get("tag") for endpoint in data.get("endpoints", []) if endpoint.get("tag")
     ]
@@ -222,4 +221,3 @@ def test_split_empty_vpn_uses_direct_instead_of_empty_selector(tmp_path):
         rule for rule in vpn["route"]["rules"] if rule.get("clash_mode") == "Global"
     )
     assert global_rule["outbound"] == "direct"
-
