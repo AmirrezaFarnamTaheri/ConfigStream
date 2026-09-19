@@ -127,6 +127,10 @@ def validate(root: Path) -> list[str]:
         errors.append(
             "unsigned Pages publication must require an explicit policy argument"
         )
+    if deploy.count("verify_args+=(--allow-unsigned)") < 2:
+        errors.append(
+            "explicit unsigned Pages policy must reach candidate and rollback live smoke verification"
+        )
     if 'verify_args+=(--public-key "$CS_PUBLIC_KEY")' not in deploy:
         errors.append(
             "signed Pages deployment must pass the configured public key to smoke verification"
