@@ -22,6 +22,8 @@ This is the standard zero-cost deployment method. The repository is pre-configur
     -   Store the private signing key only as a GitHub Actions **Secret**. Never put it in an Actions Variable, logs, artifacts, issue text, or committed files.
     -   **Explicit unsigned publication**: if you intentionally operate without signing material, remove both signing-related secrets and create the repository **Variable** `ALLOW_UNSIGNED_PAGES=true`. Unsigned Pages publication is disabled by default when this variable is absent or false.
     -   `ALLOW_UNSIGNED_PAGES=true` is not a signature bypass: if an artifact contains a manifest signature but `CS_PUBLIC_KEY` is missing or invalid, deployment is rejected rather than silently treating the artifact as unsigned.
+    -   The same explicit unsigned policy now applies to rollback snapshots and live smoke verification. An unsigned release can become the last-known-good baseline and pass deployed-site verification only when `ALLOW_UNSIGNED_PAGES=true`; a signed release still requires `CS_PUBLIC_KEY` and can never be downgraded to unsigned treatment.
+    -   On the first deployment only, the workflow may bootstrap without a rollback baseline when its hardened snapshot probe proves that the trusted Pages origin returns HTTP 404 specifically for `artifact_manifest.json`. Other snapshot failures remain blocking. The manual `allow_bootstrap_without_lkg` input remains available for an explicit operator override.
 
 The scheduled `Config's Stream` workflow can still generate an unsigned canonical artifact when no signing key is configured, but GitHub Pages publication is a separate trust boundary. A fork with neither valid signing configuration nor the explicit `ALLOW_UNSIGNED_PAGES=true` variable will fail closed before Pages mutation. If signing material is supplied, malformed keys, a public key without the matching signing key, or a public/private mismatch block publication.
 
@@ -146,7 +148,7 @@ To serve configurations globally with low latency, putting a CDN in front of you
 -   **Solution**: The system now uses WAL mode to mitigate this. Ensure you are not running multiple pipeline instances simultaneously on the same `data/` directory.
 
 ### "GitHub Action failed to deploy"
--   **Cause**: Pages deployment artifact upload failed, the artifact did not satisfy the trust/rollback policy, or repository permissions are insufficient.
+-   **Cause**: Pages deployment artifact upload failed, the artifact did not satisfy the trust/rollback policy, the first-deployment probe failed for a reason other than a missing `artifact_manifest.json`, or repository permissions are insufficient.
 -   **Solution**: Inspect the `Qualify Pages Deployment Candidate` and `Locate, Verify, and Deploy Sealed Artifact` jobs first. Then verify Pages is configured for **GitHub Actions**, the required signing or explicit unsigned policy is configured, and the workflow has the repository permissions declared in `deploy-pages.yml`.
 
 ### "Sing-box not found"
