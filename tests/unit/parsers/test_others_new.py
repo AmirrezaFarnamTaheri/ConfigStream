@@ -12,8 +12,7 @@ def test_wireguard_missing_keys():
     # Use a valid Base64 32-byte key (44 chars)
     valid_key = "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE="
     config_valid = (
-        f"wireguard://{valid_key}@example.com:51820"
-        f"?public_key={valid_key}"
+        f"wireguard://{valid_key}@example.com:51820" f"?public_key={valid_key}"
     )
     proxy = parse_wireguard(config_valid)
     assert proxy is not None
