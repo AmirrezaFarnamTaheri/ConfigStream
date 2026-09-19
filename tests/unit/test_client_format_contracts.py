@@ -561,7 +561,9 @@ def test_output_matrix_declares_xray_contract() -> None:
 
 def test_nekobox_nodes_are_not_advertised_as_full_singbox_config() -> None:
     root = Path(__file__).resolve().parents[2]
-    matrix = json.loads((root / "docs" / "output_matrix.json").read_text(encoding="utf-8"))
+    matrix = json.loads(
+        (root / "docs" / "output_matrix.json").read_text(encoding="utf-8")
+    )
     singbox = next(item for item in matrix["outputs"] if item["path"] == "singbox.json")
     base64_subscription = next(
         item for item in matrix["outputs"] if item["path"] == "base64.txt"
@@ -586,9 +588,9 @@ def test_nekobox_nodes_are_not_advertised_as_full_singbox_config() -> None:
 
 def test_frontend_nekobox_download_uses_multi_node_subscription() -> None:
     root = Path(__file__).resolve().parents[2]
-    downloads = (root / "frontend" / "assets" / "js" / "dynamic-downloads.js").read_text(
-        encoding="utf-8"
-    )
+    downloads = (
+        root / "frontend" / "assets" / "js" / "dynamic-downloads.js"
+    ).read_text(encoding="utf-8")
     start = downloads.index("        nekobox: {")
     end = downloads.index("        },", start) + len("        },")
     nekobox_block = downloads[start:end]
