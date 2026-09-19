@@ -5,6 +5,7 @@ from configstream.adapters import ShadowrocketAdapter
 from configstream.converters.chain_outbounds import chain_outbounds_from_details
 from configstream.generators.split import generate_split_outputs
 from configstream.models import Proxy
+from configstream.output.singbox_contract import validate_singbox_config
 
 _WG_PRIVATE = "6M6tfYfQ6B0fLF8A3XJ2Z2z8jz4Yb9k+f0z8xN2aM0E="
 _WG_PUBLIC = "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
@@ -94,23 +95,36 @@ def test_split_generator_uses_canonical_chain_details(tmp_path) -> None:
     )
 
     files = generate_split_outputs([revived], tmp_path)
-    singbox_path = files["singbox"]
-    payload = json.loads(singbox_path.read_text(encoding="utf-8"))
-    outbounds = payload.get("outbounds", [])
-    endpoints = payload.get("endpoints", [])
-    outbound_tags = [
-        str(ob.get("tag", "")) for ob in outbounds if isinstance(ob, dict)
-    ]
-    endpoint_tags = [
-        str(endpoint.get("tag", ""))
-        for endpoint in endpoints
-        if isinstance(endpoint, dict)
-    ]
 
-    assert "relay-hop" in outbound_tags
-    assert "warp-hop" not in outbound_tags
-    assert "warp-hop" in endpoint_tags
-    assert all(ob.get("type") != "wireguard" for ob in outbounds)
+    for key in ("singbox", "singbox_vpn"):
+        payload = json.loads(files[key].read_text(encoding="utf-8"))
+        outbounds = payload.get("outbounds", [])
+        endpoints = payload.get("endpoints", [])
+        outbound_tags = [
+            str(ob.get("tag", "")) for ob in outbounds if isinstance(ob, dict)
+        ]
+        endpoint_tags = [
+            str(endpoint.get("tag", ""))
+            for endpoint in endpoints
+            if isinstance(endpoint, dict)
+        ]
+
+        assert "relay-hop" in outbound_tags
+        assert "warp-hop" not in outbound_tags
+        assert "warp-hop" in endpoint_tags
+        assert all(
+            ob.get("type") not in {"wireguard", "block", "dns"}
+            for ob in outbounds
+        )
+        assert validate_singbox_config(payload, files[key].name) == []
+
+    vpn = json.loads(files["singbox_vpn"].read_text(encoding="utf-8"))
+    assert vpn["inbounds"][0]["address"] == ["172.19.0.1/30"]
+    assert "inet4_address" not in vpn["inbounds"][0]
+    assert any(
+        rule.get("action") == "hijack-dns"
+        for rule in vpn["route"]["rules"]
+    )
 
 
 def test_invalid_canonical_chain_does_not_restore_stale_legacy_path() -> None:
