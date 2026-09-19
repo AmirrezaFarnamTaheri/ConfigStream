@@ -127,7 +127,7 @@ GitHub Pages is the primary publication target. The intended schedule is every f
 Primary outputs:
 - singbox.json: complete sing-box smart-routing profile (one profile document)
 - singbox-vpn.json: complete sing-box TUN or VPN profile
-- nekobox.json: NekoBox multi-node JSON subscription (top-level outbound array)
+- nekobox.json: NekoBox multi-node JSON subscription (minimal outbounds/endpoints container)
 - clash.yaml: Clash-compatible
 - base64.txt: universal share-link subscription
 - chosen/base64.txt: curated low-latency subset
@@ -141,7 +141,7 @@ Derived outputs:
 
 Output notes:
 - Base64 and plaintext subscriptions include both native and revived proxy URIs for maximum coverage.
-- `nekobox*.json` is a top-level array of independent outbounds so NekoBox imports separate nodes. Complete `singbox*.json` and `xray.json` documents remain full client profiles and are not interchangeable with node subscriptions.
+- `nekobox*.json` is a minimal JSON object containing only independent `outbounds`/`endpoints` arrays, which NekoBox expands into separate nodes. Complete `singbox*.json` and `xray.json` documents remain full client profiles and are not interchangeable with node subscriptions.
 - JSON datasets expose metadata and stats used by the frontend and external tooling.
 - DNS-safe variants are available for all major outputs with the `-dns-safe` suffix (IP-only / pre-resolved endpoints). This is a strict subset — proxies that fail resolution are dropped.
 - DNS-hardened variants are available for all major outputs with the `-dns-hardened` suffix. They embed DoH/DoT/DoQ resolvers and prefer IP when available while keeping unresolved entries intact.
@@ -179,7 +179,7 @@ Stable capability claims are tracked in `docs/capability_registry.json`; core/cl
 | `proxies-dns-safe.txt` | dns-safe | text | no | presence | DNS-safe URI subscription lines. |
 | `nekobox-dns-hardened.json` | nekobox | json | no | json | DNS-hardened NekoBox multi-node JSON subscription; empty is valid when no compatible nodes are available. |
 | `nekobox-dns-safe.json` | nekobox | json | no | json | DNS-safe NekoBox multi-node JSON subscription; empty is valid when no compatible nodes are available. |
-| `nekobox.json` | nekobox | json | no | json | NekoBox multi-node JSON subscription. Each array item is an independently importable outbound; unlike singbox.json this is not a complete profile. |
+| `nekobox.json` | nekobox | json | no | json | NekoBox multi-node JSON subscription. A minimal object exposes standalone nodes through outbounds/endpoints arrays; unlike singbox.json it has no routing, DNS, or inbound profile policy. |
 | `chosen/singbox.json` | singbox | json | yes | json, references | Chosen top-N complete sing-box configuration; finalized and validated with the same contract as root sing-box artifacts. |
 | `countries/*.json` | singbox | json | no | json, references | Country-specific complete sing-box configurations; excludes the sibling *.list.json ConfigStream API arrays. |
 | `protocols/*.json` | singbox | json | no | json, references | Protocol-specific complete sing-box configurations; excludes the sibling *.list.json ConfigStream API arrays. |

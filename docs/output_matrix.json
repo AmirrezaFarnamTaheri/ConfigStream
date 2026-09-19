@@ -172,11 +172,11 @@
       "nonempty": false,
       "schema_validation": false,
       "degraded_valid": true,
-      "notes": "NekoBox multi-node JSON subscription. Each array item is an independently importable outbound; unlike singbox.json this is not a complete profile.",
+      "notes": "NekoBox multi-node JSON subscription. A minimal object exposes standalone nodes through outbounds/endpoints arrays; unlike singbox.json it has no routing, DNS, or inbound profile policy.",
       "client_compatibility": [
         "NekoBox"
       ],
-      "validation": "top-level JSON array of standalone outbounds; unique tags; no helper groups or detours"
+      "validation": "minimal JSON object with outbounds/endpoints arrays; unique tags; no profile keys, helper groups, or detours; WireGuard under endpoints"
     },
     {
       "path": "nekobox-dns-safe.json",
@@ -191,7 +191,7 @@
       "client_compatibility": [
         "NekoBox"
       ],
-      "validation": "top-level JSON array of standalone outbounds; unique tags; no helper groups or detours"
+      "validation": "minimal JSON object with outbounds/endpoints arrays; unique tags; no profile keys, helper groups, or detours; WireGuard under endpoints"
     },
     {
       "path": "nekobox-dns-hardened.json",
@@ -206,7 +206,7 @@
       "client_compatibility": [
         "NekoBox"
       ],
-      "validation": "top-level JSON array of standalone outbounds; unique tags; no helper groups or detours"
+      "validation": "minimal JSON object with outbounds/endpoints arrays; unique tags; no profile keys, helper groups, or detours; WireGuard under endpoints"
     },
     {
       "path": "singbox.json",
@@ -529,7 +529,7 @@
       "client_compatibility": [
         "NekoBox"
       ],
-      "validation": "top-level JSON array of standalone outbounds; unique tags; no helper groups or detours"
+      "validation": "minimal JSON object with outbounds/endpoints arrays; unique tags; no profile keys, helper groups, or detours; WireGuard under endpoints"
     },
     {
       "path": "chosen/nekobox-dns-safe.json",
@@ -544,7 +544,7 @@
       "client_compatibility": [
         "NekoBox"
       ],
-      "validation": "top-level JSON array of standalone outbounds; unique tags; no helper groups or detours"
+      "validation": "minimal JSON object with outbounds/endpoints arrays; unique tags; no profile keys, helper groups, or detours; WireGuard under endpoints"
     },
     {
       "path": "chosen/nekobox-dns-hardened.json",
@@ -559,7 +559,7 @@
       "client_compatibility": [
         "NekoBox"
       ],
-      "validation": "top-level JSON array of standalone outbounds; unique tags; no helper groups or detours"
+      "validation": "minimal JSON object with outbounds/endpoints arrays; unique tags; no profile keys, helper groups, or detours; WireGuard under endpoints"
     },
     {
       "path": "chosen/singbox.json",

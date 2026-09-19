@@ -125,7 +125,7 @@ Capability status is tracked in `docs/capability_registry.json`, and client-core
 | `proxies-dns-safe.txt` | dns-safe | text | no | presence | DNS-safe URI subscription lines. |
 | `nekobox-dns-hardened.json` | nekobox | json | no | json | DNS-hardened NekoBox multi-node JSON subscription; empty is valid when no compatible nodes are available. |
 | `nekobox-dns-safe.json` | nekobox | json | no | json | DNS-safe NekoBox multi-node JSON subscription; empty is valid when no compatible nodes are available. |
-| `nekobox.json` | nekobox | json | no | json | NekoBox multi-node JSON subscription. Each array item is an independently importable outbound; unlike singbox.json this is not a complete profile. |
+| `nekobox.json` | nekobox | json | no | json | NekoBox multi-node JSON subscription. A minimal object exposes standalone nodes through outbounds/endpoints arrays; unlike singbox.json it has no routing, DNS, or inbound profile policy. |
 | `chosen/singbox.json` | singbox | json | yes | json, references | Chosen top-N complete sing-box configuration; finalized and validated with the same contract as root sing-box artifacts. |
 | `countries/*.json` | singbox | json | no | json, references | Country-specific complete sing-box configurations; excludes the sibling *.list.json ConfigStream API arrays. |
 | `protocols/*.json` | singbox | json | no | json, references | Protocol-specific complete sing-box configurations; excludes the sibling *.list.json ConfigStream API arrays. |

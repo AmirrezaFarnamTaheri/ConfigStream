@@ -75,7 +75,7 @@
         "nekobox-dns-hardened.json"
       ],
       "structural_validator": "scripts/validate_pages_artifact.py",
-      "notes": "URI/Base64 subscriptions are parity-checked. nekobox*.json uses NekoBox's top-level outbound-array multi-node format; complete sing-box JSON remains a single profile import."
+      "notes": "URI/Base64 subscriptions are parity-checked. nekobox*.json uses NekoBox's minimal outbounds/endpoints multi-node container; complete sing-box JSON remains a single profile import."
     },
     {
       "client": "NekoRay",
@@ -90,7 +90,7 @@
         "singbox.json"
       ],
       "structural_validator": "scripts/validate_pages_artifact.py",
-      "notes": "Share-link subscriptions are parity-checked; singbox.json is a complete profile document rather than a node-array subscription."
+      "notes": "Share-link subscriptions are parity-checked; singbox.json is a complete profile document rather than a multi-node subscription container."
     }
   ]
 }
