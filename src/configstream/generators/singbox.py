@@ -5,6 +5,7 @@ import json
 from typing import List, Dict, Any, Optional, cast
 from configstream.models import Proxy
 from configstream.converters import to_singbox_outbound
+from configstream.converters.singbox import wireguard_outbound_to_endpoint
 
 
 class SingBoxGenerator:
@@ -23,6 +24,7 @@ class SingBoxGenerator:
         Creates a full Sing-Box config structure aligned with V2RayN/Sing-box best practices.
         """
         outbounds: List[Dict[str, Any]] = []
+        endpoints: List[Dict[str, Any]] = []
 
         # Selector/Auto tag names (used by sing-box UI clients)
         SELECTOR_TAG = "🌍 Proxy Select"
@@ -81,7 +83,16 @@ class SingBoxGenerator:
                     tag_remap[outbound["tag"]] = new_tag
                     tag = new_tag
                     outbound["tag"] = tag
-            outbounds.append(outbound)
+            if outbound.get("type") == "wireguard":
+                try:
+                    endpoints.append(wireguard_outbound_to_endpoint(outbound))
+                except (TypeError, ValueError):
+                    logging.getLogger(__name__).debug(
+                        "Dropping incompatible WireGuard endpoint during sing-box generation"
+                    )
+                    return None
+            else:
+                outbounds.append(outbound)
             if tag:
                 added_tags.add(tag)
                 if add_to_selector:
@@ -158,8 +169,6 @@ class SingBoxGenerator:
             urltest_outbound,
             *outbounds,
             {"type": "direct", "tag": "direct"},
-            {"type": "block", "tag": "block"},
-            {"type": "dns", "tag": "dns-out"},
         ]
 
         from configstream.dns_profiles import build_singbox_dns_profile
@@ -249,6 +258,8 @@ class SingBoxGenerator:
             "route": route,
             "experimental": experimental,
         }
+        if endpoints:
+            config["endpoints"] = endpoints
         return config
 
     def _clean_outbound(self, outbound: Dict[str, Any]):
