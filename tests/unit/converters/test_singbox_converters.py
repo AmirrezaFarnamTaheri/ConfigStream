@@ -87,6 +87,30 @@ def test_singbox_wireguard_unique_ip():
     assert out1["local_address"] == out3["local_address"]
 
 
+def test_wireguard_intermediate_preserves_routing_fields_and_prefixes():
+    proxy = Proxy(
+        config="wireguard://example.com:51820",
+        protocol="wireguard",
+        address="example.com",
+        port=51820,
+        details={
+            "private_key": "private_key_1",
+            "peer_public_key": "pub",
+            "local_address": ["10.0.0.2/32", "10.0.0.3/32", "fd00::2/128"],
+            "allowed_ips": ["10.0.0.0/8", "fd00::/8"],
+            "persistent_keepalive_interval": "30",
+        },
+    )
+
+    outbound = to_singbox_outbound(proxy)
+
+    assert outbound is not None
+    assert outbound["local_address"] == ["10.0.0.2/32", "10.0.0.3/32"]
+    assert outbound["local_address_v6"] == "fd00::2/128"
+    assert outbound["allowed_ips"] == ["10.0.0.0/8", "fd00::/8"]
+    assert outbound["persistent_keepalive_interval"] == "30"
+
+
 # --- New tests for schema alignment fixes ---
 
 
