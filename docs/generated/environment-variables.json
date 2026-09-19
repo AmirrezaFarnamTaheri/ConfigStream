@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "dce8d29d236d0fbe2586b49c6561323a7b5d37a67e2f7894e0bcca6151fcb749",
+  "source_digest": "55eec7c89e5de01639e960787ba49200c2bd1f26a7ec51973ade258c26bdaccf",
   "variable_count": 163,
   "variables": [
     {
@@ -98,7 +98,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/server/utils.py:219"
+        "src/configstream/server/utils.py:222"
       ],
       "type": null
     },
@@ -444,7 +444,7 @@
     },
     {
       "declared_in_settings": true,
-      "default": 4.0,
+      "default": 4,
       "name": "DNS_SAFE_RESOLVE_TIMEOUT",
       "required": false,
       "sensitive": false,
@@ -522,7 +522,7 @@
     },
     {
       "declared_in_settings": true,
-      "default": 2.0,
+      "default": 2,
       "name": "EVENT_STREAM_FLUSH_TIMEOUT_SECONDS",
       "required": false,
       "sensitive": false,
@@ -941,7 +941,7 @@
     },
     {
       "declared_in_settings": true,
-      "default": 15.0,
+      "default": 15,
       "name": "LAB_TEST_TIMEOUT_SECONDS",
       "required": false,
       "sensitive": false,
@@ -1440,10 +1440,10 @@
     {
       "declared_in_settings": true,
       "default": {
-        "current_status": 10.0,
-        "historical_success": 40.0,
-        "latency": 30.0,
-        "security": 20.0
+        "current_status": 10,
+        "historical_success": 40,
+        "latency": 30,
+        "security": 20
       },
       "name": "SCORE_WEIGHTS",
       "required": false,
@@ -1529,7 +1529,7 @@
     },
     {
       "declared_in_settings": true,
-      "default": 5.0,
+      "default": 5,
       "name": "SHUTDOWN_GRACE_SECONDS",
       "required": false,
       "sensitive": false,
@@ -1853,7 +1853,7 @@
     },
     {
       "declared_in_settings": true,
-      "default": 60.0,
+      "default": 60,
       "name": "WS_IDLE_TIMEOUT_SECONDS",
       "required": false,
       "sensitive": false,
@@ -1875,7 +1875,7 @@
     },
     {
       "declared_in_settings": true,
-      "default": 5.0,
+      "default": 5,
       "name": "WS_SEND_TIMEOUT_SECONDS",
       "required": false,
       "sensitive": false,

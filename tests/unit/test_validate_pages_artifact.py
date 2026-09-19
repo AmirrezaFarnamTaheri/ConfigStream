@@ -260,7 +260,7 @@ def _write_valid_artifact(root: Path) -> None:
         }:
             _write_text(path, "")
         elif rel_path.endswith(".json"):
-            _write_text(path, "{}")
+            _write_text(path, '{"outbounds":[],"endpoints":[]}' if "nekobox" in rel_path else "{}")
         else:
             _write_text(path)
     _write_manifest(root)
