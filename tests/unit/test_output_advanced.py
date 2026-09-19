@@ -124,7 +124,16 @@ def test_split_uniquifies_duplicate_chain_tags(tmp_path):
                     "tag": "MID-xyz789-INTRANET",
                     "detour": "RELAY-abc123-INTRANET",
                 },
-                {"type": "wireguard", "tag": dup_tag, "detour": "MID-xyz789-INTRANET"},
+                {
+                    "type": "wireguard",
+                    "tag": dup_tag,
+                    "detour": "MID-xyz789-INTRANET",
+                    "server": "162.159.192.1",
+                    "server_port": 2408,
+                    "local_address": ["10.0.0.2/32"],
+                    "private_key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                    "peer_public_key": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+                },
             ],
             [
                 {"type": "vless", "tag": "RELAY-def456-INTRANET", "server": "2.2.2.2"},
@@ -133,7 +142,16 @@ def test_split_uniquifies_duplicate_chain_tags(tmp_path):
                     "tag": "MID-uvw012-INTRANET",
                     "detour": "RELAY-def456-INTRANET",
                 },
-                {"type": "wireguard", "tag": dup_tag, "detour": "MID-uvw012-INTRANET"},
+                {
+                    "type": "wireguard",
+                    "tag": dup_tag,
+                    "detour": "MID-uvw012-INTRANET",
+                    "server": "162.159.192.2",
+                    "server_port": 2408,
+                    "local_address": ["10.0.0.3/32"],
+                    "private_key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                    "peer_public_key": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+                },
             ],
         ]
     }
@@ -143,8 +161,11 @@ def test_split_uniquifies_duplicate_chain_tags(tmp_path):
     with open(files["singbox"], encoding="utf-8") as f:
         data = json.load(f)
     tags = [o.get("tag") for o in data["outbounds"] if o.get("tag")]
-    # Duplicate tag must be uniquified (no two outbounds with same tag)
-    dup_count = sum(1 for t in tags if t == dup_tag)
+    endpoint_tags = [
+        endpoint.get("tag") for endpoint in data.get("endpoints", []) if endpoint.get("tag")
+    ]
+    # Duplicate tag must be uniquified across modern endpoints.
+    dup_count = sum(1 for t in endpoint_tags if t == dup_tag)
     assert (
         dup_count <= 1
     ), f"Duplicate tag must be uniquified, got {dup_count} occurrences"
