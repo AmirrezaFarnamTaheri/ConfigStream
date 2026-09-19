@@ -10,9 +10,11 @@ from typing import Any, Dict, List, Set, Tuple
 def _collect_tagged_items(
     payload: Dict[str, Any], file_name: str, errors: List[str]
 ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], Set[str]]:
-    outbounds_raw = payload.get("outbounds")
-    if not isinstance(outbounds_raw, list) or not outbounds_raw:
-        errors.append(f"{file_name} outbounds must be a non-empty list")
+    outbounds_raw = payload.get("outbounds", [])
+    if outbounds_raw is None:
+        outbounds_raw = []
+    if not isinstance(outbounds_raw, list):
+        errors.append(f"{file_name} outbounds must be a list")
         outbounds_raw = []
 
     endpoints_raw = payload.get("endpoints", [])
@@ -21,6 +23,9 @@ def _collect_tagged_items(
     if not isinstance(endpoints_raw, list):
         errors.append(f"{file_name} endpoints must be a list")
         endpoints_raw = []
+
+    if not outbounds_raw and not endpoints_raw:
+        errors.append(f"{file_name} must define at least one outbound or endpoint")
 
     tags: Set[str] = set()
     outbounds: List[Dict[str, Any]] = []
