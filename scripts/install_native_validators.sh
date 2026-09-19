@@ -9,8 +9,8 @@ set -euo pipefail
 
 # Repository-owned trust anchors for the exact Linux/amd64 release artifacts.
 # Version bumps must update these digests in the same reviewed change.
-readonly SING_BOX_ARCHIVE_SHA256="d34d987ed6ae39ca3760269264fb502b867e5477db45518c829b07776245c495"
-readonly XRAY_ARCHIVE_SHA256="8195d909f1109b8f3d99eefe401a3c451d7bf4af71f24d3815420f77e5dd2a40"
+readonly SING_BOX_ARCHIVE_SHA256="12cb2816b52febb356f6a885b740cc8758c3f30b8ae0ca8edba80f0d2d35343f"
+readonly XRAY_ARCHIVE_SHA256="1eb9175d0f0a8f8149c9230a7fc5ae66ce332ed20a53155ce61fe62e3f58b7df"
 readonly MIHOMO_ARCHIVE_SHA256="343b2046967b236bc868b82537040cd0cecdedd20f3c6796ac96170f96b2debe"
 
 install_dir="${INSTALL_DIR:-${HOME}/.local/bin}"
