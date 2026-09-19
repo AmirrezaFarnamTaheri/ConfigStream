@@ -719,3 +719,155 @@ def test_nekobox_json_subscription_rejects_legacy_wireguard_outbound() -> None:
     )
 
     assert any("legacy WireGuard outbound shape" in error for error in errors)
+
+def test_xray_chain_uses_sockopt_dialer_proxy() -> None:
+    config, report = generate_xray_config(
+        [
+            {
+                "id": "chain-modern",
+                "protocol": "chain",
+                "is_working": True,
+                "config": json.dumps(
+                    {
+                        "outbounds": [
+                            {
+                                "tag": "relay",
+                                "type": "socks",
+                                "server": "127.0.0.1",
+                                "server_port": 1080,
+                            },
+                            {
+                                "tag": "exit",
+                                "type": "socks",
+                                "server": "127.0.0.1",
+                                "server_port": 1081,
+                                "detour": "relay",
+                            },
+                        ]
+                    }
+                ),
+            }
+        ]
+    )
+
+    assert report["emitted_records"] == 1
+    exit_outbound = next(item for item in config["outbounds"] if item["tag"] == "exit")
+    assert "proxySettings" not in exit_outbound
+    assert (
+        exit_outbound["streamSettings"]["sockopt"]["dialerProxy"]
+        == "relay"
+    )
+    assert validate_xray_config(config) == []
+
+
+def test_xray_validator_rejects_removed_proxy_settings() -> None:
+    errors = validate_xray_config(
+        {
+            "outbounds": [
+                {
+                    "tag": "legacy-chain",
+                    "protocol": "socks",
+                    "settings": {"address": "127.0.0.1", "port": 1080},
+                    "streamSettings": {
+                        "method": "raw",
+                        "rawSettings": {},
+                        "security": "none",
+                    },
+                    "proxySettings": {
+                        "tag": "direct",
+                        "transportLayer": True,
+                    },
+                },
+                {"tag": "direct", "protocol": "freedom", "settings": {}},
+                {"tag": "block", "protocol": "blackhole", "settings": {}},
+            ]
+        }
+    )
+
+    assert any("uses removed proxySettings" in error for error in errors)
+
+
+def test_xray_validator_checks_dialer_proxy_references() -> None:
+    errors = validate_xray_config(
+        {
+            "outbounds": [
+                {
+                    "tag": "node",
+                    "protocol": "socks",
+                    "settings": {"address": "127.0.0.1", "port": 1080},
+                    "streamSettings": {
+                        "method": "raw",
+                        "rawSettings": {},
+                        "security": "none",
+                        "sockopt": {"dialerProxy": "missing"},
+                    },
+                },
+                {"tag": "direct", "protocol": "freedom", "settings": {}},
+                {"tag": "block", "protocol": "blackhole", "settings": {}},
+            ]
+        }
+    )
+
+    assert any(
+        "streamSettings.sockopt.dialerProxy references unknown tag: missing" in error
+        for error in errors
+    )
+
+
+def test_xray_drops_legacy_h2_instead_of_relabeling_as_xhttp() -> None:
+    config, report = generate_xray_config(
+        [
+            {
+                "id": "legacy-h2",
+                "protocol": "vless",
+                "address": "93.184.216.34",
+                "port": 443,
+                "uuid": "00000000-0000-0000-0000-00000000f001",
+                "remarks": "legacy-h2",
+                "is_working": True,
+                "details": {
+                    "security": "tls",
+                    "sni": "example.com",
+                    "net": "h2",
+                    "path": "/legacy",
+                    "host": "example.com",
+                },
+            }
+        ]
+    )
+
+    assert report["emitted_records"] == 0
+    assert report["unsupported"] == {"vless": 1}
+    assert [item["tag"] for item in config["outbounds"]] == ["direct", "block"]
+
+
+def test_xray_preserves_explicit_xhttp_transport() -> None:
+    config, report = generate_xray_config(
+        [
+            {
+                "id": "modern-xhttp",
+                "protocol": "vless",
+                "address": "93.184.216.34",
+                "port": 443,
+                "uuid": "00000000-0000-0000-0000-00000000f002",
+                "remarks": "modern-xhttp",
+                "is_working": True,
+                "details": {
+                    "security": "tls",
+                    "sni": "example.com",
+                    "net": "xhttp",
+                    "path": "/modern",
+                    "host": "example.com",
+                },
+            }
+        ]
+    )
+
+    outbound = next(
+        item for item in config["outbounds"] if item["tag"] == "modern-xhttp"
+    )
+    assert outbound["streamSettings"]["method"] == "xhttp"
+    assert outbound["streamSettings"]["xhttpSettings"]["path"] == "/modern"
+    assert report["emitted_records"] == 1
+    assert validate_xray_config(config) == []
+
