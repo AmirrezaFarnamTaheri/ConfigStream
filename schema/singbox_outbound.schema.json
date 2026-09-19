@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "ConfigStream Intermediate Sing-box Outbound",
-  "description": "Validates converter-stage outbound objects before release finalization. Public sing-box files are complete root objects and are validated separately; finalization migrates legacy WireGuard outbounds to modern sing-box endpoints.",
+  "description": "Validates converter-stage outbound objects before public profile assembly. Public sing-box generators emit modern route actions and migrate legacy WireGuard converter objects to top-level endpoints before serialization; release finalization remains a defensive normalizer.",
   "type": "object",
   "required": [
     "type",
@@ -12,8 +12,6 @@
       "type": "string",
       "enum": [
         "direct",
-        "dns",
-        "block",
         "selector",
         "urltest",
         "vless",
