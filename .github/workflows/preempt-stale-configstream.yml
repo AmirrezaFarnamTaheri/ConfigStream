@@ -26,6 +26,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TARGET_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
           TARGET_RUN_ID: ${{ github.event.workflow_run.id || '0' }}
+          TARGET_EVENT: ${{ github.event.workflow_run.event || github.event_name }}
         shell: bash
         run: |
           set -euo pipefail
@@ -40,7 +41,208 @@ jobs:
               --jq '.workflow_runs[] | [.id, .head_sha, .event] | @tsv' >> "$tmp"
           done
 
-          sort -u "$tmp" | while IFS=$'\t' read -r run_id head_sha event; do
+          # A cron tick for the exact commit already being processed must not
+          # destroy hours of completed shard work. Prefer the older active
+          # same-SHA run and cancel only the newly requested scheduled duplicate.
+          if [[ "$TARGET_RUN_ID" =~ ^[1-9][0-9]*$ ]] && [[ "$TARGET_EVENT" == "schedule" ]]; then
+            duplicate_of=""
+            while IFS=
+            [[ "$run_id" =~ ^[0-9]+$ ]] || continue
+            if [[ "$run_id" == "$TARGET_RUN_ID" ]]; then
+              continue
+            fi
+            case "$event" in
+              push|schedule|workflow_dispatch) ;;
+              *) continue ;;
+            esac
+
+            # Never cancel another active run for the same commit. Scheduled
+            # duplicates are handled above by cancelling the new target instead.
+            if [[ "$head_sha" == "$TARGET_SHA" ]]; then
+              continue
+            fi
+            if [[ "$TARGET_RUN_ID" =~ ^[1-9][0-9]*$ ]] && (( run_id > TARGET_RUN_ID )); then
+              # An older preemption event must never cancel a newer request.
+              continue
+            fi
+
+            echo "Cancelling stale Config's Stream run ${run_id} at ${head_sha} (${event})"
+            if ! gh api --method POST \
+              -H 'Accept: application/vnd.github+json' \
+              "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/cancel" \
+              >/dev/null 2>"$cancel_err"; then
+              state="$(gh api \
+                -H 'Accept: application/vnd.github+json' \
+                "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}" \
+                --jq '.status' 2>/dev/null || printf 'unknown')"
+              if [[ "$state" != "completed" ]]; then
+                cat "$cancel_err" >&2
+                echo "Failed to cancel still-active Config's Stream run ${run_id}" >&2
+                exit 1
+              fi
+            fi
+            : > "$cancel_err"
+          done
+
+      - name: Cancel active Retest runs before main execution
+        if: github.event_name == 'workflow_run'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          cancel_err="$(mktemp)"
+          trap 'rm -f "$tmp" "$cancel_err"' EXIT
+
+          for status in queued in_progress; do
+            gh api --paginate \
+              -H 'Accept: application/vnd.github+json' \
+              "/repos/${GITHUB_REPOSITORY}/actions/workflows/retest.yml/runs?branch=main&status=${status}&per_page=100" \
+              --jq '.workflow_runs[] | [.id, .event, .status] | @tsv' >> "$tmp"
+          done
+
+          sort -u "$tmp" | while IFS=$'\t' read -r run_id event status; do
+            [[ "$run_id" =~ ^[0-9]+$ ]] || continue
+            case "$event" in
+              schedule|workflow_dispatch) ;;
+              *) continue ;;
+            esac
+
+            echo "Cancelling active Retest run ${run_id} (${event}, ${status}) because main has priority"
+            if ! gh api --method POST \
+              -H 'Accept: application/vnd.github+json' \
+              "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/cancel" \
+              >/dev/null 2>"$cancel_err"; then
+              state="$(gh api \
+                -H 'Accept: application/vnd.github+json' \
+                "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}" \
+                --jq '.status' 2>/dev/null || printf 'unknown')"
+              if [[ "$state" != "completed" ]]; then
+                cat "$cancel_err" >&2
+                echo "Failed to cancel still-active Retest run ${run_id}" >&2
+                exit 1
+              fi
+            fi
+            : > "$cancel_err"
+          done
+\t' read -r run_id head_sha event; do
+              [[ "$run_id" =~ ^[0-9]+$ ]] || continue
+              [[ "$run_id" == "$TARGET_RUN_ID" ]] && continue
+              case "$event" in
+                push|schedule|workflow_dispatch) ;;
+                *) continue ;;
+              esac
+              if [[ "$head_sha" == "$TARGET_SHA" ]] && (( run_id < TARGET_RUN_ID )); then
+                duplicate_of="$run_id"
+                break
+              fi
+            done < <(sort -u "$tmp")
+
+            if [[ -n "$duplicate_of" ]]; then
+              echo "Cancelling duplicate scheduled Config's Stream run ${TARGET_RUN_ID}; preserving active same-SHA run ${duplicate_of}"
+              if ! gh api --method POST \
+                -H 'Accept: application/vnd.github+json' \
+                "/repos/${GITHUB_REPOSITORY}/actions/runs/${TARGET_RUN_ID}/cancel" \
+                >/dev/null 2>"$cancel_err"; then
+                state="$(gh api \
+                  -H 'Accept: application/vnd.github+json' \
+                  "/repos/${GITHUB_REPOSITORY}/actions/runs/${TARGET_RUN_ID}" \
+                  --jq '.status' 2>/dev/null || printf 'unknown')"
+                if [[ "$state" != "completed" ]]; then
+                  cat "$cancel_err" >&2
+                  echo "Failed to cancel duplicate scheduled Config's Stream run ${TARGET_RUN_ID}" >&2
+                  exit 1
+                fi
+              fi
+              exit 0
+            fi
+          fi
+
+          sort -u "$tmp" | while IFS=
+            [[ "$run_id" =~ ^[0-9]+$ ]] || continue
+            if [[ "$run_id" == "$TARGET_RUN_ID" ]]; then
+              continue
+            fi
+            case "$event" in
+              push|schedule|workflow_dispatch) ;;
+              *) continue ;;
+            esac
+
+            if [[ "$TARGET_RUN_ID" =~ ^[1-9][0-9]*$ ]]; then
+              # A workflow_run event identifies the exact newest run. Cancel only
+              # older runs, including duplicate same-SHA schedules, so an older
+              # preemption event can never cancel a newer production request.
+              if (( run_id > TARGET_RUN_ID )); then
+                continue
+              fi
+            elif [[ "$head_sha" == "$TARGET_SHA" ]]; then
+              # Manual preemption has no exact target run id. Preserve all
+              # same-head runs rather than risking cancellation of the newest one.
+              continue
+            fi
+
+            echo "Cancelling stale Config's Stream run ${run_id} at ${head_sha} (${event})"
+            if ! gh api --method POST \
+              -H 'Accept: application/vnd.github+json' \
+              "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/cancel" \
+              >/dev/null 2>"$cancel_err"; then
+              state="$(gh api \
+                -H 'Accept: application/vnd.github+json' \
+                "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}" \
+                --jq '.status' 2>/dev/null || printf 'unknown')"
+              if [[ "$state" != "completed" ]]; then
+                cat "$cancel_err" >&2
+                echo "Failed to cancel still-active Config's Stream run ${run_id}" >&2
+                exit 1
+              fi
+            fi
+            : > "$cancel_err"
+          done
+
+      - name: Cancel active Retest runs before main execution
+        if: github.event_name == 'workflow_run'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          cancel_err="$(mktemp)"
+          trap 'rm -f "$tmp" "$cancel_err"' EXIT
+
+          for status in queued in_progress; do
+            gh api --paginate \
+              -H 'Accept: application/vnd.github+json' \
+              "/repos/${GITHUB_REPOSITORY}/actions/workflows/retest.yml/runs?branch=main&status=${status}&per_page=100" \
+              --jq '.workflow_runs[] | [.id, .event, .status] | @tsv' >> "$tmp"
+          done
+
+          sort -u "$tmp" | while IFS=$'\t' read -r run_id event status; do
+            [[ "$run_id" =~ ^[0-9]+$ ]] || continue
+            case "$event" in
+              schedule|workflow_dispatch) ;;
+              *) continue ;;
+            esac
+
+            echo "Cancelling active Retest run ${run_id} (${event}, ${status}) because main has priority"
+            if ! gh api --method POST \
+              -H 'Accept: application/vnd.github+json' \
+              "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/cancel" \
+              >/dev/null 2>"$cancel_err"; then
+              state="$(gh api \
+                -H 'Accept: application/vnd.github+json' \
+                "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}" \
+                --jq '.status' 2>/dev/null || printf 'unknown')"
+              if [[ "$state" != "completed" ]]; then
+                cat "$cancel_err" >&2
+                echo "Failed to cancel still-active Retest run ${run_id}" >&2
+                exit 1
+              fi
+            fi
+            : > "$cancel_err"
+          done
+\t' read -r run_id head_sha event; do
             [[ "$run_id" =~ ^[0-9]+$ ]] || continue
             if [[ "$run_id" == "$TARGET_RUN_ID" ]]; then
               continue
