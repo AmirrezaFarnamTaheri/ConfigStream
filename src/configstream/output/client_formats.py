@@ -12,7 +12,9 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
+from ..converters import to_singbox_outbound
 from ..converters.singbox import wireguard_outbound_to_endpoint
+from ..models import Proxy
 from .xray_security import transport_security_error
 
 _URI_SCHEME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*$")
@@ -33,6 +35,7 @@ _XRAY_GENERATED_PROXY_PROTOCOLS = {
     "vmess",
     "vless",
 }
+_NEKOBOX_HELPER_TYPES = {"selector", "urltest", "direct", "block", "dns"}
 
 
 def _string_list(value: Any) -> list[str]:
@@ -744,6 +747,85 @@ def validate_mihomo_config(payload: object, file_name: str) -> list[str]:
     return errors
 
 
+
+def generate_nekobox_json_subscription(proxies: list[Proxy]) -> str:
+    """Render NekoBox's multi-node JSON subscription shape.
+
+    NekoBox treats a complete sing-box JSON document as one custom/profile
+    configuration.  Its multi-node JSON subscription format is instead a
+    top-level array of standalone outbounds.  Keep chain/helper outbounds out of
+    this surface so each array item remains independently importable.
+    """
+
+    nodes: list[dict[str, Any]] = []
+    seen_tags: set[str] = set()
+    for proxy in proxies:
+        try:
+            converted = to_singbox_outbound(proxy)
+        except (AttributeError, KeyError, TypeError, ValueError):
+            continue
+        if not isinstance(converted, dict):
+            continue
+
+        outbound = dict(converted)
+        outbound.pop("_extra_outbounds", None)
+        for key in tuple(outbound):
+            if str(key).startswith("_"):
+                outbound.pop(key, None)
+
+        kind = str(outbound.get("type") or "").strip().lower()
+        if not kind or kind in _NEKOBOX_HELPER_TYPES:
+            continue
+        # A multi-node subscription is intentionally flat: a detoured outbound
+        # depends on another node and would not be independently importable.
+        if outbound.get("detour") not in (None, ""):
+            continue
+
+        fallback = proxy.remarks or str(proxy.id or "") or f"{kind}-node"
+        base_tag = _clean_tag(outbound.get("tag"), fallback)
+        outbound["tag"] = _unique_tag(base_tag, seen_tags)
+        nodes.append(outbound)
+
+    return json.dumps(nodes, indent=2, ensure_ascii=False) + "\n"
+
+
+def validate_nekobox_json_subscription(
+    payload: object, file_name: str = "nekobox.json"
+) -> list[str]:
+    """Validate NekoBox's top-level JSON-array multi-node subscription."""
+
+    errors: list[str] = []
+    if not isinstance(payload, list):
+        return [f"{file_name} must be a top-level JSON array of outbounds"]
+
+    seen_tags: set[str] = set()
+    for index, item in enumerate(payload):
+        if not isinstance(item, dict):
+            errors.append(f"{file_name}[{index}] must be an outbound object")
+            continue
+        kind = str(item.get("type") or "").strip().lower()
+        if not kind:
+            errors.append(f"{file_name}[{index}] missing outbound type")
+        elif kind in _NEKOBOX_HELPER_TYPES:
+            errors.append(
+                f"{file_name}[{index}] uses helper outbound type {kind}; "
+                "multi-node subscriptions must contain standalone nodes"
+            )
+        tag = item.get("tag")
+        if not isinstance(tag, str) or not tag.strip():
+            errors.append(f"{file_name}[{index}] missing non-empty tag")
+        elif tag in seen_tags:
+            errors.append(f"{file_name}[{index}] duplicates tag: {tag}")
+        else:
+            seen_tags.add(tag)
+        if item.get("detour") not in (None, ""):
+            errors.append(
+                f"{file_name}[{index}] has detour; NekoBox multi-node items "
+                "must be independently importable"
+            )
+    return errors
+
+
 def validate_nekobox_subscriptions(root: Path) -> list[str]:
     """Validate share-link/Base64 subscriptions consumed by NekoBox/v2rayN."""
     errors: list[str] = []
@@ -752,6 +834,25 @@ def validate_nekobox_subscriptions(root: Path) -> list[str]:
         ("proxies-dns-safe.txt", "base64-dns-safe.txt"),
         ("proxies-dns-hardened.txt", "base64-dns-hardened.txt"),
     )
+    json_names = (
+        "nekobox.json",
+        "nekobox-dns-safe.json",
+        "nekobox-dns-hardened.json",
+        "chosen/nekobox.json",
+        "chosen/nekobox-dns-safe.json",
+        "chosen/nekobox-dns-hardened.json",
+    )
+    for json_name in json_names:
+        path = root / json_name
+        if not path.is_file():
+            continue
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            errors.append(f"{json_name} is not valid UTF-8 JSON: {exc}")
+            continue
+        errors.extend(validate_nekobox_json_subscription(payload, json_name))
+
     for text_name, base64_name in pairs:
         text_path = root / text_name
         encoded_path = root / base64_name
