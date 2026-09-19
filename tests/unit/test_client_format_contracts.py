@@ -598,9 +598,7 @@ def test_nekobox_json_subscription_uses_minimal_node_container() -> None:
 
 
 def test_nekobox_json_subscription_rejects_raw_root_array() -> None:
-    errors = validate_nekobox_json_subscription(
-        [{"type": "vless", "tag": "node"}]
-    )
+    errors = validate_nekobox_json_subscription([{"type": "vless", "tag": "node"}])
 
     assert errors == [
         "nekobox.json must be a JSON object containing outbounds/endpoints arrays"
