@@ -6,7 +6,7 @@
 If your client fails to import the configuration:
 *   **Check the Format**: Ensure you are using the correct format for your client (e.g., `.yaml` for Clash, `.json` for Sing-box).
 *   **Base64 Decoding**: Some older clients expect raw URI lists. Try decoding the Base64 string manually if your client doesn't support subscription links.
-*   **Update Client**: We use modern protocols (VLESS-Reality, Hysteria2). Ensure your client is up to date (e.g., v2rayNG >= 1.8.5, Sing-box >= 1.8).
+*   **Update Client**: Published full profiles target the repository-pinned native cores (currently Sing-box 1.14.1 and Xray v26.9.9). Older GUI builds embedding earlier cores may reject modern endpoint, DNS, or chain fields.
 
 ### 2. "Connected but No Internet"
 *   **Time Sync**: VLESS/VMess protocols require your device time to be accurate within 90 seconds. Sync your clock.
@@ -40,11 +40,11 @@ If your client fails to import the configuration:
 
 ## Advanced Usage
 
-### How to use "The Sniper" (Router Mode)
-The `singbox.json` output is designed as a "Sniper". It uses a `tun` interface but only routes traffic that matches specific rules (e.g., blocked domains).
+### How to use the standard Sing-box profile
+`singbox.json` is a complete smart-routing profile with a local mixed inbound, selectors, DNS, and routing policy. It is one profile document, not a multi-node subscription. For system-wide TUN/VPN routing, use `singbox-vpn.json` instead.
 1.  Download `singbox.json`.
-2.  Run `sing-box run -c singbox.json`.
-3.  Set your device gateway to the machine running Sing-box.
+2.  Validate it with `sing-box check -c singbox.json`.
+3.  Run it with `sing-box run -c singbox.json`, or import it into a client that supports complete sing-box profiles.
 
 ### How to use "The Tank" (VPN Mode)
 The `singbox-vpn.json` is a "Tank". It routes **everything** through the proxy.
