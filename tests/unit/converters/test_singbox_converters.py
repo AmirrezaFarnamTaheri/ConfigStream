@@ -368,6 +368,9 @@ def test_singbox_outbound_schema_rejects_incomplete_protocol_objects():
         validator.validate({"type": "vless", "tag": "incomplete"})
     with pytest.raises(jsonschema.exceptions.ValidationError):
         validator.validate({"type": "selector", "tag": "empty-selector"})
+    for removed_type in ("block", "dns"):
+        with pytest.raises(jsonschema.exceptions.ValidationError):
+            validator.validate({"type": removed_type, "tag": removed_type})
 
 
 def test_singbox_outbound_schema_rejects_empty_mandatory_values():
