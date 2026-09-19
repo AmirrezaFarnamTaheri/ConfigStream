@@ -8,6 +8,7 @@ from typing import List, Dict, Any, Set, Optional, Tuple
 from ..models import Proxy
 from .clash import generate_clash_config
 from ..converters import to_singbox_outbound
+from ..converters.singbox import wireguard_outbound_to_endpoint
 from ..converters.chain_outbounds import chain_outbounds_from_details
 from ..utils import AtomicFileWriter
 
@@ -31,6 +32,26 @@ def _strip_internal_metadata(outbounds: List[Dict[str, Any]]) -> List[Dict[str, 
 def _append_unique_tag(tags: List[str], tag: Optional[str]) -> None:
     if tag and tag not in tags:
         tags.append(tag)
+
+
+def _modernize_singbox_nodes(
+    outbounds: List[Dict[str, Any]],
+) -> tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    """Emit the public sing-box 1.13+ node model before release finalization."""
+    modern_outbounds: List[Dict[str, Any]] = []
+    endpoints: List[Dict[str, Any]] = []
+    for outbound in outbounds:
+        kind = outbound.get("type")
+        if kind == "wireguard":
+            try:
+                endpoints.append(wireguard_outbound_to_endpoint(outbound))
+            except (TypeError, ValueError):
+                logger.debug("Dropping incompatible WireGuard endpoint from split output")
+            continue
+        if kind in {"block", "dns"}:
+            continue
+        modern_outbounds.append(outbound)
+    return modern_outbounds, endpoints
 
 
 def _chain_entry_tag(chain: List[Dict[str, Any]]) -> Optional[str]:
@@ -280,13 +301,11 @@ def generate_split_outputs(
     # These fields cause Sing-box parse errors: "unknown field "_process""
     clean_outbounds = _strip_internal_metadata(outbounds)
 
-    # Ensure essential outbounds exist (required by sing-box / v2rayN / NekoRay)
+    # Modern sing-box uses route actions for reject/DNS interception and
+    # top-level endpoints for WireGuard. Emit that shape directly.
     if not any(o.get("tag") == "direct" for o in clean_outbounds):
         clean_outbounds.append({"type": "direct", "tag": "direct"})
-    if not any(o.get("tag") == "block" for o in clean_outbounds):
-        clean_outbounds.append({"type": "block", "tag": "block"})
-    if not any(o.get("tag") == "dns-out" for o in clean_outbounds):
-        clean_outbounds.append({"type": "dns", "tag": "dns-out"})
+    clean_outbounds, sniper_endpoints = _modernize_singbox_nodes(clean_outbounds)
 
     sniper_config = {
         "log": {"level": "info", "timestamp": True},
@@ -300,6 +319,8 @@ def generate_split_outputs(
         ],
         "outbounds": clean_outbounds,
     }
+    if sniper_endpoints:
+        sniper_config["endpoints"] = sniper_endpoints
     if singbox_dns_profile:
         sniper_config["dns"] = copy.deepcopy(singbox_dns_profile)
         sniper_config["route"] = {"default_domain_resolver": "local_local"}
@@ -437,13 +458,12 @@ def generate_split_outputs(
 
     if not any(o.get("tag") == "direct" for o in tank_outbounds):
         tank_outbounds.append({"type": "direct", "tag": "direct"})
-    if not any(o.get("tag") == "block" for o in tank_outbounds):
-        tank_outbounds.append({"type": "block", "tag": "block"})
-    if not any(o.get("tag") == "dns-out" for o in tank_outbounds):
-        tank_outbounds.append({"type": "dns", "tag": "dns-out"})
 
-    # Strip internal metadata fields from tank outbounds too
+    # Strip internal metadata fields and modernize WireGuard before serializing.
     clean_tank_outbounds = _strip_internal_metadata(tank_outbounds)
+    clean_tank_outbounds, tank_endpoints = _modernize_singbox_nodes(
+        clean_tank_outbounds
+    )
 
     tank_config: Dict[str, Any] = {
         "log": {"level": "info"},
@@ -452,7 +472,7 @@ def generate_split_outputs(
                 "type": "tun",
                 "tag": "tun-in",
                 "interface_name": "tun0",
-                "inet4_address": "172.19.0.1/30",
+                "address": ["172.19.0.1/30"],
                 "auto_route": True,
                 "strict_route": True,
             }
@@ -460,12 +480,14 @@ def generate_split_outputs(
         "outbounds": clean_tank_outbounds,
         "route": {
             "rules": [
-                {"protocol": "dns", "outbound": "dns-out"},
+                {"protocol": "dns", "action": "hijack-dns"},
                 {"clash_mode": "Direct", "outbound": "direct"},
                 {"clash_mode": "Global", "outbound": "🌍 Proxy Select"},
             ]
         },
     }
+    if tank_endpoints:
+        tank_config["endpoints"] = tank_endpoints
     if singbox_dns_profile:
         tank_config["dns"] = copy.deepcopy(singbox_dns_profile)
         tank_config["route"]["default_domain_resolver"] = "local_local"
