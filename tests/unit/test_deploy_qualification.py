@@ -47,6 +47,7 @@ def test_live_pages_smoke_receives_candidate_identity_and_public_key() -> None:
     assert 'signature_policy_args+=(--public-key "$CS_PUBLIC_KEY")' in workflow
     assert 'if [ "${ALLOW_UNSIGNED_PAGES:-false}" = true ]; then' in workflow
     assert "signature_policy_args+=(--allow-unsigned)" in workflow
+    assert "verify_args+=(--allow-unsigned)" in workflow
     assert (
         'python scripts/validate_pages_signature_policy.py output "${signature_policy_args[@]}"'
         in workflow
