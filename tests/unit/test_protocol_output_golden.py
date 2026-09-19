@@ -387,12 +387,20 @@ def test_golden_protocols_render_in_subscription_outputs():
     proxies = list(GOLDEN_PROXIES.values())
 
     singbox = json.loads(generate_singbox_config(proxies))
-    singbox_types = {
+    singbox_outbound_types = {
         outbound["type"]
         for outbound in singbox["outbounds"]
         if outbound.get("tag", "").startswith("fixture-")
     }
+    singbox_endpoint_types = {
+        endpoint["type"]
+        for endpoint in singbox.get("endpoints", [])
+        if endpoint.get("tag", "").startswith("fixture-")
+    }
+    singbox_types = singbox_outbound_types | singbox_endpoint_types
     assert set(EXPECTED_SINGBOX_TYPES.values()).issubset(singbox_types)
+    assert "wireguard" not in singbox_outbound_types
+    assert "wireguard" in singbox_endpoint_types
 
     clash = yaml.safe_load(generate_clash_config(proxies, ignore_status=True))
     clash_types = {proxy["type"] for proxy in clash["proxies"]}
