@@ -164,6 +164,51 @@
       "validation": "UTF-8 share-link syntax"
     },
     {
+      "path": "nekobox.json",
+      "family": "nekobox",
+      "category": "subscription",
+      "format": "json",
+      "required": true,
+      "nonempty": false,
+      "schema_validation": false,
+      "degraded_valid": true,
+      "notes": "NekoBox multi-node JSON subscription. Each array item is an independently importable outbound; unlike singbox.json this is not a complete profile.",
+      "client_compatibility": [
+        "NekoBox"
+      ],
+      "validation": "top-level JSON array of standalone outbounds; unique tags; no helper groups or detours"
+    },
+    {
+      "path": "nekobox-dns-safe.json",
+      "family": "nekobox",
+      "category": "subscription",
+      "format": "json",
+      "required": true,
+      "nonempty": false,
+      "schema_validation": false,
+      "degraded_valid": true,
+      "notes": "DNS-safe NekoBox multi-node JSON subscription; empty is valid when no compatible nodes are available.",
+      "client_compatibility": [
+        "NekoBox"
+      ],
+      "validation": "top-level JSON array of standalone outbounds; unique tags; no helper groups or detours"
+    },
+    {
+      "path": "nekobox-dns-hardened.json",
+      "family": "nekobox",
+      "category": "subscription",
+      "format": "json",
+      "required": true,
+      "nonempty": false,
+      "schema_validation": false,
+      "degraded_valid": true,
+      "notes": "DNS-hardened NekoBox multi-node JSON subscription; empty is valid when no compatible nodes are available.",
+      "client_compatibility": [
+        "NekoBox"
+      ],
+      "validation": "top-level JSON array of standalone outbounds; unique tags; no helper groups or detours"
+    },
+    {
       "path": "singbox.json",
       "family": "singbox",
       "category": "subscription",
@@ -470,6 +515,51 @@
       "schema_validation": false,
       "degraded_valid": true,
       "notes": "Chosen top-N newline-delimited share-link subscription; empty is valid when no proxies are selected."
+    },
+    {
+      "path": "chosen/nekobox.json",
+      "family": "chosen",
+      "category": "subscription",
+      "format": "json",
+      "required": true,
+      "nonempty": false,
+      "schema_validation": false,
+      "degraded_valid": true,
+      "notes": "Chosen top-N NekoBox multi-node JSON subscription.",
+      "client_compatibility": [
+        "NekoBox"
+      ],
+      "validation": "top-level JSON array of standalone outbounds; unique tags; no helper groups or detours"
+    },
+    {
+      "path": "chosen/nekobox-dns-safe.json",
+      "family": "chosen",
+      "category": "subscription",
+      "format": "json",
+      "required": true,
+      "nonempty": false,
+      "schema_validation": false,
+      "degraded_valid": true,
+      "notes": "Chosen DNS-safe NekoBox multi-node JSON subscription.",
+      "client_compatibility": [
+        "NekoBox"
+      ],
+      "validation": "top-level JSON array of standalone outbounds; unique tags; no helper groups or detours"
+    },
+    {
+      "path": "chosen/nekobox-dns-hardened.json",
+      "family": "chosen",
+      "category": "subscription",
+      "format": "json",
+      "required": true,
+      "nonempty": false,
+      "schema_validation": false,
+      "degraded_valid": true,
+      "notes": "Chosen DNS-hardened NekoBox multi-node JSON subscription.",
+      "client_compatibility": [
+        "NekoBox"
+      ],
+      "validation": "top-level JSON array of standalone outbounds; unique tags; no helper groups or detours"
     },
     {
       "path": "chosen/singbox.json",
