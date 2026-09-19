@@ -720,6 +720,7 @@ def test_nekobox_json_subscription_rejects_legacy_wireguard_outbound() -> None:
 
     assert any("legacy WireGuard outbound shape" in error for error in errors)
 
+
 def test_xray_chain_uses_sockopt_dialer_proxy() -> None:
     config, report = generate_xray_config(
         [
@@ -753,10 +754,7 @@ def test_xray_chain_uses_sockopt_dialer_proxy() -> None:
     assert report["emitted_records"] == 1
     exit_outbound = next(item for item in config["outbounds"] if item["tag"] == "exit")
     assert "proxySettings" not in exit_outbound
-    assert (
-        exit_outbound["streamSettings"]["sockopt"]["dialerProxy"]
-        == "relay"
-    )
+    assert exit_outbound["streamSettings"]["sockopt"]["dialerProxy"] == "relay"
     assert validate_xray_config(config) == []
 
 
@@ -870,6 +868,7 @@ def test_xray_preserves_explicit_xhttp_transport() -> None:
     assert outbound["streamSettings"]["xhttpSettings"]["path"] == "/modern"
     assert report["emitted_records"] == 1
     assert validate_xray_config(config) == []
+
 
 def test_singbox_contract_rejects_removed_public_outbound_shapes() -> None:
     payload = {
