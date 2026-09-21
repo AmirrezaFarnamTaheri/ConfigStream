@@ -190,7 +190,7 @@ Unknown licenses requiring external resolution: **147**
 | python | `text-unidecode` | `1.3` | required | unknown |
 | python | `tomli` | `2.4.1` | required | unknown |
 | python | `typing_extensions` | `4.16.0` | required | unknown |
-| python | `urllib3` | `2.7.0` | required | unknown |
+| python | `urllib3` | `2.8.0` | required | unknown |
 | python | `uvicorn` | `0.52.4` | required | unknown |
 | python | `uvloop` | `0.22.1` | required | unknown |
 | python | `wasmtime` | `45.0.0` | required | unknown |
