@@ -3223,7 +3223,7 @@
       "version": "0.139.0"
     },
     {
-      "bom-ref": "pkg:pypi/filelock@3.29.4",
+      "bom-ref": "pkg:pypi/filelock@4.0.0",
       "name": "filelock",
       "properties": [
         {
@@ -3239,10 +3239,10 @@
           "value": "requirements-prod.txt"
         }
       ],
-      "purl": "pkg:pypi/filelock@3.29.4",
+      "purl": "pkg:pypi/filelock@4.0.0",
       "scope": "required",
       "type": "library",
-      "version": "3.29.4"
+      "version": "4.0.0"
     },
     {
       "bom-ref": "pkg:pypi/frozenlist@1.8.0",
