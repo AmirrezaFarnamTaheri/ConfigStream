@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "verified_at": "2026-09-07",
+  "verified_at": "2026-09-21",
   "verification_method": "GitHub release/compare metadata; exact Dependabot-selected release commit SHAs recorded",
   "entries": [
     {"action": "actions/attest-build-provenance", "version": "v2.2.0", "commit_sha": "520d128f165991a6c774bcb264f323e3d70747f4"},
@@ -13,7 +13,7 @@
     {"action": "actions/setup-python", "version": "v7", "commit_sha": "5fda3b95a4ea91299a34e894583c3862153e4b97"},
     {"action": "actions/upload-artifact", "version": "v7", "commit_sha": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a"},
     {"action": "actions/upload-pages-artifact", "version": "v5", "commit_sha": "fc324d3547104276b827a68afc52ff2a11cc49c9"},
-    {"action": "docker/build-push-action", "version": "v7.3.0", "commit_sha": "53b7df96c91f9c12dcc8a07bcb9ccacbed38856a"},
+    {"action": "docker/build-push-action", "version": "v7.4.0", "commit_sha": "c3c9e263c25d99ce0380d002d59b67737d91b0dc"},
     {"action": "docker/login-action", "version": "v3", "commit_sha": "c94ce9fb468520275223c153574b00df6fe4bcc9"},
     {"action": "docker/setup-buildx-action", "version": "v4.3.0", "commit_sha": "37fe631027851001ddb9b187196cc803df7f5f0e"},
     {"action": "gitleaks/gitleaks-action", "version": "v3", "commit_sha": "e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e"},
