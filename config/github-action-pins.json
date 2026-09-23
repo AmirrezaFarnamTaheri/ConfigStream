@@ -4,20 +4,17 @@
   "verification_method": "GitHub release/compare metadata; exact Dependabot-selected release commit SHAs recorded",
   "entries": [
     {"action": "actions/attest-build-provenance", "version": "v2.2.0", "commit_sha": "520d128f165991a6c774bcb264f323e3d70747f4"},
-    {"action": "actions/cache", "version": "v6", "commit_sha": "55cc8345863c7cc4c66a329aec7e433d2d1c52a9"},
-    {"action": "actions/checkout", "version": "v7", "commit_sha": "3d3c42e5aac5ba805825da76410c181273ba90b1"},
-    {"action": "actions/deploy-pages", "version": "v5", "commit_sha": "368f82528645a54fb793d4d04e342629a3f51346"},
-    {"action": "actions/download-artifact", "version": "v8", "commit_sha": "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c"},
-    {"action": "actions/setup-go", "version": "v7", "commit_sha": "b7ad1dad31e06c5925ef5d2fc7ad053ef454303e"},
-    {"action": "actions/setup-node", "version": "v7", "commit_sha": "820762786026740c76f36085b0efc47a31fe5020"},
+    {"action": "actions/checkout", "version": "v6.0.1", "commit_sha": "de90cc6fb38fc0960ad688de964646271c64070a"},
+    {"action": "actions/configure-pages", "version": "v6", "commit_sha": "983d7736d9b0ae728b81ab479565c72886d7745b"},
+    {"action": "actions/deploy-pages", "version": "v5", "commit_sha": "d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e"},
+    {"action": "actions/setup-go", "version": "v6", "commit_sha": "0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32"},
+    {"action": "actions/setup-node", "version": "v6", "commit_sha": "1e60f671b360f4b26b3302514284355a66d532fb"},
     {"action": "actions/setup-python", "version": "v7", "commit_sha": "5fda3b95a4ea91299a34e894583c3862153e4b97"},
     {"action": "actions/upload-artifact", "version": "v7", "commit_sha": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a"},
     {"action": "actions/upload-pages-artifact", "version": "v5", "commit_sha": "fc324d3547104276b827a68afc52ff2a11cc49c9"},
     {"action": "docker/build-push-action", "version": "v7.4.0", "commit_sha": "c3c9e263c25d99ce0380d002d59b67737d91b0dc"},
     {"action": "docker/login-action", "version": "v3", "commit_sha": "c94ce9fb468520275223c153574b00df6fe4bcc9"},
-    {"action": "docker/setup-buildx-action", "version": "v4.3.0", "commit_sha": "37fe631027851001ddb9b187196cc803df7f5f0e"},
-    {"action": "gitleaks/gitleaks-action", "version": "v3", "commit_sha": "e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e"},
-    {"action": "pypa/gh-action-pypi-publish", "version": "v1.14.1", "commit_sha": "ba38be9e461d3875417946c167d0b5f3d385a247"},
-    {"action": "softprops/action-gh-release", "version": "v3.0.3", "commit_sha": "efb35369e0ad2afab669f228072c1b0d510eae64"}
+    {"action": "docker/setup-buildx-action", "version": "v4.4.1", "commit_sha": "f87e5991a6d7451dcb8d9637bfbc97413f497069"},
+    {"action": "gitleaks/gitleaks-action", "version": "v3", "commit_sha": "e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e"}
   ]
 }
