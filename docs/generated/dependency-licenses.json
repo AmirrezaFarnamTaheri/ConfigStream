@@ -1163,7 +1163,7 @@
       "name": "aiohttp_socks",
       "scope": "required",
       "source": "requirements-prod.txt",
-      "version": "0.11.0"
+      "version": "0.12.0"
     },
     {
       "ecosystem": "python",

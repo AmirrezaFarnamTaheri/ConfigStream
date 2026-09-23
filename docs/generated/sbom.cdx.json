@@ -2915,7 +2915,7 @@
       "version": "0.1.2"
     },
     {
-      "bom-ref": "pkg:pypi/aiohttp_socks@0.11.0",
+      "bom-ref": "pkg:pypi/aiohttp_socks@0.12.0",
       "name": "aiohttp_socks",
       "properties": [
         {
@@ -2931,10 +2931,10 @@
           "value": "requirements-prod.txt"
         }
       ],
-      "purl": "pkg:pypi/aiohttp_socks@0.11.0",
+      "purl": "pkg:pypi/aiohttp_socks@0.12.0",
       "scope": "required",
       "type": "library",
-      "version": "0.11.0"
+      "version": "0.12.0"
     },
     {
       "bom-ref": "pkg:pypi/aiosignal@1.4.0",
