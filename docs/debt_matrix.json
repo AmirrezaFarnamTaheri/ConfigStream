@@ -616,11 +616,11 @@
     },
     {
       "path": "src/configstream/generators/split.py",
-      "line": 204,
+      "line": 217,
       "marker": "LARGE_FUNCTION",
       "category": "production",
       "priority": "P1 - High",
-      "text": "Function generate_split_outputs spans 329 lines (threshold: 300)."
+      "text": "Function generate_split_outputs spans 327 lines (threshold: 300)."
     },
     {
       "path": "src/configstream/geoip.py",

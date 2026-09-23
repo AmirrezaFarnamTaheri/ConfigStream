@@ -58,6 +58,12 @@ _SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 _REPO_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 
 
+class GitHubApiError(RuntimeError):
+    def __init__(self, status_code: int, message: str) -> None:
+        super().__init__(message)
+        self.status_code = status_code
+
+
 class GitHubApi:
     def __init__(self, token: str, repository: str, api_url: str) -> None:
         self.token = token
@@ -90,8 +96,8 @@ class GitHubApi:
                 return bytes(response.read())
         except HTTPError as exc:
             detail = exc.read().decode("utf-8", errors="replace")[:500]
-            raise RuntimeError(
-                f"GitHub API {method} {path} failed with {exc.code}: {detail}"
+            raise GitHubApiError(
+                exc.code, f"GitHub API {method} {path} failed with {exc.code}: {detail}"
             ) from exc
 
     def json(
@@ -132,8 +138,13 @@ def _ref_path(repository: str, branch: str) -> str:
     return f"/repos/{repository}/git/refs/heads/{quote(branch, safe='/')}"
 
 
-def _current_ref_sha(api: GitHubApi, branch: str) -> str:
-    payload = api.json("GET", _ref_path(api.repository, branch))
+def _current_ref_sha(api: GitHubApi, branch: str) -> str | None:
+    try:
+        payload = api.json("GET", _ref_path(api.repository, branch))
+    except GitHubApiError as exc:
+        if exc.status_code == 404:
+            return None
+        raise
     obj = payload.get("object")
     if not isinstance(obj, dict) or not isinstance(obj.get("sha"), str):
         raise RuntimeError("branch ref response is missing object.sha")

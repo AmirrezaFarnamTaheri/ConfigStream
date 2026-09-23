@@ -879,6 +879,17 @@
           "minimum": 576,
           "maximum": 9000
         },
+        "persistent_keepalive": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "allowed_ips": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "local_address": {
           "oneOf": [
             {

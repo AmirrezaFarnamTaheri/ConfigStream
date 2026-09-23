@@ -1,9 +1,13 @@
+import json
+from pathlib import Path
+
 from configstream.dns_profiles import (
     build_singbox_dns_profile,
     build_clash_dns_profile,
     IRAN_INFRASTRUCTURE_DNS,
     CLOUDFLARE_OPTIMIZED_IPS,
 )
+from configstream.generators.split import generate_split_outputs
 
 
 def test_infrastructure_dns_list():
@@ -86,3 +90,21 @@ def test_clash_dns_profile():
     assert profile["enable"] is True
     assert "nameserver" in profile
     assert "fallback" in profile
+
+
+def test_hardened_split_profiles_define_referenced_dns_rule_sets(
+    tmp_path: Path,
+) -> None:
+    files = generate_split_outputs(
+        [], tmp_path, singbox_dns_profile=build_singbox_dns_profile()
+    )
+    for key in ("singbox", "singbox_vpn"):
+        config = json.loads(files[key].read_text(encoding="utf-8"))
+        definitions = config["route"]["rule_set"]
+        defined_tags = {item["tag"] for item in definitions}
+        referenced_tags = {
+            tag for rule in config["dns"]["rules"] for tag in rule.get("rule_set", [])
+        }
+        outbound_tags = {item["tag"] for item in config["outbounds"]}
+        assert referenced_tags <= defined_tags
+        assert all(item["download_detour"] in outbound_tags for item in definitions)

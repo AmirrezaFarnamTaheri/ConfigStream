@@ -11,6 +11,7 @@ from ..converters import to_singbox_outbound
 from ..converters.singbox import wireguard_outbound_to_endpoint
 from ..converters.chain_outbounds import chain_outbounds_from_details
 from ..utils import AtomicFileWriter
+from ..dns_profiles import build_singbox_rule_sets
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +55,18 @@ def _modernize_singbox_nodes(
             continue
         modern_outbounds.append(outbound)
     return modern_outbounds, endpoints
+
+
+def _attach_dns_profile(
+    config: Dict[str, Any], profile: Dict[str, Any], use_proxy_detour: bool
+) -> None:
+    """Keep split DNS rules and their route rule sets together."""
+    config["dns"] = copy.deepcopy(profile)
+    route = config.setdefault("route", {})
+    route["default_domain_resolver"] = "local_local"
+    route["rule_set"] = build_singbox_rule_sets(
+        "🌍 Proxy Select" if use_proxy_detour else "direct"
+    )
 
 
 def _chain_entry_tag(chain: List[Dict[str, Any]]) -> Optional[str]:
@@ -403,8 +416,7 @@ def generate_split_outputs(
     if sniper_endpoints:
         sniper_config["endpoints"] = sniper_endpoints
     if singbox_dns_profile:
-        sniper_config["dns"] = copy.deepcopy(singbox_dns_profile)
-        sniper_config["route"] = {"default_domain_resolver": "local_local"}
+        _attach_dns_profile(sniper_config, singbox_dns_profile, bool(selector_tags))
 
     sniper_path = output_dir / f"singbox{suffix}.json"
     AtomicFileWriter.write_text(
@@ -511,8 +523,7 @@ def generate_split_outputs(
     if tank_endpoints:
         tank_config["endpoints"] = tank_endpoints
     if singbox_dns_profile:
-        tank_config["dns"] = copy.deepcopy(singbox_dns_profile)
-        tank_config["route"]["default_domain_resolver"] = "local_local"
+        _attach_dns_profile(tank_config, singbox_dns_profile, has_proxy_selector)
 
     tank_path = output_dir / f"singbox-vpn{suffix}.json"
     AtomicFileWriter.write_text(

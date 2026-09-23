@@ -18,6 +18,7 @@ __all__ = [
     "IRAN_INFRASTRUCTURE_DNS",
     "DEFAULT_DOH",
     "build_singbox_dns_profile",
+    "build_singbox_rule_sets",
     "build_clash_dns_profile",
     "build_resolver_sets",
 ]
@@ -150,6 +151,25 @@ def build_singbox_dns_profile() -> Dict[str, Any]:
         ],
         "final": "remote_dns",
     }
+
+
+def build_singbox_rule_sets(download_detour: str) -> List[Dict[str, str]]:
+    """Define every rule set referenced by the shared Sing-box DNS profile."""
+    return [
+        {
+            "tag": tag,
+            "type": "remote",
+            "format": "binary",
+            "url": f"https://github.com/SagerNet/{repository}/raw/rule-set/{tag}.srs",
+            "download_detour": download_detour,
+        }
+        for tag, repository in (
+            ("geosite-category-ads-all", "sing-geosite"),
+            ("geosite-private", "sing-geosite"),
+            ("geosite-ir", "sing-geosite"),
+            ("geoip-ir", "sing-geoip"),
+        )
+    ]
 
 
 def build_clash_dns_profile() -> Dict[str, Any]:

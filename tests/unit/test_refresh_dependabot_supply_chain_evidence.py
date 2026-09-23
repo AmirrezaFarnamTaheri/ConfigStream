@@ -177,6 +177,32 @@ class PatchFailureApi(FakeApi):
         return super().json(method, path, payload=payload)
 
 
+class DeletedRefApi(FakeApi):
+    def json(
+        self,
+        method: str,
+        path: str,
+        *,
+        payload: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        if method == "GET" and "/git/refs/heads/" in path:
+            raise refresh.GitHubApiError(404, "Dependabot branch not found")
+        return super().json(method, path, payload=payload)
+
+
+class ForbiddenRefApi(DeletedRefApi):
+    def json(
+        self,
+        method: str,
+        path: str,
+        *,
+        payload: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        if method == "GET" and "/git/refs/heads/" in path:
+            raise refresh.GitHubApiError(403, "ref access forbidden")
+        return super().json(method, path, payload=payload)
+
+
 def _stub_evidence_generation(
     monkeypatch: pytest.MonkeyPatch,
     *,
@@ -252,6 +278,33 @@ def test_refresh_noops_when_branch_moved_before_run(monkeypatch) -> None:
         is None
     )
     assert not api.patched
+
+
+def test_refresh_noops_when_merged_dependabot_branch_was_deleted() -> None:
+    api = DeletedRefApi()
+
+    assert (
+        refresh.refresh(
+            api,
+            repository="owner/repo",
+            head_branch="dependabot/github_actions/example-2.0.0",
+            head_sha="a" * 40,
+        )
+        is None
+    )
+    assert not api.patched
+
+
+def test_refresh_preserves_ref_permission_failures() -> None:
+    api = ForbiddenRefApi()
+
+    with pytest.raises(refresh.GitHubApiError, match="ref access forbidden"):
+        refresh.refresh(
+            api,
+            repository="owner/repo",
+            head_branch="dependabot/github_actions/example-2.0.0",
+            head_sha="a" * 40,
+        )
 
 
 def test_refresh_noops_when_branch_moves_during_generation(monkeypatch) -> None:
