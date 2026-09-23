@@ -129,6 +129,36 @@ def test_parse_wireguard_valid():
     assert proxy.details["peer_public_key"] == valid_key
     assert proxy.details["reserved"] == [1, 2, 3]
 
+    query_aliases = (
+        f"wireguard://{valid_key}@1.1.1.1:51820?publickey={valid_key}"
+        f"&presharedkey={valid_key}&mtu=1280&keepalive=25"
+        "&allowed_ips=0.0.0.0/0&wnoise=1&wnoisecount=2"
+    )
+    normalized = parse_wireguard(query_aliases)
+    assert normalized is not None
+    assert normalized.details["peer_public_key"] == valid_key
+    assert normalized.details["pre_shared_key"] == valid_key
+    assert normalized.details["mtu"] == 1280
+    assert normalized.details["persistent_keepalive"] == 25
+    assert normalized.details["allowed_ips"] == ["0.0.0.0/0"]
+    assert (
+        not {"publickey", "presharedkey", "keepalive", "wnoise", "wnoisecount"}
+        & normalized.details.keys()
+    )
+
+    import json
+    from pathlib import Path
+
+    from jsonschema import Draft202012Validator
+
+    schema = json.loads(
+        (Path(__file__).resolve().parents[2] / "schema/proxy.schema.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    details_schema = {"$ref": "#/$defs/wireguard_details", "$defs": schema["$defs"]}
+    Draft202012Validator(details_schema).validate(normalized.details)
+
     raw_slash_key = "//////////////////////////////////////////8="
     raw_config = (
         f"wireguard://{raw_slash_key}@1.1.1.1:51820"

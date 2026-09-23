@@ -238,6 +238,55 @@ def parse_tuic(c: str) -> Optional[Proxy]:
     return proxy
 
 
+def _normalize_wireguard_output_details(proxy: Proxy) -> None:
+    """Discard URL-only aliases and type canonical fields for JSON output."""
+    mtu = proxy.details.get("mtu")
+    if mtu is not None:
+        try:
+            parsed_mtu = int(str(mtu))
+        except ValueError:
+            parsed_mtu = 0
+        if 576 <= parsed_mtu <= 9000:
+            proxy.details["mtu"] = parsed_mtu
+        else:
+            proxy.details.pop("mtu", None)
+
+    keepalive = proxy.details.get("persistent_keepalive") or proxy.details.get(
+        "keepalive"
+    )
+    if keepalive is not None:
+        try:
+            parsed_keepalive = int(str(keepalive))
+        except ValueError:
+            parsed_keepalive = -1
+        if 0 <= parsed_keepalive <= 65535:
+            proxy.details["persistent_keepalive"] = parsed_keepalive
+
+    allowed_details = {
+        "private_key",
+        "peer_public_key",
+        "public_key",
+        "pre_shared_key",
+        "reserved",
+        "mtu",
+        "local_address",
+        "private_ipv4",
+        "private_ipv6",
+        "server",
+        "server_port",
+        "detour",
+        "tag",
+        "allowed_ips",
+        "persistent_keepalive",
+        "has_utls",
+        "has_alpn_rotation",
+        "has_multiplexing",
+    }
+    proxy.details = {
+        key: value for key, value in proxy.details.items() if key in allowed_details
+    }
+
+
 def parse_wireguard(c: str) -> Optional[Proxy]:
     proxy = _parse_url_scheme(c, "wireguard", 51820)
     if not proxy and c.lower().startswith("wg://"):
@@ -499,6 +548,7 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
             return None
         proxy.details["reserved"] = normalized_reserved
 
+    _normalize_wireguard_output_details(proxy)
     return proxy
 
 

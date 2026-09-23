@@ -173,7 +173,10 @@ class SingBoxGenerator:
             {"type": "direct", "tag": "direct"},
         ]
 
-        from configstream.dns_profiles import build_singbox_dns_profile
+        from configstream.dns_profiles import (
+            build_singbox_dns_profile,
+            build_singbox_rule_sets,
+        )
 
         # Emit the 1.12+ typed DNS model directly instead of depending on the
         # release finalizer to migrate legacy address/address_resolver fields.
@@ -210,36 +213,7 @@ class SingBoxGenerator:
                 },
                 {"outbound": SELECTOR_TAG, "port_range": ["0:65535"]},
             ],
-            "rule_set": [
-                {
-                    "tag": "geosite-category-ads-all",
-                    "type": "remote",
-                    "format": "binary",
-                    "url": "https://github.com/SagerNet/sing-geosite/raw/rule-set/geosite-category-ads-all.srs",
-                    "download_detour": SELECTOR_TAG,
-                },
-                {
-                    "tag": "geosite-private",
-                    "type": "remote",
-                    "format": "binary",
-                    "url": "https://github.com/SagerNet/sing-geosite/raw/rule-set/geosite-private.srs",
-                    "download_detour": SELECTOR_TAG,
-                },
-                {
-                    "tag": "geosite-ir",
-                    "type": "remote",
-                    "format": "binary",
-                    "url": "https://github.com/SagerNet/sing-geosite/raw/rule-set/geosite-ir.srs",
-                    "download_detour": SELECTOR_TAG,
-                },
-                {
-                    "tag": "geoip-ir",
-                    "type": "remote",
-                    "format": "binary",
-                    "url": "https://github.com/SagerNet/sing-geoip/raw/rule-set/geoip-ir.srs",
-                    "download_detour": SELECTOR_TAG,
-                },
-            ],
+            "rule_set": build_singbox_rule_sets(SELECTOR_TAG),
             "final": SELECTOR_TAG,
         }
 
