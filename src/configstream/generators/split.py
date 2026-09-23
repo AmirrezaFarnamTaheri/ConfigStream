@@ -62,6 +62,9 @@ def _attach_dns_profile(
 ) -> None:
     """Keep split DNS rules and their route rule sets together."""
     config["dns"] = copy.deepcopy(profile)
+    config.setdefault("experimental", {}).setdefault(
+        "cache_file", {"enabled": True, "path": "cache.db", "store_fakeip": False}
+    )
     route = config.setdefault("route", {})
     route["default_domain_resolver"] = "local_local"
     route["rule_set"] = build_singbox_rule_sets(

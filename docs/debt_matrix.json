@@ -544,7 +544,7 @@
     },
     {
       "path": "src/configstream/converters/singbox.py",
-      "line": 255,
+      "line": 264,
       "marker": "LARGE_FUNCTION",
       "category": "production",
       "priority": "P1 - High",
@@ -552,7 +552,7 @@
     },
     {
       "path": "src/configstream/converters/singbox.py",
-      "line": 617,
+      "line": 626,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -616,7 +616,7 @@
     },
     {
       "path": "src/configstream/generators/split.py",
-      "line": 217,
+      "line": 220,
       "marker": "LARGE_FUNCTION",
       "category": "production",
       "priority": "P1 - High",

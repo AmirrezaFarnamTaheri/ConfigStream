@@ -251,9 +251,11 @@ def _normalize_wireguard_output_details(proxy: Proxy) -> None:
         else:
             proxy.details.pop("mtu", None)
 
-    keepalive = proxy.details.get("persistent_keepalive") or proxy.details.get(
-        "keepalive"
-    )
+    keepalive = proxy.details.get("persistent_keepalive")
+    if keepalive is None:
+        keepalive = proxy.details.get("persistent_keepalive_interval")
+    if keepalive is None:
+        keepalive = proxy.details.get("keepalive")
     if keepalive is not None:
         try:
             parsed_keepalive = int(str(keepalive))
@@ -261,6 +263,19 @@ def _normalize_wireguard_output_details(proxy: Proxy) -> None:
             parsed_keepalive = -1
         if 0 <= parsed_keepalive <= 65535:
             proxy.details["persistent_keepalive"] = parsed_keepalive
+        else:
+            proxy.details.pop("persistent_keepalive", None)
+
+    server_port = proxy.details.get("server_port")
+    if server_port is not None:
+        try:
+            parsed_server_port = int(str(server_port))
+        except ValueError:
+            parsed_server_port = 0
+        if 1 <= parsed_server_port <= 65535:
+            proxy.details["server_port"] = parsed_server_port
+        else:
+            proxy.details.pop("server_port", None)
 
     allowed_details = {
         "private_key",

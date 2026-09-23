@@ -252,6 +252,15 @@ def _revived_outbound_from_chain(
     return out
 
 
+def _wireguard_keepalive(details: Dict[str, Any]) -> Any:
+    """Read the canonical interval while preserving older proxy details."""
+    for key in ("persistent_keepalive", "persistent_keepalive_interval", "keepalive"):
+        value = details.get(key)
+        if value not in (None, ""):
+            return value
+    return None
+
+
 def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
     """
     Convert a Proxy model to a Sing-box outbound configuration.
@@ -650,7 +659,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         allowed_ips = proxy.details.get("allowed_ips")
         if allowed_ips not in (None, "", []):
             out["allowed_ips"] = allowed_ips
-        keepalive = proxy.details.get("persistent_keepalive_interval")
+        keepalive = _wireguard_keepalive(proxy.details)
         if keepalive not in (None, ""):
             out["persistent_keepalive_interval"] = keepalive
 
