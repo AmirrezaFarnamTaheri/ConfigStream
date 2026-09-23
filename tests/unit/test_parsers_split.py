@@ -159,6 +159,19 @@ def test_parse_wireguard_valid():
     details_schema = {"$ref": "#/$defs/wireguard_details", "$defs": schema["$defs"]}
     Draft202012Validator(details_schema).validate(normalized.details)
 
+    with_server_port = parse_wireguard(
+        query_aliases + "&server_port=51820&persistent_keepalive=65536"
+    )
+    assert with_server_port is not None
+    assert with_server_port.details["server_port"] == 51820
+    assert "persistent_keepalive" not in with_server_port.details
+    Draft202012Validator(details_schema).validate(with_server_port.details)
+
+    invalid_server_port = parse_wireguard(query_aliases + "&server_port=not-a-port")
+    assert invalid_server_port is not None
+    assert "server_port" not in invalid_server_port.details
+    Draft202012Validator(details_schema).validate(invalid_server_port.details)
+
     raw_slash_key = "//////////////////////////////////////////8="
     raw_config = (
         f"wireguard://{raw_slash_key}@1.1.1.1:51820"
@@ -173,3 +186,23 @@ def test_parse_wireguard_valid():
     proxy = parse_wireguard(config_correct)
     assert proxy is not None
     assert proxy.details["private_key"] == valid_key
+
+
+def test_wireguard_url_keepalive_survives_singbox_endpoint_conversion():
+    from configstream.converters.singbox import (
+        to_singbox_outbound,
+        wireguard_outbound_to_endpoint,
+    )
+
+    key = "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE="
+    for alias in ("keepalive", "persistent_keepalive_interval"):
+        proxy = parse_wireguard(
+            f"wireguard://{key}@1.1.1.1:51820?publickey={key}"
+            f"&address=10.0.0.2/32&{alias}=25"
+        )
+        assert proxy is not None
+        assert proxy.details["persistent_keepalive"] == 25
+        outbound = to_singbox_outbound(proxy)
+        assert outbound is not None
+        endpoint = wireguard_outbound_to_endpoint(outbound)
+        assert endpoint["peers"][0]["persistent_keepalive_interval"] == 25

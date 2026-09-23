@@ -108,3 +108,4 @@ def test_hardened_split_profiles_define_referenced_dns_rule_sets(
         outbound_tags = {item["tag"] for item in config["outbounds"]}
         assert referenced_tags <= defined_tags
         assert all(item["download_detour"] in outbound_tags for item in definitions)
+        assert config["experimental"]["cache_file"]["enabled"] is True
