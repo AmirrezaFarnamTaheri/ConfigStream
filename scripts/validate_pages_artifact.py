@@ -1292,7 +1292,11 @@ def validate_pages_artifact(
                     or release_manifest.get("source_commit")
                     or release_manifest.get("source_sha")
                 )
-                if source_sha and source_sha != expected_source_sha:
+                if not isinstance(source_sha, str) or not source_sha.strip():
+                    errors.append(
+                        "release_manifest.json must contain a non-empty string source SHA"
+                    )
+                elif source_sha != expected_source_sha:
                     errors.append(
                         "release provenance mismatch: "
                         f"manifest={source_sha!r}, expected={expected_source_sha!r}"

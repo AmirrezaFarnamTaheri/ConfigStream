@@ -292,13 +292,32 @@ def test_validate_pages_artifact_checks_release_source_provenance(
         json.dumps({"source_commit_sha": "candidate-sha"}), encoding="utf-8"
     )
 
-    assert validate_pages_artifact(
-        tmp_path, expected_source_sha="candidate-sha"
-    ) == []
+    assert validate_pages_artifact(tmp_path, expected_source_sha="candidate-sha") == []
     errors = validate_pages_artifact(tmp_path, expected_source_sha="expected-sha")
     assert errors == [
         "release provenance mismatch: manifest='candidate-sha', expected='expected-sha'"
     ]
+
+
+def test_validate_pages_artifact_rejects_missing_or_invalid_release_source(
+    tmp_path: Path,
+) -> None:
+    _write_valid_artifact(tmp_path)
+    release_manifest = tmp_path / "release_manifest.json"
+
+    for payload in (
+        {},
+        {"source_commit_sha": None},
+        {"source_commit_sha": ""},
+        {"source_commit_sha": "   "},
+        {"source_commit_sha": 123},
+        {"source_commit_sha": False},
+    ):
+        release_manifest.write_text(json.dumps(payload), encoding="utf-8")
+        errors = validate_pages_artifact(tmp_path, expected_source_sha="expected-sha")
+        assert errors == [
+            "release_manifest.json must contain a non-empty string source SHA"
+        ]
 
 
 def _signing_key_material() -> tuple[str, str]:

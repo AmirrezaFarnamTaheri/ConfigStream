@@ -54,12 +54,12 @@ def test_pages_rechecks_current_main_before_publication() -> None:
 
 def test_pages_candidate_verification_avoids_nested_heredoc() -> None:
     workflow = _workflow_text()
-    verification = workflow.split(
-        "--name verify-sealed-pages-artifact", 1
-    )[1].split("- name: Snapshot current verified Pages release", 1)[0]
+    verification = workflow.split("--name verify-sealed-pages-artifact", 1)[1].split(
+        "- name: Snapshot current verified Pages release", 1
+    )[0]
 
     assert (
-        'python scripts/validate_pages_artifact.py output '
+        "python scripts/validate_pages_artifact.py output "
         '--expected-source-sha "$EXPECTED_SOURCE_SHA"' in verification
     )
     assert 'python - <<"PY"' not in verification
