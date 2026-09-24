@@ -283,6 +283,24 @@ def test_validate_pages_artifact_accepts_complete_artifact(tmp_path: Path) -> No
     assert validate_pages_artifact(tmp_path) == []
 
 
+def test_validate_pages_artifact_checks_release_source_provenance(
+    tmp_path: Path,
+) -> None:
+    _write_valid_artifact(tmp_path)
+    release_manifest = tmp_path / "release_manifest.json"
+    release_manifest.write_text(
+        json.dumps({"source_commit_sha": "candidate-sha"}), encoding="utf-8"
+    )
+
+    assert validate_pages_artifact(
+        tmp_path, expected_source_sha="candidate-sha"
+    ) == []
+    errors = validate_pages_artifact(tmp_path, expected_source_sha="expected-sha")
+    assert errors == [
+        "release provenance mismatch: manifest='candidate-sha', expected='expected-sha'"
+    ]
+
+
 def _signing_key_material() -> tuple[str, str]:
     private_key = ed25519.Ed25519PrivateKey.generate()
     private_hex = private_key.private_bytes(
