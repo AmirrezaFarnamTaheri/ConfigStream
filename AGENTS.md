@@ -137,7 +137,7 @@ The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
     *   `exporters.js`: Export format builders (Clash YAML, Xray JSON, etc.).
     *   `index.js`: Main entry point and event wiring.
 *   **Security Mandate**: All frontend components must avoid `innerHTML` where variable data or metadata is involved. Use the `ui.js` helper `showResultHTML` only for trusted internal strings.
-*   **Frontend Deploy Reality**: GitHub Pages deploys the raw static `frontend/.` tree copied into `output/`. `frontend-dist/` is a local build artifact.
+*   **Frontend Deploy Reality**: GitHub Pages deploys the raw static `frontend/.` tree copied into `output/`, except for the source-only `.build-config.json` dotfile that Pages cannot serve. The `.nojekyll` marker remains in the artifact but is excluded from the public manifest because Pages does not serve it. `frontend-dist/` is a local build artifact.
 
 ## 6. Git & Version Control
 *   **Diffs**: When generating patches, ensure context is accurate.

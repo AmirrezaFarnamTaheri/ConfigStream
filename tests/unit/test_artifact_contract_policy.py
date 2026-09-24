@@ -31,6 +31,24 @@ def test_public_manifest_excludes_all_canonical_transients(
     assert not any(path.endswith(ARTIFACT_TRANSIENT_SUFFIXES) for path in paths)
 
 
+def test_public_manifest_excludes_unservable_pages_dotfiles(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("CS_SIGNING_PRIVATE_KEY_HEX", raising=False)
+    (tmp_path / "metadata.json").write_text(
+        json.dumps({"total_working": 1, "total_tested": 1}), encoding="utf-8"
+    )
+    (tmp_path / ".nojekyll").touch()
+    (tmp_path / ".build-config.json").write_text("{}", encoding="utf-8")
+
+    manifest = write_public_artifact_contract(tmp_path)
+    paths = {str(item["path"]) for item in manifest["files"]}
+
+    assert "metadata.json" in paths
+    assert ".nojekyll" not in paths
+    assert ".build-config.json" not in paths
+
+
 def test_release_cleanup_uses_one_canonical_transient_policy() -> None:
     assert finalize_release_outputs.TRANSIENT_SUFFIXES is ARTIFACT_TRANSIENT_SUFFIXES
     assert refresh_shard_contract.TRANSIENT_SUFFIXES is ARTIFACT_TRANSIENT_SUFFIXES

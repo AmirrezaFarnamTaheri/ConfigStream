@@ -93,6 +93,7 @@ jobs:
           python scripts/resilient_stage.py context --output deploy-evidence/workflow_context.json
           echo "HAS_OUTPUT=false" >> "$GITHUB_ENV"
           echo "DEPLOY_READY=false" >> "$GITHUB_ENV"
+          echo "CANDIDATE_VERIFIED=false" >> "$GITHUB_ENV"
           echo "HAS_LKG=false" >> "$GITHUB_ENV"
           echo "ROLLBACK_READY=false" >> "$GITHUB_ENV"
           echo "SMOKE_OK=false" >> "$GITHUB_ENV"
@@ -213,6 +214,7 @@ jobs:
             '
           verify_status=$(python -c 'import json; print(json.load(open("deploy-evidence/stages/verify-sealed-pages-artifact.json", encoding="utf-8"))["status"])')
           if [ "$verify_status" = success ]; then
+            echo "CANDIDATE_VERIFIED=true" >> "$GITHUB_ENV"
             echo "DEPLOY_READY=true" >> "$GITHUB_ENV"
           fi
       - name: Snapshot current verified Pages release
@@ -292,7 +294,7 @@ jobs:
           EXPECTED_SOURCE_SHA: ${{ steps.locate.outputs.source_head_sha }}
         run: |
           set -euo pipefail
-          if [ "${DEPLOY_READY:-false}" != true ]; then
+          if [ "${CANDIDATE_VERIFIED:-false}" != true ]; then
             echo "DEPLOY_READY=false" >> "$GITHUB_ENV"
             python scripts/resilient_stage.py record \
               --name source-freshness \

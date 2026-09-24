@@ -182,6 +182,7 @@ def _metadata_payload() -> dict[str, object]:
 
 def _copy_frontend(root: Path) -> None:
     shutil.copytree(REPO_ROOT / "frontend", root, dirs_exist_ok=True)
+    (root / ".build-config.json").unlink(missing_ok=True)
     tools_root = root / "tools"
     tools_root.mkdir(parents=True, exist_ok=True)
     shutil.copy2(REPO_ROOT / "tools" / "lab-scanner.py", tools_root / "lab-scanner.py")

@@ -71,6 +71,10 @@ MAX_PORT = 65535
 # Process-local files that must never be governed or published as release artifacts.
 ARTIFACT_TRANSIENT_SUFFIXES = (".lock", ".tmp", ".log", ".pyc", ".pyo", ".swp")
 
+# These root dotfiles are not downloadable from GitHub Pages and cannot be
+# verified as part of a live rollback snapshot.
+PAGES_UNSERVABLE_ROOT_FILES = frozenset({".nojekyll", ".build-config.json"})
+
 # Latency buckets for metadata and frontend consistency.
 LATENCY_BUCKET_FAST_MAX_MS = 200
 LATENCY_BUCKET_MEDIUM_MAX_MS = 800

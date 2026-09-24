@@ -283,6 +283,49 @@ def test_validate_pages_artifact_accepts_complete_artifact(tmp_path: Path) -> No
     assert validate_pages_artifact(tmp_path) == []
 
 
+def test_pages_contract_keeps_nojekyll_out_of_public_manifest(tmp_path: Path) -> None:
+    _write_valid_artifact(tmp_path)
+    (tmp_path / ".nojekyll").touch()
+
+    write_pages_contract(tmp_path)
+
+    manifest = json.loads((tmp_path / "artifact_manifest.json").read_text("utf-8"))
+    assert ".nojekyll" not in {item["path"] for item in manifest["files"]}
+    assert validate_pages_artifact(tmp_path) == []
+
+
+def test_pages_artifact_rejects_unservable_manifest_entry(tmp_path: Path) -> None:
+    _write_valid_artifact(tmp_path)
+    (tmp_path / ".nojekyll").touch()
+    manifest_path = tmp_path / "artifact_manifest.json"
+    manifest = json.loads(manifest_path.read_text("utf-8"))
+    manifest["files"].append(
+        {
+            "path": ".nojekyll",
+            "size_bytes": 0,
+            "sha256": _sha256(tmp_path / ".nojekyll"),
+            "category": "control",
+        }
+    )
+    manifest["file_count"] = len(manifest["files"])
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    assert any(
+        "unservable Pages file: .nojekyll" in error
+        for error in validate_pages_artifact(tmp_path)
+    )
+
+
+def test_pages_artifact_rejects_private_build_config(tmp_path: Path) -> None:
+    _write_valid_artifact(tmp_path)
+    (tmp_path / ".build-config.json").write_text("{}", encoding="utf-8")
+
+    assert any(
+        "source-only .build-config.json" in error
+        for error in validate_pages_artifact(tmp_path)
+    )
+
+
 def test_validate_pages_artifact_checks_release_source_provenance(
     tmp_path: Path,
 ) -> None:

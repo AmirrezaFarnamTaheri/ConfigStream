@@ -57,6 +57,9 @@ def prepare(
         staging = Path(temporary) / destination.name
         shutil.copytree(merged_output, staging)
         shutil.copytree(frontend, staging, dirs_exist_ok=True)
+        # GitHub Pages does not serve this source-only dotfile. Publishing it in
+        # the manifest would make a later live rollback snapshot unverifiable.
+        (staging / ".build-config.json").unlink(missing_ok=True)
         copied_optional = {
             "wiki": _copy_optional(
                 repo_root / "docs" / "wiki", staging / "docs" / "wiki"
