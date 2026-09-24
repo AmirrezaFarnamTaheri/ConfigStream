@@ -196,7 +196,7 @@ Stable capability claims are tracked in `docs/capability_registry.json`; core/cl
 | `side_products-dns-hardened.zip` | side-products | zip | yes | zip, zip members | DNS-hardened side-product bundle; ZIP integrity, safe member paths, required proxies.txt, optional OpenVPN/WireGuard member patterns, and deploy-secret markers are validated. |
 | `side_products-dns-safe.zip` | side-products | zip | yes | zip, zip members | DNS-safe side-product bundle; ZIP integrity, safe member paths, required proxies.txt, optional OpenVPN/WireGuard member patterns, and deploy-secret markers are validated. |
 | `side_products.zip` | side-products | zip | yes | zip, zip members | Side-product bundle; ZIP integrity, safe member paths, required proxies.txt, optional OpenVPN/WireGuard member patterns, and deploy-secret markers are validated. |
-| `artifact_manifest.json` | control | json | yes | schema, json | Generated file inventory with size and sha256 checks. |
+| `artifact_manifest.json` | control | json | yes | schema, json | Generated inventory of files served by Pages, with size and sha256 checks. Deployment-only .nojekyll is excluded. |
 | `health.json` | control | json | yes | schema, json | Freshness and degraded-state control artifact. |
 | `metadata.json` | control | json | yes | schema, json | Canonical run metadata validated against metadata.schema.json. |
 | `pipeline_events.jsonl` | control | jsonl | yes | jsonl | Sanitized append-only pipeline event telemetry; JSONL structure and secret-marker absence are validated. |
