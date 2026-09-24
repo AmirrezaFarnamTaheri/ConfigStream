@@ -114,14 +114,21 @@ def validate(root: Path) -> list[str]:
         )
     for control in (
         "Resolve Pages unsigned trust policy",
-        "config/pages-trust-policy.json",
-        "bound_repository == repository and committed_allow",
+        "python scripts/pages_trust_policy.py",
         'echo "ALLOW_UNSIGNED_PAGES=$resolved" >> "$GITHUB_ENV"',
     ):
         if control not in deploy:
             errors.append(
                 f"Pages deployment missing repository-bound unsigned policy control: {control}"
             )
+
+    pipeline = (root / ".github/workflows/main.yml").read_text(encoding="utf-8")
+    if "Resolve Pages unsigned trust policy" not in pipeline or (
+        "python scripts/pages_trust_policy.py" not in pipeline
+    ):
+        errors.append(
+            "Artifact generation must resolve the same Pages unsigned trust policy before frontend generation"
+        )
 
     policy_path = root / "config/pages-trust-policy.json"
     try:

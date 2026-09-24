@@ -6,7 +6,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import scripts.validate_frontend_placeholders as frontend_validator
 from configstream.signer import Signer
 from scripts.validate_frontend_placeholders import (
     _derive_public_key_spki_base64,
@@ -64,36 +63,51 @@ def test_inject_frontend_keys_generates_public_only_runtime_config(
     _write_frontend(tmp_path)
     changed = inject_frontend_keys(
         tmp_path,
-        {"CS_PUBLIC_KEY": PUBLIC_KEY_SPKI, "CS_IPNS_KEY": "real-ipns-key"},
+        {
+            "CS_PUBLIC_KEY": PUBLIC_KEY_SPKI,
+            "CS_IPNS_KEY": "real-ipns-key",
+            "ALLOW_UNSIGNED_PAGES": "true",
+        },
     )
     assert len(changed) == 1
     assert _runtime_public_key(tmp_path) == PUBLIC_KEY_SPKI
     assert _runtime_unsigned_policy(tmp_path) is True
-    assert validate_frontend_placeholders(tmp_path, strict=True) == []
+    assert (
+        validate_frontend_placeholders(
+            tmp_path, strict=True, env={"ALLOW_UNSIGNED_PAGES": "true"}
+        )
+        == []
+    )
 
 
 def test_unsigned_runtime_config_carries_explicit_pages_policy(tmp_path: Path) -> None:
     _write_frontend(tmp_path)
-    inject_frontend_keys(tmp_path, {})
+    inject_frontend_keys(tmp_path, {"ALLOW_UNSIGNED_PAGES": "true"})
 
     assert _runtime_public_key(tmp_path) == ""
     assert _runtime_unsigned_policy(tmp_path) is True
 
 
-def test_unsigned_runtime_config_stays_closed_when_pages_policy_is_disabled(
-    tmp_path: Path, monkeypatch
+def test_runtime_config_uses_resolved_pages_policy_in_environment(
+    tmp_path: Path,
 ) -> None:
     _write_frontend(tmp_path)
-    policy_path = tmp_path / "pages-trust-policy.json"
-    policy_path.write_text(
-        json.dumps({"allow_unsigned_pages": False}), encoding="utf-8"
-    )
-    monkeypatch.setattr(frontend_validator, "PAGES_TRUST_POLICY", policy_path)
-
-    inject_frontend_keys(tmp_path, {})
+    inject_frontend_keys(tmp_path, {"ALLOW_UNSIGNED_PAGES": "false"})
 
     assert _runtime_public_key(tmp_path) == ""
     assert _runtime_unsigned_policy(tmp_path) is False
+    assert (
+        validate_frontend_placeholders(
+            tmp_path, strict=True, env={"ALLOW_UNSIGNED_PAGES": "false"}
+        )
+        == []
+    )
+    assert any(
+        "does not match" in error
+        for error in validate_frontend_placeholders(
+            tmp_path, strict=True, env={"ALLOW_UNSIGNED_PAGES": "true"}
+        )
+    )
 
 
 def test_inject_frontend_keys_canonicalizes_raw_hex_public_key_for_browser(
@@ -126,7 +140,12 @@ def test_inject_frontend_keys_derives_public_key_from_signing_key(
     assert len(changed) == 1
     assert PRIVATE_KEY_HEX not in runtime
     assert _runtime_public_key(tmp_path) == PUBLIC_KEY_SPKI
-    assert validate_frontend_placeholders(tmp_path, strict=True) == []
+    assert (
+        validate_frontend_placeholders(
+            tmp_path, strict=True, env={"ALLOW_UNSIGNED_PAGES": "false"}
+        )
+        == []
+    )
 
 
 def test_inject_frontend_keys_ignores_all_ambient_symmetric_secrets(
@@ -136,6 +155,7 @@ def test_inject_frontend_keys_ignores_all_ambient_symmetric_secrets(
     env = {
         "CS_PUBLIC_KEY": PUBLIC_KEY_SPKI,
         "CS_IPNS_KEY": "ipns",
+        "ALLOW_UNSIGNED_PAGES": "false",
         **{field: "private-value-must-never-ship" for field in SYMMETRIC_SECRET_FIELDS},
     }
     inject_frontend_keys(tmp_path, env)
@@ -174,8 +194,8 @@ def test_validate_frontend_placeholders_strict_requires_public_key(
     )
     check = validate_frontend_placeholders
     assert any(
-        "unsigned Pages policy is missing" in error
-        for error in check(tmp_path, strict=True)
+        "resolved Pages policy is missing" in error
+        for error in check(tmp_path, strict=True, env={"ALLOW_UNSIGNED_PAGES": "false"})
     )
     monkeypatch.setenv("CS_SIGNING_PRIVATE_KEY_HEX", PRIVATE_KEY_HEX)
     errors = check(tmp_path, strict=True)

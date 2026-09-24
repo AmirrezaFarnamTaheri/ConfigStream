@@ -102,33 +102,7 @@ jobs:
           VARIABLE_ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES }}
         run: |
           set -euo pipefail
-          resolved=$(python - <<'PY'
-          import json
-          import os
-          from pathlib import Path
-
-          policy_path = Path("config/pages-trust-policy.json")
-          payload = json.loads(policy_path.read_text(encoding="utf-8"))
-          if payload.get("schema_version") != 1:
-              raise SystemExit("unsupported Pages trust policy schema")
-          bound_repository = payload.get("repository")
-          if not isinstance(bound_repository, str) or not bound_repository:
-              raise SystemExit("Pages trust policy repository binding is invalid")
-          committed_allow = payload.get("allow_unsigned_pages")
-          if not isinstance(committed_allow, bool):
-              raise SystemExit("Pages trust policy allow_unsigned_pages must be boolean")
-
-          repository = os.environ["REPOSITORY"]
-          raw_override = os.environ.get("VARIABLE_ALLOW_UNSIGNED_PAGES", "").strip().lower()
-          if raw_override not in {"", "true", "false"}:
-              raise SystemExit("ALLOW_UNSIGNED_PAGES variable must be true, false, or unset")
-          if raw_override:
-              enabled = raw_override == "true"
-          else:
-              enabled = bound_repository == repository and committed_allow
-          print("true" if enabled else "false")
-          PY
-          )
+          resolved=$(python scripts/pages_trust_policy.py)
           echo "ALLOW_UNSIGNED_PAGES=$resolved" >> "$GITHUB_ENV"
       - name: Locate and download exact canonical artifact
         id: locate

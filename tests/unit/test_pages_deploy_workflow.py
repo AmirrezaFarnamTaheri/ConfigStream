@@ -83,7 +83,7 @@ def test_pages_signature_policy_is_explicit_at_every_trust_boundary() -> None:
     assert workflow.count("CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}") >= 4
     assert "VARIABLE_ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES }}" in workflow
     assert "Resolve Pages unsigned trust policy" in workflow
-    assert "config/pages-trust-policy.json" in workflow
+    assert "python scripts/pages_trust_policy.py" in workflow
     policy = json.loads(
         (WORKFLOW.parents[2] / "config" / "pages-trust-policy.json").read_text(
             encoding="utf-8"
