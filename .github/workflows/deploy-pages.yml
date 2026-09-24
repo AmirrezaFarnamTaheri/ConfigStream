@@ -233,26 +233,7 @@ jobs:
               python scripts/validate_pages_signature_policy.py output "${signature_policy_args[@]}"
               before=$(find output -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d" " -f1)
               python scripts/validate_frontend_placeholders.py --strict output
-              python scripts/validate_pages_artifact.py output
-              python - <<"PY"
-              import json
-              import os
-              from pathlib import Path
-
-              manifest_path = Path("output/release_manifest.json")
-              if manifest_path.exists():
-                  manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-                  source_sha = (
-                      manifest.get("source_commit_sha")
-                      or manifest.get("source_commit")
-                      or manifest.get("source_sha")
-                  )
-                  expected = os.environ.get("EXPECTED_SOURCE_SHA", "")
-                  if source_sha and expected and source_sha != expected:
-                      raise SystemExit(
-                          f"release provenance mismatch: manifest={source_sha!r}, expected={expected!r}"
-                      )
-              PY
+              python scripts/validate_pages_artifact.py output --expected-source-sha "$EXPECTED_SOURCE_SHA"
               after=$(find output -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d" " -f1)
               test "$before" = "$after"
             '

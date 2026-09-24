@@ -1267,13 +1267,36 @@ def write_pages_contract(root: Path) -> None:
 
 
 def validate_pages_artifact(
-    root: Path, *, native_client_check: bool = False
+    root: Path,
+    *,
+    native_client_check: bool = False,
+    expected_source_sha: str | None = None,
 ) -> list[str]:
     errors: list[str] = []
     if not root.exists():
         return [f"artifact directory does not exist: {root}"]
     if not root.is_dir():
         return [f"artifact path is not a directory: {root}"]
+
+    if expected_source_sha:
+        release_manifest_path = root / "release_manifest.json"
+        if release_manifest_path.is_file():
+            release_manifest, error = _load_json(release_manifest_path)
+            if error:
+                errors.append(error)
+            elif not isinstance(release_manifest, dict):
+                errors.append("release_manifest.json must contain a JSON object")
+            else:
+                source_sha = (
+                    release_manifest.get("source_commit_sha")
+                    or release_manifest.get("source_commit")
+                    or release_manifest.get("source_sha")
+                )
+                if source_sha and source_sha != expected_source_sha:
+                    errors.append(
+                        "release provenance mismatch: "
+                        f"manifest={source_sha!r}, expected={expected_source_sha!r}"
+                    )
 
     for rel_path in REQUIRED_EXISTS:
         try:
@@ -1425,6 +1448,10 @@ def main() -> int:
             "recorded as skipped checks."
         ),
     )
+    parser.add_argument(
+        "--expected-source-sha",
+        help="Reject a release manifest whose source commit differs from this SHA.",
+    )
     parser.add_argument("artifact_dir", type=Path, help="Prepared Pages output dir")
     args = parser.parse_args()
 
@@ -1432,7 +1459,9 @@ def main() -> int:
         write_pages_contract(args.artifact_dir)
 
     errors = validate_pages_artifact(
-        args.artifact_dir, native_client_check=args.native_client_check
+        args.artifact_dir,
+        native_client_check=args.native_client_check,
+        expected_source_sha=args.expected_source_sha,
     )
     if args.native_report_file:
         write_native_client_report(args.artifact_dir, args.native_report_file)

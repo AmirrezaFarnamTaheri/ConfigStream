@@ -116,3 +116,30 @@ environment, but do not justify changing the current NekoBox format.
 Rerun CI and Config's Stream on these fixes to verify the new pin set,
 WireGuard contract, and native output remotely. A fresh live smoke run is
 needed to assess current network reachability and source health.
+
+## Follow-up evidence — 2026-09-24
+
+The user supplied updated evidence for runs [35962633725](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/runs/35962633725)
+and [35949997378](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/runs/35949997378).
+The scheduled pipeline run 35949997378 succeeded: all 153 shards completed,
+the merged pipeline artifact passed its release gate, and the published
+`source-run.json` records the run conclusion as `success` at commit
+`c6f841a0bffcbaad3b207f29aa957a0a65ed5249`.
+
+Pages deployment run 35962633725 downloaded that canonical output and passed
+signature policy, frontend placeholder, and Pages artifact validation. Its
+verification stage then failed because an indented Python here-document was
+embedded in a quoted `bash -lc` argument. Bash did not recognize the indented
+closing delimiter, so Python received the indented script and raised
+`IndentationError`. This caused the freshness and rollback-baseline stages to
+fail and skipped upload, deployment, and live smoke. The supplied evidence
+also shows the public Pages manifest returned 404; because no candidate had
+passed verification, the first-deployment bootstrap path was not enabled, so
+that 404 was not the primary failure.
+
+The Pages workflow now passes the expected source SHA directly to
+`validate_pages_artifact.py`; the validator checks the optional release
+manifest provenance and reports malformed JSON or a mismatched source SHA.
+Regression tests cover matching and mismatched provenance and assert the
+workflow no longer embeds the nested here-document. A new deployment run is
+still required to verify the complete Pages publication and smoke path.
