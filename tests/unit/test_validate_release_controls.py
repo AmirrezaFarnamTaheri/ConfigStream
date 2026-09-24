@@ -13,8 +13,10 @@ def test_release_controls_cover_optional_signing_and_safe_bootstrap() -> None:
 
     assert "VARIABLE_ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES }}" in deploy
     assert "Resolve Pages unsigned trust policy" in deploy
-    assert "config/pages-trust-policy.json" in deploy
-    assert "bound_repository == repository and committed_allow" in deploy
+    assert "python scripts/pages_trust_policy.py" in deploy
+    resolver = Path("scripts/pages_trust_policy.py").read_text(encoding="utf-8")
+    assert '"config" / "pages-trust-policy.json"' in resolver
+    assert "return bound_repository == repository and committed_allow" in resolver
     assert "snapshot_args+=(--allow-unsigned)" in deploy
     assert 'payload.get("failure_kind") == "missing_manifest"' in deploy
     assert "Automatic first-deployment bootstrap approved" in deploy
