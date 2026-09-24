@@ -4,7 +4,8 @@
     global.CS_RUNTIME_CONFIG = Object.assign(
         {
             PUBLIC_KEY: "",
-            IPNS_KEY: ""
+            IPNS_KEY: "",
+            ALLOW_UNSIGNED_PAGES: false
         },
         global.CS_RUNTIME_CONFIG || {}
     );

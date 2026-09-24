@@ -28,6 +28,19 @@ from configstream.signer import Signer, normalize_public_key_hex
 
 PUBLIC_KEY_PLACEHOLDER_MARKERS = ("79e/79e/", "PLACEHOLDER_PUBLIC_KEY")
 STEGO_KEY_PLACEHOLDER = "PLACEHOLDER_KEY_INJECTED_BY_CI"
+PAGES_TRUST_POLICY = (
+    Path(__file__).resolve().parents[1] / "config" / "pages-trust-policy.json"
+)
+
+
+def _allow_unsigned_pages() -> bool:
+    policy = json.loads(PAGES_TRUST_POLICY.read_text(encoding="utf-8"))
+    allowed = policy.get("allow_unsigned_pages")
+    if not isinstance(allowed, bool):
+        raise ValueError(
+            "Pages trust policy must define a boolean allow_unsigned_pages"
+        )
+    return allowed
 
 
 def _read(path: Path) -> str:
@@ -80,13 +93,15 @@ def _resolve_public_key(env: Mapping[str, str]) -> str:
 def _runtime_config_content(env: Mapping[str, str]) -> str:
     public_key = _resolve_public_key(env)
     ipns_key = env.get("CS_IPNS_KEY", "").strip()
+    allow_unsigned = _allow_unsigned_pages()
     return "\n".join(
         [
             "// Generated during ConfigStream artifact preparation. Do not edit by hand.",
             "(function(global) {",
             "  global.CS_RUNTIME_CONFIG = {",
             f"    PUBLIC_KEY: {_js_string(public_key)},",
-            f"    IPNS_KEY: {_js_string(ipns_key)}",
+            f"    IPNS_KEY: {_js_string(ipns_key)},",
+            f"    ALLOW_UNSIGNED_PAGES: {json.dumps(allow_unsigned)}",
             "  };",
             "})(typeof window !== 'undefined' ? window : self);",
             "",
@@ -154,9 +169,23 @@ def validate_frontend_placeholders(root: Path, *, strict: bool = False) -> list[
                 errors.append(
                     "Frontend runtime config must not contain a symmetric key field"
                 )
-            if need_key and re.search(r'PUBLIC_KEY:\s*""', runtime_config):
+            empty_public_key = bool(re.search(r'PUBLIC_KEY:\s*""', runtime_config))
+            if need_key and empty_public_key:
                 errors.append(
                     "Frontend PUBLIC_KEY is missing in assets/js/runtime-config.js"
+                )
+            deployment_allows_unsigned = (
+                os.getenv("ALLOW_UNSIGNED_PAGES", "").strip().lower() == "true"
+                if os.getenv("ALLOW_UNSIGNED_PAGES") is not None
+                else _allow_unsigned_pages()
+            )
+            if (
+                empty_public_key
+                and deployment_allows_unsigned
+                and not re.search(r"ALLOW_UNSIGNED_PAGES:\s*true\b", runtime_config)
+            ):
+                errors.append(
+                    "Frontend unsigned Pages policy is missing in assets/js/runtime-config.js"
                 )
 
     return errors

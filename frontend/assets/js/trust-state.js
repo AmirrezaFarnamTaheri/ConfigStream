@@ -35,7 +35,7 @@ export function renderTrustState(state, metadata, options = {}) {
     }
 
     if (state === 'invalid') {
-        banner.textContent = 'Security Alert: Detached cryptographic verification failed. Feeds blocked.';
+        banner.textContent = 'Security Alert: Artifact verification failed. Feeds blocked.';
         banner.style.background = '#dc2626';
         banner.style.color = '#fff';
         banner.style.display = 'block';

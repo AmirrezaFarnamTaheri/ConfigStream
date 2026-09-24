@@ -1,7 +1,7 @@
 /**
  * Fail-closed distribution guard for ConfigStream release artifacts.
- * Public hosts require HTTPS plus a valid signed manifest. Each distributed
- * file is hash-checked against that manifest at the moment of use.
+ * Public hosts require HTTPS and an explicit Pages trust mode. Each distributed
+ * file is hash-checked against the manifest at the moment of use.
  */
 (function initializeArtifactState(global) {
   'use strict';
@@ -22,6 +22,7 @@
     metadata: null,
     health: null,
     manifest: null,
+    signatureVerified: false,
   };
 
   function isLocalHost() {
@@ -86,7 +87,9 @@
     const banner = statusBanner();
     banner.textContent = state.reason;
     banner.dataset.status = state.status;
-    banner.style.background = state.canDistribute ? '#166534' : state.status === 'checking' ? '#4b5563' : '#991b1b';
+    banner.style.background = state.canDistribute
+      ? (state.signatureVerified ? '#166534' : '#92400e')
+      : state.status === 'checking' ? '#4b5563' : '#991b1b';
     applyControlPolicy();
     global.dispatchEvent(new CustomEvent('configstream:artifact-state', { detail: { ...state } }));
   }
@@ -159,14 +162,14 @@
     const entry = manifest.files.find((item) => item && item.path === path);
     if (!entry) throw new Error(`artifact manifest does not cover ${path}`);
     if (!Number.isInteger(entry.size_bytes) || entry.size_bytes !== bytes.byteLength) {
-      throw new Error(`${path} size does not match the signed manifest`);
+      throw new Error(`${path} size does not match the artifact manifest`);
     }
     if (typeof entry.sha256 !== 'string' || !/^[0-9a-f]{64}$/.test(entry.sha256)) {
       throw new Error(`${path} has no valid manifest digest`);
     }
     const digest = await crypto.subtle.digest('SHA-256', bytes);
     const actual = Array.from(new Uint8Array(digest), (number) => number.toString(16).padStart(2, '0')).join('');
-    if (actual !== entry.sha256) throw new Error(`${path} hash does not match the signed manifest`);
+    if (actual !== entry.sha256) throw new Error(`${path} hash does not match the artifact manifest`);
   }
 
   function validateHealth(health, metadata) {
@@ -195,7 +198,12 @@
       ? verifier._isConfiguredPublicKey(publicKey)
       : false;
     if (!keyConfigured) {
-      if (isPublicContext()) throw new Error('artifact signature verification key is not configured');
+      if (manifest.manifest_signature != null) {
+        throw new Error('signed artifact cannot be verified without a public key');
+      }
+      if (isPublicContext() && global.CS_CONSTANTS?.ALLOW_UNSIGNED_PAGES !== true) {
+        throw new Error('artifact signature verification key is not configured');
+      }
       return false;
     }
     if (!verifier || typeof verifier.verifyManifestSignature !== 'function') {
@@ -320,7 +328,7 @@
       const health = parseJson(healthResult.bytes, 'health.json');
       const metadata = parseJson(metadataResult.bytes, 'metadata.json');
       validateManifest(manifest);
-      await validateSignature(manifest);
+      const signatureVerified = await validateSignature(manifest);
       await Promise.all([
         validatePayloadIntegrity(manifest, 'health.json', healthResult.bytes),
         validatePayloadIntegrity(manifest, 'metadata.json', metadataResult.bytes),
@@ -330,7 +338,10 @@
       return setState({
         status: 'verified',
         canDistribute: true,
-        reason: `Release controls verified from ${metadata.last_updated_utc || metadata.generated_at}. Files are rechecked when used.`,
+        signatureVerified,
+        reason: signatureVerified
+          ? `Signed release verified from ${metadata.last_updated_utc || metadata.generated_at}. Files are rechecked when used.`
+          : `Unsigned release allowed by Pages policy from ${metadata.last_updated_utc || metadata.generated_at}. File hashes are checked when used; no cryptographic signature is available.`,
         metadata,
         health,
         manifest,

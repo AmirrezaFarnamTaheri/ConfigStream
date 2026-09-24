@@ -176,12 +176,12 @@ export async function initializePageData() {
 
         if (isEmptyArtifact) {
             applyTrustState('empty', null, {
-                errorMessage: 'No verified working proxies are available in this signed release.',
+                errorMessage: 'No verified working proxies are available in this release.',
                 onRetry: () => initializePageData()
             });
         } else if (isSecurity) {
             applyTrustState('invalid', null, {
-                errorMessage: 'Security Alert: Detached cryptographic verification failed. Feeds blocked.',
+                errorMessage: 'Security Alert: Artifact verification failed. Feeds blocked.',
                 onRetry: () => initializePageData()
             });
             logger.error('Security alert - verification failed:', error);
@@ -222,7 +222,7 @@ window.addEventListener('configstream:artifact-state', (event) => {
     if (detail) {
         if (detail.status === 'blocked' || detail.canDistribute === false) {
             applyTrustState('invalid', detail.metadata, {
-                errorMessage: 'Security Alert: Detached cryptographic verification failed. Feeds blocked.',
+                errorMessage: 'Security Alert: Artifact verification failed. Feeds blocked.',
                 onRetry: () => initializePageData()
             });
         }

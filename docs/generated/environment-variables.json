@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "source_digest": "904dc8818c343c869747a70a13d9be656e6c2e51cae9107aa88b60fe8346c4a0",
-  "variable_count": 163,
+  "source_digest": "bdabae87c83b29916f90fd8516b8ecbd3d5c531b2f1c6239675db62c3cbd0771",
+  "variable_count": 164,
   "variables": [
     {
       "declared_in_settings": true,
@@ -99,6 +99,18 @@
       "sensitive": false,
       "sources": [
         "src/configstream/server/utils.py:222"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "ALLOW_UNSIGNED_PAGES",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/validate_frontend_placeholders.py:178",
+        "scripts/validate_frontend_placeholders.py:179"
       ],
       "type": null
     },

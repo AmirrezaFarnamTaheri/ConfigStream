@@ -80,8 +80,8 @@ def test_invalid_security_state_blocks_operational_actions() -> None:
 
     # In invalid state, alert must be shown and actions blocked
     assert (
-        "Detached cryptographic verification failed" in main_js
-        or "Detached cryptographic verification failed" in proxies_js
+        "Artifact verification failed" in main_js
+        or "Artifact verification failed" in proxies_js
         or "Security Alert" in main_js
         or "Security Alert" in proxies_js
     )
