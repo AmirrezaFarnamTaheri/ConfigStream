@@ -9,6 +9,24 @@ import pytest
 from scripts import prepare_public_candidate
 
 
+def test_prepare_omits_source_only_config_from_pages_artifact(tmp_path: Path) -> None:
+    merged = tmp_path / "merged"
+    frontend = tmp_path / "frontend"
+    destination = tmp_path / "output"
+    merged.mkdir()
+    frontend.mkdir()
+    (merged / "metadata.json").write_text("{}", encoding="utf-8")
+    (frontend / "index.html").write_text("public", encoding="utf-8")
+    (frontend / ".build-config.json").write_text("{}", encoding="utf-8")
+
+    prepare_public_candidate.prepare(merged, frontend, destination, tmp_path)
+
+    assert (destination / "index.html").read_text(encoding="utf-8") == "public"
+    assert (destination / ".nojekyll").is_file()
+    assert not (destination / ".build-config.json").exists()
+    assert (frontend / ".build-config.json").is_file()
+
+
 def test_prepare_public_candidate_preserves_previous_on_failed_swap(
     tmp_path: Path, monkeypatch
 ) -> None:

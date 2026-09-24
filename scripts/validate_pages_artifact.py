@@ -27,6 +27,7 @@ from configstream.output.client_formats import (
     validate_xray_config,
 )
 from configstream.artifact_freshness import validate_metadata_freshness
+from configstream.constants import PAGES_UNSERVABLE_ROOT_FILES
 from configstream.output.singbox_contract import validate_singbox_config
 
 try:
@@ -756,6 +757,10 @@ def _validate_manifest(root: Path, manifest: object) -> list[str]:
         if not isinstance(rel_path, str) or not rel_path:
             errors.append(f"artifact_manifest.json files[{index}] missing path")
             continue
+        if rel_path in PAGES_UNSERVABLE_ROOT_FILES:
+            errors.append(
+                f"artifact_manifest.json includes unservable Pages file: {rel_path}"
+            )
         manifest_paths.add(rel_path)
         try:
             target = _safe_join(root, rel_path)
@@ -1221,7 +1226,11 @@ def write_pages_contract(root: Path) -> None:
         if not path.is_file():
             continue
         rel_path = path.relative_to(root).as_posix()
-        if rel_path == "artifact_manifest.json" or rel_path.endswith(".tmp"):
+        if (
+            rel_path == "artifact_manifest.json"
+            or rel_path in PAGES_UNSERVABLE_ROOT_FILES
+            or rel_path.endswith(".tmp")
+        ):
             continue
         files.append(
             {
@@ -1277,6 +1286,8 @@ def validate_pages_artifact(
         return [f"artifact directory does not exist: {root}"]
     if not root.is_dir():
         return [f"artifact path is not a directory: {root}"]
+    if (root / ".build-config.json").exists():
+        errors.append("source-only .build-config.json must not be published")
 
     if expected_source_sha:
         release_manifest_path = root / "release_manifest.json"

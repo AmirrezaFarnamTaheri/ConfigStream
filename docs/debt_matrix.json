@@ -200,7 +200,7 @@
     },
     {
       "path": "scripts/prepare_public_candidate.py",
-      "line": 113,
+      "line": 116,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -304,7 +304,7 @@
     },
     {
       "path": "scripts/validate_pages_artifact.py",
-      "line": 867,
+      "line": 872,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -864,7 +864,7 @@
     },
     {
       "path": "src/configstream/output/metadata.py",
-      "line": 150,
+      "line": 151,
       "marker": "LARGE_FUNCTION",
       "category": "production",
       "priority": "P1 - High",
@@ -872,7 +872,7 @@
     },
     {
       "path": "src/configstream/output/metadata.py",
-      "line": 374,
+      "line": 375,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -880,7 +880,7 @@
     },
     {
       "path": "src/configstream/output/metadata.py",
-      "line": 528,
+      "line": 529,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",

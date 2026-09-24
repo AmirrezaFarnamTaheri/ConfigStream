@@ -16,6 +16,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from configstream.constants import ARTIFACT_TRANSIENT_SUFFIXES as TRANSIENT_SUFFIXES
+from configstream.constants import PAGES_UNSERVABLE_ROOT_FILES
 from configstream.converters.singbox import wireguard_outbound_to_endpoint
 from configstream.output.client_formats import generate_xray_config
 from configstream.release_policy import (
@@ -656,6 +657,8 @@ def finalize(root: Path, repo_root: Path, threshold: float) -> None:
         ):
             continue
         rel = path.relative_to(root).as_posix()
+        if rel in PAGES_UNSERVABLE_ROOT_FILES:
+            continue
         files.append(
             {
                 "path": rel,

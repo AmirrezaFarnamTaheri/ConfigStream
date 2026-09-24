@@ -37,6 +37,13 @@ def test_pages_deployment_requires_rollback_baseline() -> None:
     assert "--name rollback-baseline --status failed" in gate_run
     assert 'echo "DEPLOY_READY=false" >> "$GITHUB_ENV"' in gate_run
 
+    freshness = by_name["Require source run to remain current main before publication"]
+    freshness_run = str(freshness.get("run") or "")
+    assert 'if [ "${CANDIDATE_VERIFIED:-false}" != true ]; then' in freshness_run
+    assert 'echo "CANDIDATE_VERIFIED=true" >> "$GITHUB_ENV"' in str(
+        by_name["Verify artifact without mutation"].get("run") or ""
+    )
+
     upload = by_name["Upload sealed Pages artifact"]
     deploy = by_name["Deploy to GitHub Pages"]
     assert "env.DEPLOY_READY == 'true'" in str(upload.get("if") or "")

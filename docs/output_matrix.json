@@ -37,7 +37,7 @@
       "nonempty": true,
       "schema_validation": true,
       "degraded_valid": true,
-      "notes": "Generated file inventory with size and sha256 checks."
+      "notes": "Generated inventory of files served by Pages, with size and sha256 checks. Deployment-only .nojekyll is excluded."
     },
     {
       "path": "health.json",
