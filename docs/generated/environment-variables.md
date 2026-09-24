@@ -3,7 +3,7 @@
 Generated from `AppSettings` and direct Python `os.environ`/`os.getenv` references.
 Sensitive defaults are never rendered.
 
-Variables: **163**
+Variables: **164**
 
 | Variable | Settings field | Type | Default | Required | Sensitive | Sources |
 |---|---:|---|---|---:|---:|---|
@@ -16,6 +16,7 @@ Variables: **163**
 | `ALLOW_ACTIVE_SCANNING` | yes | `bool` | `false` | no | no | `src/configstream/config.py:153` |
 | `ALLOW_PRIVATE_IPS` | yes | `bool` | `false` | no | no | `src/configstream/config.py:131` |
 | `ALLOW_UNAUTHENTICATED_ADMIN` | no | `direct-only` |  | no | no | `src/configstream/server/utils.py:222` |
+| `ALLOW_UNSIGNED_PAGES` | no | `direct-only` |  | no | no | `scripts/validate_frontend_placeholders.py:178`<br>`scripts/validate_frontend_placeholders.py:179` |
 | `BATCH_NUMBER` | yes | `str` | `""` | no | no | `src/configstream/config.py:129` |
 | `BATCH_SIZE` | yes | `int` | `50` | no | no | `src/configstream/config.py:68` |
 | `BATCH_TIME_LIMIT_GRACE_SECONDS` | yes | `int` | `900` | no | no | `src/configstream/config.py:33` |

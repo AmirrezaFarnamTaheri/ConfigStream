@@ -45,8 +45,10 @@ def test_guard_scopes_controls_and_verifies_each_distributed_file() -> None:
     assert "fetchVerifiedJson" in guard
     assert "downloadVerifiedArtifact" in guard
     assert "crypto.subtle.digest('SHA-256', bytes)" in guard
-    assert "hash does not match the signed manifest" in guard
-    assert "size does not match the signed manifest" in guard
+    assert "hash does not match the artifact manifest" in guard
+    assert "size does not match the artifact manifest" in guard
+    assert "manifest.manifest_signature != null" in guard
+    assert "ALLOW_UNSIGNED_PAGES !== true" in guard
     assert "await artifact.verifyFile(targetFile)" in common
     assert "Copy blocked:" in common
 

@@ -143,3 +143,23 @@ manifest provenance and reports malformed JSON or a mismatched source SHA.
 Regression tests cover matching and mismatched provenance and assert the
 workflow no longer embeds the nested here-document. A new deployment run is
 still required to verify the complete Pages publication and smoke path.
+
+## Live unsigned Pages follow-up — 2026-09-24
+
+Pages deployment run [36018057681](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/runs/36018057681)
+succeeded, but the public site reported that distribution was disabled because
+its signature verification key was not configured. The deployed
+`assets/js/runtime-config.js` contains an empty `PUBLIC_KEY`, while the live
+artifact manifest has no `manifest_signature`. Its health is `ok`, schema
+validation is true, and metadata records 2,115 working proxies. The repository
+Pages trust policy explicitly permits unsigned publication, but the browser
+distribution guard did not recognize that policy and blocked all feeds.
+
+The generated browser runtime config now carries the repository's explicit
+unsigned Pages policy. The guard accepts a genuinely unsigned release under
+that policy after HTTPS, manifest, health, freshness, and per-file SHA-256
+checks. It still rejects a signed manifest without a public key, an unsigned
+manifest without opt-in, and hash mismatches. The public banner states that
+the release is unsigned so users are not told it has a cryptographic signature.
+A fresh pipeline and Pages deployment are needed before the live site reflects
+this change.

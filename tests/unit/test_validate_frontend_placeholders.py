@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import scripts.validate_frontend_placeholders as frontend_validator
 from configstream.signer import Signer
 from scripts.validate_frontend_placeholders import (
     _derive_public_key_spki_base64,
@@ -42,6 +43,11 @@ def _runtime_public_key(root: Path) -> str:
     return str(json.loads(value))
 
 
+def _runtime_unsigned_policy(root: Path) -> bool:
+    runtime = (root / "assets" / "js" / "runtime-config.js").read_text(encoding="utf-8")
+    return "ALLOW_UNSIGNED_PAGES: true" in runtime
+
+
 def test_validate_frontend_placeholders_detects_public_and_stego_keys(
     tmp_path: Path,
 ) -> None:
@@ -62,7 +68,32 @@ def test_inject_frontend_keys_generates_public_only_runtime_config(
     )
     assert len(changed) == 1
     assert _runtime_public_key(tmp_path) == PUBLIC_KEY_SPKI
+    assert _runtime_unsigned_policy(tmp_path) is True
     assert validate_frontend_placeholders(tmp_path, strict=True) == []
+
+
+def test_unsigned_runtime_config_carries_explicit_pages_policy(tmp_path: Path) -> None:
+    _write_frontend(tmp_path)
+    inject_frontend_keys(tmp_path, {})
+
+    assert _runtime_public_key(tmp_path) == ""
+    assert _runtime_unsigned_policy(tmp_path) is True
+
+
+def test_unsigned_runtime_config_stays_closed_when_pages_policy_is_disabled(
+    tmp_path: Path, monkeypatch
+) -> None:
+    _write_frontend(tmp_path)
+    policy_path = tmp_path / "pages-trust-policy.json"
+    policy_path.write_text(
+        json.dumps({"allow_unsigned_pages": False}), encoding="utf-8"
+    )
+    monkeypatch.setattr(frontend_validator, "PAGES_TRUST_POLICY", policy_path)
+
+    inject_frontend_keys(tmp_path, {})
+
+    assert _runtime_public_key(tmp_path) == ""
+    assert _runtime_unsigned_policy(tmp_path) is False
 
 
 def test_inject_frontend_keys_canonicalizes_raw_hex_public_key_for_browser(
@@ -142,7 +173,10 @@ def test_validate_frontend_placeholders_strict_requires_public_key(
         encoding="utf-8",
     )
     check = validate_frontend_placeholders
-    assert check(tmp_path, strict=True) == []
+    assert any(
+        "unsigned Pages policy is missing" in error
+        for error in check(tmp_path, strict=True)
+    )
     monkeypatch.setenv("CS_SIGNING_PRIVATE_KEY_HEX", PRIVATE_KEY_HEX)
     errors = check(tmp_path, strict=True)
     assert any("PUBLIC_KEY is missing" in error for error in errors)

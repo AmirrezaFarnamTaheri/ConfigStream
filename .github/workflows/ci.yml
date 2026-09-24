@@ -309,6 +309,8 @@ jobs:
         run: npm run build
       - name: Same-origin frontend smoke
         run: npm run test:frontend:no-network
+      - name: Public artifact policy regression
+        run: npm run test:frontend:artifact-policy
       - name: Degraded no-JS frontend smoke
         run: npm run test:frontend:degraded
 

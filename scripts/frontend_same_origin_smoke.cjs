@@ -231,8 +231,8 @@ function assertRuntimeConfig(root) {
       throw new Error(`Deploy runtime config still contains placeholder marker: ${marker}`);
     }
   }
-  if (/PUBLIC_KEY:\s*""/.test(content)) {
-    throw new Error("Deploy runtime config is missing PUBLIC_KEY");
+  if (/PUBLIC_KEY:\s*""/.test(content) && !/ALLOW_UNSIGNED_PAGES:\s*true\b/.test(content)) {
+    throw new Error("Deploy runtime config has neither PUBLIC_KEY nor explicit unsigned Pages policy");
   }
   if (/STEGO_KEY:\s*""/.test(content)) {
     throw new Error("Deploy runtime config is missing STEGO_KEY");

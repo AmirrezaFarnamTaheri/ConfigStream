@@ -205,7 +205,7 @@ if (typeof window !== 'undefined' && typeof window.addEventListener === 'functio
         if (detail) {
             if (detail.status === 'blocked' || detail.canDistribute === false) {
                 applyTrustState('invalid', detail.metadata, {
-                    errorMessage: 'Security Alert: Detached cryptographic verification failed. Feeds blocked.',
+                    errorMessage: 'Security Alert: Artifact verification failed. Feeds blocked.',
                     onRetry: () => loadProxiesPage()
                 });
             }
@@ -340,12 +340,12 @@ async function loadProxiesPage() {
 
         if (isEmptyArtifact) {
             applyTrustState('empty', null, {
-                errorMessage: 'No verified working proxies are available in this signed release.',
+                errorMessage: 'No verified working proxies are available in this release.',
                 onRetry: () => loadProxiesPage()
             });
         } else if (isSecurity) {
             applyTrustState('invalid', null, {
-                errorMessage: 'Security Alert: Detached cryptographic verification failed. Feeds blocked.',
+                errorMessage: 'Security Alert: Artifact verification failed. Feeds blocked.',
                 onRetry: () => loadProxiesPage()
             });
         } else {
@@ -361,9 +361,9 @@ async function loadProxiesPage() {
             const errorP = document.createElement('p');
             errorP.style.color = 'var(--danger-color)';
             errorP.textContent = isEmptyArtifact
-                ? 'No verified working proxies are available in this signed release.'
+                ? 'No verified working proxies are available in this release.'
                 : isSecurity
-                ? 'Security Alert: Detached cryptographic verification failed. Feeds blocked.'
+                ? 'Security Alert: Artifact verification failed. Feeds blocked.'
                 : 'Error loading proxies. Please check console or click retry.';
             loadingEl.appendChild(errorP);
 

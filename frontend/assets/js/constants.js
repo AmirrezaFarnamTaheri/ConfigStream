@@ -7,6 +7,7 @@
         // Ed25519 Public Key for Subscription Verification
         // Set by generated assets/js/runtime-config.js in production deploys.
         PUBLIC_KEY: runtimeConfig.PUBLIC_KEY || "",
+        ALLOW_UNSIGNED_PAGES: runtimeConfig.ALLOW_UNSIGNED_PAGES === true,
 
         // IPNS Key for Failover
         // Set by generated assets/js/runtime-config.js when configured.
@@ -38,7 +39,7 @@
                          ? window.ConfigStreamLogger.error
                          : console.error;
 
-        if (!global.CS_CONSTANTS.PUBLIC_KEY) {
+        if (!global.CS_CONSTANTS.PUBLIC_KEY && !global.CS_CONSTANTS.ALLOW_UNSIGNED_PAGES) {
             logError("❌ CRITICAL: Production deployment missing PUBLIC_KEY!");
             logError("   Generate assets/js/runtime-config.js during deploy.");
             logError("   Subscription verification will NOT work!");
