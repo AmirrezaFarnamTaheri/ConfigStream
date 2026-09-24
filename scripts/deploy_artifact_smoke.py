@@ -246,6 +246,13 @@ def _write_output_fixture(root: Path) -> None:
 
 def _runtime_env() -> dict[str, str]:
     env = os.environ.copy()
+    from scripts.pages_trust_policy import resolve_allow_unsigned_pages
+
+    env["ALLOW_UNSIGNED_PAGES"] = str(
+        resolve_allow_unsigned_pages(
+            repository="AmirrezaFarnamTaheri/ConfigStream", override=None
+        )
+    ).lower()
     env["CS_PUBLIC_KEY"] = (
         "d75a980182b10ab7d54bfed3c964073a" "0ee172f3daa62325af021a68f707511a"
     )
@@ -265,7 +272,9 @@ def run_smoke(*, keep_artifact: bool = False) -> int:
         _copy_frontend(temp_dir)
         _write_output_fixture(temp_dir)
         inject_frontend_keys(temp_dir, _runtime_env())
-        placeholder_errors = validate_frontend_placeholders(temp_dir, strict=True)
+        placeholder_errors = validate_frontend_placeholders(
+            temp_dir, strict=True, env=_runtime_env()
+        )
         if placeholder_errors:
             print("ERROR: frontend runtime config validation failed", file=sys.stderr)
             for error in placeholder_errors:

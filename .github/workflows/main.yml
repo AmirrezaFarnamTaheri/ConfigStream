@@ -585,6 +585,14 @@ jobs:
             sources/source_timing_weights.json
           if-no-files-found: warn
           retention-days: 30
+      - name: Resolve Pages unsigned trust policy
+        env:
+          REPOSITORY: ${{ github.repository }}
+          VARIABLE_ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES }}
+        run: |
+          set -euo pipefail
+          resolved=$(python scripts/pages_trust_policy.py)
+          echo "ALLOW_UNSIGNED_PAGES=$resolved" >> "$GITHUB_ENV"
       - name: Prepare public output artifact transactionally
         env:
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}

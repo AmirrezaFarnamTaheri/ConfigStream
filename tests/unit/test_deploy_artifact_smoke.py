@@ -23,6 +23,8 @@ def test_deploy_fixture_satisfies_the_same_contract_as_pages(tmp_path) -> None:
     _write_output_fixture(tmp_path)
     inject_frontend_keys(tmp_path, _runtime_env())
 
-    assert validate_frontend_placeholders(tmp_path, strict=True) == []
+    assert (
+        validate_frontend_placeholders(tmp_path, strict=True, env=_runtime_env()) == []
+    )
     write_pages_contract(tmp_path)
     assert validate_pages_artifact(tmp_path) == []

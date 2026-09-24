@@ -3,7 +3,7 @@
 Generated from `AppSettings` and direct Python `os.environ`/`os.getenv` references.
 Sensitive defaults are never rendered.
 
-Variables: **164**
+Variables: **165**
 
 | Variable | Settings field | Type | Default | Required | Sensitive | Sources |
 |---|---:|---|---|---:|---:|---|
@@ -16,7 +16,6 @@ Variables: **164**
 | `ALLOW_ACTIVE_SCANNING` | yes | `bool` | `false` | no | no | `src/configstream/config.py:153` |
 | `ALLOW_PRIVATE_IPS` | yes | `bool` | `false` | no | no | `src/configstream/config.py:131` |
 | `ALLOW_UNAUTHENTICATED_ADMIN` | no | `direct-only` |  | no | no | `src/configstream/server/utils.py:222` |
-| `ALLOW_UNSIGNED_PAGES` | no | `direct-only` |  | no | no | `scripts/validate_frontend_placeholders.py:178`<br>`scripts/validate_frontend_placeholders.py:179` |
 | `BATCH_NUMBER` | yes | `str` | `""` | no | no | `src/configstream/config.py:129` |
 | `BATCH_SIZE` | yes | `int` | `50` | no | no | `src/configstream/config.py:68` |
 | `BATCH_TIME_LIMIT_GRACE_SECONDS` | yes | `int` | `900` | no | no | `src/configstream/config.py:33` |
@@ -131,6 +130,7 @@ Variables: **164**
 | `RATE_LIMIT_REQUESTS` | yes | `int` | `100` | no | no | `src/configstream/config.py:46` |
 | `RATE_LIMIT_WINDOW` | yes | `int` | `60` | no | no | `src/configstream/config.py:47` |
 | `RENAME_TEMPLATE` | yes | `Optional[str]` |  | no | no | `src/configstream/config.py:127` |
+| `REPOSITORY` | no | `direct-only` |  | no | no | `scripts/pages_trust_policy.py:53` |
 | `RETEST_TIMEOUT` | yes | `int` | `6` | no | no | `src/configstream/config.py:30` |
 | `SCORE_SIGMOID_CENTER_RATIO` | yes | `float` | `0.6` | no | no | `src/configstream/config.py:184` |
 | `SCORE_SIGMOID_SLOPE_RATIO` | yes | `float` | `0.2` | no | no | `src/configstream/config.py:185` |
@@ -156,6 +156,7 @@ Variables: **164**
 | `UPDATE_INTERVAL_HOURS` | yes | `int` | `4` | no | no | `src/configstream/config.py:128` |
 | `USE_VWARP_TUNNEL` | yes | `bool` | `true` | no | no | `src/configstream/config.py:146`<br>`src/configstream/intelligence/washer/core.py:515`<br>`src/configstream/pipeline/core.py:150`<br>`src/configstream/pipeline/core.py:171`<br>`src/configstream/pipeline/core.py:176`<br>`src/configstream/pipeline/core.py:181`<br>`src/configstream/pipeline/core.py:41`<br>`src/configstream/pipeline/core.py:47`<br>`src/configstream/testers/go_tester/manager.py:342`<br>`src/configstream/testers/go_tester/secure_manager.py:72` |
 | `UTLS_CLIENT_SHA256` | no | `direct-only` |  | no | no | `src/configstream/security/utls_wrapper.py:90` |
+| `VARIABLE_ALLOW_UNSIGNED_PAGES` | no | `direct-only` |  | no | no | `scripts/pages_trust_policy.py:54` |
 | `VERSION_TAG` | no | `direct-only` |  | no | no | `scripts/upload_telegram.py:46` |
 | `VT_API_KEY` | yes | `Optional[str]` | `<redacted>` | no | yes | `src/configstream/config.py:137` |
 | `VWARP_BIND_ADDRESS` | yes | `str` | `"127.0.0.1"` | no | no | `src/configstream/config.py:148` |

@@ -28,19 +28,15 @@ from configstream.signer import Signer, normalize_public_key_hex
 
 PUBLIC_KEY_PLACEHOLDER_MARKERS = ("79e/79e/", "PLACEHOLDER_PUBLIC_KEY")
 STEGO_KEY_PLACEHOLDER = "PLACEHOLDER_KEY_INJECTED_BY_CI"
-PAGES_TRUST_POLICY = (
-    Path(__file__).resolve().parents[1] / "config" / "pages-trust-policy.json"
-)
 
 
-def _allow_unsigned_pages() -> bool:
-    policy = json.loads(PAGES_TRUST_POLICY.read_text(encoding="utf-8"))
-    allowed = policy.get("allow_unsigned_pages")
-    if not isinstance(allowed, bool):
-        raise ValueError(
-            "Pages trust policy must define a boolean allow_unsigned_pages"
-        )
-    return allowed
+def _resolved_allow_unsigned_pages(env: Mapping[str, str]) -> bool:
+    """Read the unsigned policy already resolved by the calling workflow."""
+
+    raw_value = env.get("ALLOW_UNSIGNED_PAGES", "false").strip().lower()
+    if raw_value not in {"true", "false"}:
+        raise ValueError("resolved ALLOW_UNSIGNED_PAGES must be true or false")
+    return raw_value == "true"
 
 
 def _read(path: Path) -> str:
@@ -93,7 +89,7 @@ def _resolve_public_key(env: Mapping[str, str]) -> str:
 def _runtime_config_content(env: Mapping[str, str]) -> str:
     public_key = _resolve_public_key(env)
     ipns_key = env.get("CS_IPNS_KEY", "").strip()
-    allow_unsigned = _allow_unsigned_pages()
+    allow_unsigned = _resolved_allow_unsigned_pages(env)
     return "\n".join(
         [
             "// Generated during ConfigStream artifact preparation. Do not edit by hand.",
@@ -130,9 +126,18 @@ def inject_frontend_keys(root: Path, env: Mapping[str, str]) -> list[str]:
     return [str(runtime_config_path)]
 
 
-def validate_frontend_placeholders(root: Path, *, strict: bool = False) -> list[str]:
+def validate_frontend_placeholders(
+    root: Path,
+    *,
+    strict: bool = False,
+    env: Mapping[str, str] | None = None,
+) -> list[str]:
+    resolved_env = os.environ if env is None else env
     errors: list[str] = []
-    need_key = any(map(os.getenv, ("CS_PUBLIC_KEY", "CS_SIGNING_PRIVATE_KEY_HEX")))
+    need_key = any(
+        resolved_env.get(name)
+        for name in ("CS_PUBLIC_KEY", "CS_SIGNING_PRIVATE_KEY_HEX")
+    )
     constants_path = root / "assets" / "js" / "constants.js"
     stego_path = root / "assets" / "js" / "stego.js"
     runtime_config_path = root / "assets" / "js" / "runtime-config.js"
@@ -174,18 +179,17 @@ def validate_frontend_placeholders(root: Path, *, strict: bool = False) -> list[
                 errors.append(
                     "Frontend PUBLIC_KEY is missing in assets/js/runtime-config.js"
                 )
-            deployment_allows_unsigned = (
-                os.getenv("ALLOW_UNSIGNED_PAGES", "").strip().lower() == "true"
-                if os.getenv("ALLOW_UNSIGNED_PAGES") is not None
-                else _allow_unsigned_pages()
+            expected_unsigned_policy = _resolved_allow_unsigned_pages(resolved_env)
+            runtime_policy_match = re.search(
+                r"ALLOW_UNSIGNED_PAGES:\s*(true|false)\b", runtime_config
             )
-            if (
-                empty_public_key
-                and deployment_allows_unsigned
-                and not re.search(r"ALLOW_UNSIGNED_PAGES:\s*true\b", runtime_config)
-            ):
+            if not runtime_policy_match:
                 errors.append(
-                    "Frontend unsigned Pages policy is missing in assets/js/runtime-config.js"
+                    "Frontend resolved Pages policy is missing in assets/js/runtime-config.js"
+                )
+            elif (runtime_policy_match.group(1) == "true") != expected_unsigned_policy:
+                errors.append(
+                    "Frontend unsigned Pages policy does not match the resolved deployment policy"
                 )
 
     return errors

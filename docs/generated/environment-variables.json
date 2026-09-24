@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "source_digest": "bdabae87c83b29916f90fd8516b8ecbd3d5c531b2f1c6239675db62c3cbd0771",
-  "variable_count": 164,
+  "source_digest": "f5bfc01bba42250eaf5d28de0d62f1bfd42693ecdfd7924829db6ffaf2dbba77",
+  "variable_count": 165,
   "variables": [
     {
       "declared_in_settings": true,
@@ -99,18 +99,6 @@
       "sensitive": false,
       "sources": [
         "src/configstream/server/utils.py:222"
-      ],
-      "type": null
-    },
-    {
-      "declared_in_settings": false,
-      "default": null,
-      "name": "ALLOW_UNSIGNED_PAGES",
-      "required": false,
-      "sensitive": false,
-      "sources": [
-        "scripts/validate_frontend_placeholders.py:178",
-        "scripts/validate_frontend_placeholders.py:179"
       ],
       "type": null
     },
@@ -1417,6 +1405,17 @@
       "type": "Optional[str]"
     },
     {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "REPOSITORY",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/pages_trust_policy.py:53"
+      ],
+      "type": null
+    },
+    {
       "declared_in_settings": true,
       "default": 6,
       "name": "RETEST_TIMEOUT",
@@ -1727,6 +1726,17 @@
       "sensitive": false,
       "sources": [
         "src/configstream/security/utls_wrapper.py:90"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "VARIABLE_ALLOW_UNSIGNED_PAGES",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/pages_trust_policy.py:54"
       ],
       "type": null
     },
