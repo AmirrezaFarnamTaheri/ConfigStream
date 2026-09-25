@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "d83d409fad3c6892599794e8fb698b7e10939030479da828ea73d1326c245433",
+  "source_digest": "cdb1605d2ff8a904f7e0f387f019ba1ff6182ca1b059b873bc10dbbde44abb6f",
   "variable_count": 165,
   "variables": [
     {
@@ -345,8 +345,8 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/release_gate.py:365",
-        "scripts/snapshot_pages_release.py:430",
+        "scripts/release_gate.py:374",
+        "scripts/snapshot_pages_release.py:455",
         "scripts/validate_pages_artifact.py:209",
         "scripts/verify_pages_deployment.py:474"
       ],
@@ -360,7 +360,7 @@
       "sensitive": true,
       "sources": [
         "scripts/refresh_shard_contract.py:55",
-        "scripts/release_gate.py:380",
+        "scripts/release_gate.py:389",
         "src/configstream/output/metadata.py:519"
       ],
       "type": null
@@ -743,9 +743,9 @@
         "scripts/finalize_release_outputs.py:633",
         "scripts/finalize_release_outputs.py:682",
         "scripts/generate_evidence_bundle.py:20",
-        "scripts/native_client_checks.py:232",
-        "scripts/release_gate.py:191",
-        "scripts/release_gate.py:434",
+        "scripts/native_client_checks.py:248",
+        "scripts/release_gate.py:200",
+        "scripts/release_gate.py:443",
         "scripts/resilient_stage.py:491",
         "scripts/validate_pages_artifact.py:1214",
         "scripts/validate_pages_artifact.py:1251",
@@ -764,9 +764,9 @@
         "scripts/finalize_release_outputs.py:632",
         "scripts/finalize_release_outputs.py:681",
         "scripts/generate_evidence_bundle.py:19",
-        "scripts/native_client_checks.py:231",
-        "scripts/release_gate.py:190",
-        "scripts/release_gate.py:431",
+        "scripts/native_client_checks.py:247",
+        "scripts/release_gate.py:199",
+        "scripts/release_gate.py:440",
         "scripts/resilient_stage.py:490",
         "scripts/validate_pages_artifact.py:1213",
         "scripts/validate_pages_artifact.py:1250",
@@ -785,9 +785,9 @@
         "scripts/finalize_release_outputs.py:631",
         "scripts/finalize_release_outputs.py:680",
         "scripts/generate_evidence_bundle.py:21",
-        "scripts/native_client_checks.py:230",
-        "scripts/release_gate.py:189",
-        "scripts/release_gate.py:428",
+        "scripts/native_client_checks.py:246",
+        "scripts/release_gate.py:198",
+        "scripts/release_gate.py:437",
         "scripts/resilient_stage.py:492",
         "scripts/validate_pages_artifact.py:1212",
         "scripts/validate_pages_artifact.py:1249",
@@ -1221,7 +1221,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/native_client_checks.py:92",
+        "scripts/native_client_checks.py:108",
         "src/configstream/testers/go_tester/manager.py:335",
         "src/configstream/testers/go_tester/manager.py:92"
       ],

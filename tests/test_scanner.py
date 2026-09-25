@@ -1,5 +1,6 @@
 import asyncio
 import os
+import sys
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -55,7 +56,7 @@ async def test_scan_endpoints_rejects_invalid_numeric_bounds():
 
 @pytest.mark.asyncio
 async def test_scan_endpoints_execution_success():
-    identity = SimpleNamespace(path=Path("/bin/true"))
+    identity = SimpleNamespace(path=Path(sys.executable))
 
     with (
         patch("configstream.config.AppSettings") as MockSettings,
@@ -64,8 +65,8 @@ async def test_scan_endpoints_execution_success():
         settings = MockSettings.return_value
         settings.ALLOW_ACTIVE_SCANNING = True
         settings.FORCE_SCANNER = True
-        settings.CONFIGSTREAM_TESTER_BIN = "/bin/true"
-        worker = WarpScannerWorker("/bin/true")
+        settings.CONFIGSTREAM_TESTER_BIN = sys.executable
+        worker = WarpScannerWorker(sys.executable)
         assert worker.available
 
         proc = AsyncMock()
@@ -98,7 +99,7 @@ async def test_scan_endpoints_execution_success():
 
 @pytest.mark.asyncio
 async def test_scan_endpoints_execution_failure():
-    identity = SimpleNamespace(path=Path("/bin/false"))
+    identity = SimpleNamespace(path=Path(sys.executable))
 
     with (
         patch("configstream.config.AppSettings") as MockSettings,
@@ -107,8 +108,8 @@ async def test_scan_endpoints_execution_failure():
         settings = MockSettings.return_value
         settings.ALLOW_ACTIVE_SCANNING = True
         settings.FORCE_SCANNER = True
-        settings.CONFIGSTREAM_TESTER_BIN = "/bin/false"
-        worker = WarpScannerWorker("/bin/false")
+        settings.CONFIGSTREAM_TESTER_BIN = sys.executable
+        worker = WarpScannerWorker(sys.executable)
         assert worker.available
 
         proc = AsyncMock()
@@ -133,7 +134,7 @@ async def test_scan_endpoints_execution_failure():
 
 @pytest.mark.asyncio
 async def test_scan_timeout_kills_and_reaps_child():
-    identity = SimpleNamespace(path=Path("/bin/true"))
+    identity = SimpleNamespace(path=Path(sys.executable))
 
     with (
         patch("configstream.config.AppSettings") as MockSettings,
@@ -142,8 +143,8 @@ async def test_scan_timeout_kills_and_reaps_child():
         settings = MockSettings.return_value
         settings.ALLOW_ACTIVE_SCANNING = True
         settings.FORCE_SCANNER = True
-        settings.CONFIGSTREAM_TESTER_BIN = "/bin/true"
-        worker = WarpScannerWorker("/bin/true")
+        settings.CONFIGSTREAM_TESTER_BIN = sys.executable
+        worker = WarpScannerWorker(sys.executable)
 
         proc = MagicMock()
         proc.returncode = None
@@ -169,7 +170,7 @@ async def test_scan_timeout_kills_and_reaps_child():
 
 @pytest.mark.asyncio
 async def test_scan_cancellation_kills_reaps_and_propagates():
-    identity = SimpleNamespace(path=Path("/bin/true"))
+    identity = SimpleNamespace(path=Path(sys.executable))
 
     with (
         patch("configstream.config.AppSettings") as MockSettings,
@@ -178,8 +179,8 @@ async def test_scan_cancellation_kills_reaps_and_propagates():
         settings = MockSettings.return_value
         settings.ALLOW_ACTIVE_SCANNING = True
         settings.FORCE_SCANNER = True
-        settings.CONFIGSTREAM_TESTER_BIN = "/bin/true"
-        worker = WarpScannerWorker("/bin/true")
+        settings.CONFIGSTREAM_TESTER_BIN = sys.executable
+        worker = WarpScannerWorker(sys.executable)
 
         proc = MagicMock()
         proc.returncode = None

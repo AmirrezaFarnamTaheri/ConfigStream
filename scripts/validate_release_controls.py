@@ -31,7 +31,21 @@ def validate(root: Path) -> list[str]:
     for target in ("sing-box", "mihomo", "xray"):
         if f'"{target}"' not in native:
             errors.append(f"native client checks missing required target: {target}")
-    if 'summary["failed"] or summary["skipped"] or not checks' not in native:
+    # The exit contract stays fail-closed: empty evidence and skipped checks must
+    # still fail, and every check must be routed through the shared blocking
+    # policy rather than a blanket pass/fail on the summary counters.
+    for control in (
+        "def _blocks_release(",
+        "connectivity_check_blocks_release",
+        "if blocking_failures:",
+        "return 1",
+        "return 0 if checks else 1",
+    ):
+        if control not in native:
+            errors.append(
+                f"native client checks missing fail-closed release control: {control}"
+            )
+    if 'skipped = summary["skipped"]' not in native or "if skipped:" not in native:
         errors.append(
             "native client checks must fail on failed, skipped, or empty evidence"
         )

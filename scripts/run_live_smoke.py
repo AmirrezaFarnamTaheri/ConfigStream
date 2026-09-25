@@ -37,26 +37,37 @@ def load_candidates(path: Path) -> list[str]:
     return candidates
 
 
-def output_is_usable(output_dir: Path) -> tuple[bool, str]:
+def classify_output(output_dir: Path) -> tuple[str, str]:
+    """Classify one attempt output as working, no-live-proxies, or broken.
+
+    ``broken`` means the pipeline itself misbehaved and must fail the run.
+    ``no_live_proxies`` means fetch, parse, test and output generation all
+    completed but the admitted third-party source had nothing alive to offer,
+    which says nothing about the code under test.
+    """
     proxies_path = output_dir / "proxies.json"
     metadata_path = output_dir / "metadata.json"
     if not proxies_path.is_file() or not metadata_path.is_file():
-        return False, "missing proxies.json or metadata.json"
+        return "broken", "missing proxies.json or metadata.json"
     try:
         proxies = json.loads(proxies_path.read_text(encoding="utf-8"))
         metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
-        return False, f"invalid JSON output: {exc}"
+        return "broken", f"invalid JSON output: {exc}"
     if not isinstance(proxies, list) or not proxies:
-        return False, "proxies.json is empty or not a list"
+        return "broken", "proxies.json is empty or not a list"
+    if not all(isinstance(proxy, dict) for proxy in proxies):
+        # Malformed entries mean the generator emitted invalid output, which is
+        # a real pipeline defect rather than an upstream availability problem.
+        return "broken", "proxies.json contains malformed entries"
     if not isinstance(metadata, dict):
-        return False, "metadata.json is not an object"
+        return "broken", "metadata.json is not an object"
     final_count = metadata.get("final_count", len(proxies))
     try:
         if int(final_count) < 1:
-            return False, "metadata reports zero final proxies"
+            return "broken", "metadata reports zero final proxies"
     except (TypeError, ValueError):
-        return False, "metadata final_count is invalid"
+        return "broken", "metadata final_count is invalid"
 
     working = sum(
         1
@@ -64,8 +75,11 @@ def output_is_usable(output_dir: Path) -> tuple[bool, str]:
         if isinstance(proxy, dict) and proxy.get("is_working") is True
     )
     if working < 1:
-        return False, f"generated {len(proxies)} proxies but none are working"
-    return True, f"generated {len(proxies)} proxies with {working} working"
+        return (
+            "no_live_proxies",
+            f"generated {len(proxies)} proxies but none are working",
+        )
+    return "working", f"generated {len(proxies)} proxies with {working} working"
 
 
 def _run_attempt(
@@ -143,6 +157,7 @@ def run(args: argparse.Namespace) -> int:
 
     source_file = args.output.parent / ".configstream-live-smoke-source.txt"
     failures: list[str] = []
+    no_live_sources: list[str] = []
     try:
         for index, source in enumerate(candidates, start=1):
             returncode, output = _run_attempt(
@@ -167,9 +182,12 @@ def run(args: argparse.Namespace) -> int:
             if returncode != 0:
                 failures.append(f"{source}: merge exited {returncode}")
                 continue
-            usable, reason = output_is_usable(args.output)
-            if not usable:
+            state, reason = classify_output(args.output)
+            if state == "broken":
                 failures.append(f"{source}: {reason}")
+                continue
+            if state == "no_live_proxies":
+                no_live_sources.append(f"{source}: {reason}")
                 continue
 
             args.selected_source.write_text(source + "\n", encoding="utf-8")
@@ -178,10 +196,21 @@ def run(args: argparse.Namespace) -> int:
     finally:
         source_file.unlink(missing_ok=True)
 
-    print("ERROR: every bounded live smoke source failed", file=sys.stderr)
-    for failure in failures:
-        print(f"  - {failure}", file=sys.stderr)
-    return 1
+    if failures:
+        print("ERROR: live ConfigStream smoke path failed", file=sys.stderr)
+        for failure in failures:
+            print(f"  - {failure}", file=sys.stderr)
+        return 1
+    if no_live_sources:
+        print(
+            "WARNING: live ConfigStream smoke path completed, but admitted sources "
+            "had no verified working proxies.",
+            file=sys.stderr,
+        )
+        for note in no_live_sources:
+            print(f"  - {note}", file=sys.stderr)
+        return 0
+    raise RuntimeError("live smoke completed without a classified source result")
 
 
 def main() -> int:

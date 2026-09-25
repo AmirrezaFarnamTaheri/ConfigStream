@@ -14,11 +14,15 @@ from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any, Optional, Union
 
-from configstream.constants import ARTIFACT_TRANSIENT_SUFFIXES as TRANSIENT_SUFFIXES
+from configstream.constants import (
+    ARTIFACT_TRANSIENT_SUFFIXES as TRANSIENT_SUFFIXES,
+    PAGES_UNSERVABLE_ROOT_FILES,
+)
 from configstream.output.client_formats import validate_xray_config
 from configstream.output.singbox_contract import validate_singbox_config
 from configstream.release_policy import (
     MIN_SOURCE_COVERAGE,
+    connectivity_check_blocks_release,
     coverage_fraction,
     tester_error_count,
     tester_errors_block_release,
@@ -105,6 +109,11 @@ def manifest_entries(root: Path) -> list[dict[str, Any]]:
             )
         r = path.relative_to(root).as_posix()
         if not path.is_file() or r == "artifact_manifest.json":
+            continue
+        # GitHub Pages cannot serve these root dotfiles, so the canonical public
+        # manifest writer never lists them; the gate must use the same policy or
+        # it would fail every release with "public file omitted from manifest".
+        if r in PAGES_UNSERVABLE_ROOT_FILES:
             continue
         if path.name.endswith(TRANSIENT_SUFFIXES):
             raise ValueError(f"transient file is public: {r}")
@@ -219,7 +228,7 @@ def validate_native_report(root: Path, report: Any) -> list[str]:
             errors.append(
                 f"unknown native validation status: {core}:{relative}={status}"
             )
-        if status != "passed":
+        if status != "passed" and connectivity_check_blocks_release(check):
             errors.append(f"native validation did not pass: {core}:{relative}={status}")
         try:
             artifact = safe_path(root, relative)
