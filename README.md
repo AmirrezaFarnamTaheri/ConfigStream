@@ -122,7 +122,7 @@ Key points:
 - Smart chains: multi-hop paths built from tested proxies to improve resilience
 
 ## Outputs and Freshness
-GitHub Pages is the primary publication target. The intended schedule is every four hours, but users must treat `health.json`, `metadata.json`, and `artifact_manifest.json` as the authority for current health, freshness, source commit, and artifact identity. The frontend disables copy/download controls when those checks fail.
+GitHub Pages is the primary publication target. A pipeline run is requested every four hours and on every push to `main`, but a full run takes roughly three hours, so `Preempt Stale ConfigStream Runs` supersedes an in-flight scheduled run as soon as a newer commit lands: in practice the site refreshes on pushes, and a quiet repository refreshes on the next four-hourly tick. The frontend blocks distribution once the artifact is older than 12 hours, and users should treat `health.json`, `metadata.json`, and `artifact_manifest.json` as the authority for current health, freshness, source commit, and artifact identity. Artifacts are published unsigned by policy (`config/pages-trust-policy.json`); per-file SHA-256 hashes in the sealed manifest are re-checked in the browser on every download.
 
 Primary outputs:
 - singbox.json: complete sing-box smart-routing profile (one profile document)

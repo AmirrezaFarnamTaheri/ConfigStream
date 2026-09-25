@@ -2,5 +2,5 @@
   "schema_version": 1,
   "repository": "AmirrezaFarnamTaheri/ConfigStream",
   "allow_unsigned_pages": true,
-  "rationale": "Canonical GitHub Actions provenance, sealed-artifact validation, current-main freshness, live smoke, and rollback gates remain mandatory when signing secrets are not configured."
+  "rationale": "Keyless by operator decision: no Ed25519 signing key is stored in GitHub secrets, so the manifest signature implemented in src/configstream/signer.py stays inert and Pages publication is explicitly unsigned. Artifact integrity rests on the sealed manifest (per-file SHA-256, re-hashed by the browser on every download), repository-bound GitHub Actions provenance, current-main freshness, live smoke, and rollback gates. Set allow_unsigned_pages to false only together with a configured CS_SIGNING_PRIVATE_KEY_HEX/CS_PUBLIC_KEY pair that has been observed signing a full deploy end to end."
 }

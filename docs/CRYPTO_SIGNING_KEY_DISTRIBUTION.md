@@ -2,6 +2,35 @@
 
 This document describes the current Ed25519 signing pipeline, frontend verification trust anchor, and public-artifact secret-handling rules used by ConfigStream.
 
+## 0. Current posture: keyless by operator decision
+
+**The signing pipeline below is implemented and tested, but deliberately inert.** No
+`CS_SIGNING_PRIVATE_KEY_HEX` / `CS_PUBLIC_KEY` secret is stored in this repository, so no
+artifact manifest is signed and `config/pages-trust-policy.json` keeps
+`allow_unsigned_pages: true` to describe that posture accurately. This is a choice, not an
+oversight: the operator does not keep release signing keys in GitHub secrets.
+
+What actually protects a published artifact today:
+
+| Control | Mechanism | Where |
+| :--- | :--- | :--- |
+| Per-file integrity | SHA-256 per artifact file, re-hashed in the browser on every download | `artifact_manifest.json`, `frontend/assets/js/artifact-state.js` |
+| Sealed manifest | Fail-closed validation of the manifest, health and metadata contract before and after deploy | `scripts/validate_pages_artifact.py` |
+| Publication provenance | Only this repository's `main`-triggered workflows can write to Pages; artifact is downloaded from the triggering run | `.github/workflows/deploy-pages.yml` |
+| Freshness | Distribution blocked once the artifact exceeds 12h | `validateFreshness` in `artifact-state.js` |
+| Rollback | Last-known-good snapshot with LKG restore | `deploy-pages.yml` |
+
+What the missing signature does **not** cover: an attacker who can write to the Pages
+origin can replace the payload *and* the unsigned manifest together, so the hash check
+detects corruption, not origin-level tampering. Enabling signing removes that gap.
+
+To enable signing later: create an Ed25519 keypair, store the seed hex as the
+`CS_SIGNING_PRIVATE_KEY_HEX` secret and the SPKI base64 public key as `CS_PUBLIC_KEY`,
+confirm one full deploy verifies in `signed` mode, then set `allow_unsigned_pages` to
+`false` and update the tripwire assertion in `tests/unit/test_pages_deploy_workflow.py`
+in the same change. `scripts/preflight_release_inputs.py` cross-checks that the two keys
+are a matching pair before anything is published.
+
 ## 1. Cryptographic signing and verification trust chain
 
 ```text

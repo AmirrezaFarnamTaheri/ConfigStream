@@ -44,11 +44,9 @@
             logError("   Generate assets/js/runtime-config.js during deploy.");
             logError("   Subscription verification will NOT work!");
         }
-        if (!global.CS_CONSTANTS.IPNS_KEY) {
-            logError("❌ CRITICAL: Production deployment missing IPNS_KEY!");
-            logError("   Generate assets/js/runtime-config.js during deploy.");
-            logError("   IPFS failover will NOT work!");
-        }
+        // IPFS failover is an optional resilience path: failover.js degrades to
+        // a warning when no IPNS key is configured, so an absent key is an
+        // expected keyless deployment state rather than a production error.
     }
 
     if (window.ConfigStreamLogger) {

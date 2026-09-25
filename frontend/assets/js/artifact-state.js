@@ -341,7 +341,7 @@
         signatureVerified,
         reason: signatureVerified
           ? `Signed release verified from ${metadata.last_updated_utc || metadata.generated_at}. Files are rechecked when used.`
-          : `Unsigned release allowed by Pages policy from ${metadata.last_updated_utc || metadata.generated_at}. File hashes are checked when used; no cryptographic signature is available.`,
+          : `Release published ${metadata.last_updated_utc || metadata.generated_at}. Every file is re-hashed against the sealed manifest when used. This deployment is published unsigned by repository policy: no signing key is kept in repository secrets.`,
         metadata,
         health,
         manifest,
