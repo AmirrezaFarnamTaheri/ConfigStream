@@ -15,7 +15,7 @@ from pathlib import Path
 
 import pytest
 
-from configstream.signer import Signer
+from configstream.signer import CLOCK_SKEW_TOLERANCE_SECONDS, Signer
 from scripts import snapshot_pages_release
 
 
@@ -118,7 +118,50 @@ def test_snapshot_downloads_hash_verified_local_release(tmp_path: Path) -> None:
     assert report["file_count"] == 3
     assert report["health_status"] == "ok"
     assert report["manifest_signature_verified"] is False
+    assert report["baseline_age_seconds"] >= 0
+    assert report["max_age_seconds"] == 12 * 60 * 60
+    assert report["stale_baseline"] is False
     assert report["local_source"] is True
+
+
+def test_snapshot_skips_unservable_pages_root_dotfiles(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    site = tmp_path / "site"
+    payloads = _build_site(site)
+    manifest = json.loads(payloads["artifact_manifest.json"])
+    for name in (".nojekyll", ".build-config.json"):
+        body = b"" if name == ".nojekyll" else b"{}"
+        manifest["files"].append(
+            {
+                "path": name,
+                "size_bytes": len(body),
+                "sha256": hashlib.sha256(body).hexdigest(),
+            }
+        )
+        payloads[name] = body
+    payloads["artifact_manifest.json"] = json.dumps(manifest, sort_keys=True).encode()
+    fetched: list[str] = []
+
+    def tracking_fetch(url: str, timeout: float, pins=None) -> bytes:
+        del timeout, pins
+        name = url.rstrip("/").rsplit("/", 1)[-1]
+        fetched.append(name)
+        return payloads[name]
+
+    monkeypatch.setattr(snapshot_pages_release, "_fetch", tracking_fetch)
+    report = snapshot_pages_release.snapshot(
+        "https://example.com/",
+        tmp_path / "snapshot",
+        public_key="",
+        allow_unsigned=True,
+    )
+
+    assert report["unservable_files_skipped"] == [".build-config.json", ".nojekyll"]
+    assert report["file_count"] == 3
+    assert ".nojekyll" not in fetched
+    assert ".build-config.json" not in fetched
+    assert (tmp_path / "snapshot" / "index.html").is_file()
 
 
 def test_snapshot_rejects_manifest_hash_mismatch(tmp_path: Path) -> None:
@@ -153,12 +196,37 @@ def test_snapshot_rejects_degraded_release(tmp_path: Path) -> None:
         thread.join(timeout=5)
 
 
-def test_snapshot_rejects_stale_release(tmp_path: Path) -> None:
+def test_snapshot_records_stale_release_without_blocking_rollback(
+    tmp_path: Path,
+) -> None:
     site = tmp_path / "site"
     _build_site(site, generated_at=datetime.now(timezone.utc) - timedelta(hours=13))
     server, thread = _serve(site)
+    destination = tmp_path / "snapshot"
     try:
-        with pytest.raises(ValueError, match="metadata is stale"):
+        report = snapshot_pages_release.snapshot(
+            f"http://127.0.0.1:{server.server_port}/", destination
+        )
+    finally:
+        server.shutdown()
+        thread.join(timeout=5)
+
+    assert report["stale_baseline"] is True
+    assert report["baseline_age_seconds"] >= 13 * 60 * 60
+    assert report["max_age_seconds"] == 12 * 60 * 60
+    assert (destination / "index.html").is_file()
+
+
+def test_snapshot_rejects_future_release(tmp_path: Path) -> None:
+    site = tmp_path / "site"
+    _build_site(
+        site,
+        generated_at=datetime.now(timezone.utc)
+        + timedelta(seconds=CLOCK_SKEW_TOLERANCE_SECONDS * 2),
+    )
+    server, thread = _serve(site)
+    try:
+        with pytest.raises(ValueError, match="timestamp is in the future"):
             snapshot_pages_release.snapshot(
                 f"http://127.0.0.1:{server.server_port}/", tmp_path / "snapshot"
             )

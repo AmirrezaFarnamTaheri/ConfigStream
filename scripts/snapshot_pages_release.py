@@ -20,6 +20,7 @@ from typing import Any
 
 import httpx
 
+from configstream.constants import PAGES_UNSERVABLE_ROOT_FILES
 from configstream.signer import (
     CLOCK_SKEW_TOLERANCE_SECONDS,
     Signer,
@@ -275,7 +276,7 @@ def _validate_release_eligibility(
     is_local: bool,
     public_key_value: str,
     allow_unsigned: bool = False,
-) -> tuple[bool, int, str]:
+) -> tuple[bool, int, str, int, bool]:
     max_age_seconds = _rollback_max_age_seconds(metadata)
     raw_public_key = (public_key_value or "").strip()
     public_key_hex = normalize_public_key_hex(raw_public_key)
@@ -332,8 +333,12 @@ def _validate_release_eligibility(
     age_seconds = (now - generated_at).total_seconds()
     if age_seconds < -CLOCK_SKEW_TOLERANCE_SECONDS:
         raise ValueError("rollback source metadata timestamp is in the future")
-    if age_seconds > max_age_seconds:
-        raise ValueError("rollback source metadata is stale")
+    baseline_age_seconds = max(0, int(age_seconds))
+    # The snapshot target is already live. Its age is useful operational
+    # context, but rejecting it would make rollback impossible precisely when
+    # no newer deploy has refreshed the baseline. Signature, integrity,
+    # provenance, health, and future-time checks remain mandatory.
+    stale_baseline = baseline_age_seconds > max_age_seconds
 
     health_commit = health.get("source_commit")
     metadata_commit = metadata.get("source_commit")
@@ -341,7 +346,13 @@ def _validate_release_eligibility(
         if candidate and source_commit and candidate != source_commit:
             raise ValueError(f"{label} source commit does not match the manifest")
 
-    return signature_verified, max_age_seconds, generated_at.isoformat()
+    return (
+        signature_verified,
+        max_age_seconds,
+        generated_at.isoformat(),
+        baseline_age_seconds,
+        stale_baseline,
+    )
 
 
 def _recover_interrupted_swap(destination: Path) -> None:
@@ -378,12 +389,20 @@ def snapshot(
     planned: list[tuple[str, int, str]] = []
     entries: dict[str, tuple[int, str]] = {}
     total_expected = 0
+    unservable: set[str] = set()
     for item in raw_files:
         if not isinstance(item, dict):
             raise ValueError("artifact manifest contains a non-object entry")
         relative = _safe_relative(item.get("path"))
         if relative == "artifact_manifest.json":
             raise ValueError("artifact manifest must not list itself")
+        if relative in PAGES_UNSERVABLE_ROOT_FILES:
+            # GitHub Pages never serves these root dotfiles, so fetching them can
+            # only ever 404. Releases published before the manifest policy
+            # excluded them still list them; skip those entries instead of
+            # failing the whole rollback baseline (and with it every deploy).
+            unservable.add(relative)
+            continue
         if relative in entries:
             raise ValueError(f"duplicate manifest path: {relative}")
         size = item.get("size_bytes")
@@ -419,7 +438,13 @@ def snapshot(
 
     metadata = _json_object(prefetched["metadata.json"], "metadata.json")
     health = _json_object(prefetched["health.json"], "health.json")
-    signature_verified, max_age_seconds, generated_at = _validate_release_eligibility(
+    (
+        signature_verified,
+        max_age_seconds,
+        generated_at,
+        baseline_age_seconds,
+        stale_baseline,
+    ) = _validate_release_eligibility(
         manifest,
         metadata,
         health,
@@ -459,8 +484,11 @@ def snapshot(
             "health_status": health.get("status"),
             "total_working": int(health.get("total_working", 0)),
             "artifact_generated_at": generated_at,
+            "baseline_age_seconds": baseline_age_seconds,
             "max_age_seconds": max_age_seconds,
+            "stale_baseline": stale_baseline,
             "local_source": is_local,
+            "unservable_files_skipped": sorted(unservable),
         }
         backup = destination.with_name(destination.name + ".replaced")
         if backup.exists():

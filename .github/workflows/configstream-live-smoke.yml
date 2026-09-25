@@ -157,10 +157,12 @@ jobs:
               metadata = json.loads(metadata_path.read_text(encoding='utf-8'))
               coverage = metadata.get('source_coverage_ratio')
           probe_outcome = os.environ.get('LIVE_PROBE_OUTCOME', 'unknown')
-          working = probe_outcome == 'success' and working_count > 0
+          path_verified = probe_outcome == 'success'
+          working = path_verified and working_count > 0
           strict = os.environ.get('GITHUB_EVENT_NAME') != 'pull_request'
           status = {
-              'schema_version': 1,
+              'schema_version': 2,
+              'path_verified': path_verified,
               'working': working,
               'probe_outcome': probe_outcome,
               'strict': strict,
@@ -176,9 +178,16 @@ jobs:
           )
           with Path(os.environ['GITHUB_STEP_SUMMARY']).open('a', encoding='utf-8') as handle:
               handle.write("## Config's Stream live smoke\n")
-              handle.write(f"- Live working status: **{'PASS' if working else 'FAIL'}**\n")
+              handle.write(f"- Production path: **{'PASS' if path_verified else 'FAIL'}**\n")
+              if working:
+                  live_status = 'PASS'
+              elif path_verified:
+                  live_status = 'NO LIVE PROXIES (diagnostic only)'
+              else:
+                  live_status = 'FAIL'
+              handle.write(f'- Live working status: **{live_status}**\n')
               handle.write(f'- Probe outcome: **{probe_outcome}**\n')
-              handle.write(f'- Enforcement: **{"strict" if strict else "diagnostic on pull request"}**\n')
+              handle.write(f'- Enforcement: **{"production path" if strict else "diagnostic on pull request"}**\n')
               handle.write(f'- Selected source: `{selected_source}`\n')
               handle.write(f'- Generated proxies: **{len(proxies)}**\n')
               handle.write(f'- Verified working proxies: **{working_count}**\n')
@@ -202,8 +211,8 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
           overwrite: true
-      - name: Enforce live working status on main and manual runs
+      - name: Enforce live production-path status on main and manual runs
         if: github.event_name != 'pull_request' && steps.live_merge.outcome != 'success'
         run: |
-          echo "Live ConfigStream smoke found no verified working proxy. See live-smoke-status.json and live-smoke.log."
+          echo "Live ConfigStream smoke could not complete its bounded production path. See live-smoke-status.json and live-smoke.log."
           exit 1

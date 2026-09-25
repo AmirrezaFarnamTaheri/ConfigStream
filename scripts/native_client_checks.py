@@ -10,6 +10,7 @@ import os
 import platform
 import shutil
 import subprocess  # nosec B404
+import sys
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -29,6 +30,21 @@ except ModuleNotFoundError:  # Direct ``python scripts/...`` execution.
     )
 
 MAX_OUTPUT_CHARS = 1000
+
+
+def _blocks_release(check: dict[str, Any]) -> bool:
+    """Fail closed unless the check is a proven exhausted-pool observation.
+
+    Every non-passed check blocks by default. The single exception is a
+    per-protocol connectivity check that retried its whole eligible candidate
+    pool and still found no live third-party endpoint: that is upstream
+    availability, not a defect in the artifact we generated and validated.
+    """
+    if check.get("status") == "passed":
+        return False
+    from configstream.release_policy import connectivity_check_blocks_release
+
+    return connectivity_check_blocks_release(check)
 
 
 def digest(path: Path) -> str:
@@ -256,12 +272,29 @@ def main() -> int:
     report["runtime_conformance"] = runtime_conformance
     report["checks"] = checks
     report["summary"] = summary
+    report["blocking_failures"] = sorted(
+        f"{item['core']}:{item.get('path')}" for item in checks if _blocks_release(item)
+    )
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(
         json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
     print(json.dumps(summary))
-    return 1 if summary["failed"] or summary["skipped"] or not checks else 0
+    if report["blocking_failures"]:
+        print(
+            "blocking native validation failures: "
+            + ", ".join(report["blocking_failures"]),
+            file=sys.stderr,
+        )
+        return 1
+    skipped = summary["skipped"]
+    if skipped:
+        print(
+            f"native validation skipped {skipped} check(s) without an enforced result",
+            file=sys.stderr,
+        )
+        return 1
+    return 0 if checks else 1
 
 
 def _required_native_target(core: str) -> str:

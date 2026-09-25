@@ -14,6 +14,19 @@ WORKFLOW = REPO_ROOT / ".github" / "workflows" / "configstream-live-smoke.yml"
 FIXTURE = REPO_ROOT / "tests" / "fixtures" / "live_smoke_sources.txt"
 
 
+def _run_args(tmp_path: Path) -> argparse.Namespace:
+    return argparse.Namespace(
+        sources=tmp_path / "sources.txt",
+        output=tmp_path / "output",
+        log=tmp_path / "smoke.log",
+        selected_source=tmp_path / "selected.txt",
+        max_workers=8,
+        fetch_timeout=15,
+        max_latency=6000,
+        attempt_timeout=90,
+    )
+
+
 def _triggers(payload: dict) -> dict:
     value = payload.get("on")
     if value is None:
@@ -35,30 +48,34 @@ def test_live_smoke_sources_are_bounded_https_and_admitted() -> None:
     assert all(source.startswith("https://") for source in candidates)
 
 
-def test_live_smoke_output_requires_actual_working_proxy(tmp_path: Path) -> None:
+def test_live_smoke_output_distinguishes_defects_from_missing_liveness(
+    tmp_path: Path,
+) -> None:
     output = tmp_path / "output"
     output.mkdir()
-    assert run_live_smoke.output_is_usable(output)[0] is False
+    state, _ = run_live_smoke.classify_output(output)
+    assert state == "broken"
 
     (output / "proxies.json").write_text("[]\n", encoding="utf-8")
     (output / "metadata.json").write_text('{"final_count": 0}\n', encoding="utf-8")
-    assert run_live_smoke.output_is_usable(output)[0] is False
+    state, _ = run_live_smoke.classify_output(output)
+    assert state == "broken"
 
     (output / "proxies.json").write_text(
         json.dumps([{"protocol": "socks4", "is_working": False}]) + "\n",
         encoding="utf-8",
     )
     (output / "metadata.json").write_text('{"final_count": 1}\n', encoding="utf-8")
-    usable, reason = run_live_smoke.output_is_usable(output)
-    assert usable is False
+    state, reason = run_live_smoke.classify_output(output)
+    assert state == "no_live_proxies"
     assert "none are working" in reason
 
     (output / "proxies.json").write_text(
         json.dumps([{"protocol": "socks4", "is_working": True}]) + "\n",
         encoding="utf-8",
     )
-    usable, reason = run_live_smoke.output_is_usable(output)
-    assert usable is True
+    state, reason = run_live_smoke.classify_output(output)
+    assert state == "working"
     assert "with 1 working" in reason
 
 
@@ -108,6 +125,53 @@ def test_live_smoke_falls_back_to_second_candidate(tmp_path: Path, monkeypatch) 
     assert attempts == ["https://example.test/one", "https://example.test/two"]
     assert selected.read_text(encoding="utf-8").strip().endswith("/two")
     assert "first produced only non-working output" in log.read_text(encoding="utf-8")
+
+
+def test_live_smoke_succeeds_when_all_sources_have_no_live_proxies(
+    tmp_path: Path, monkeypatch
+) -> None:
+    args = _run_args(tmp_path)
+    args.sources.write_text(
+        "https://example.test/one\nhttps://example.test/two\n", encoding="utf-8"
+    )
+    attempts: list[str] = []
+
+    def fake_attempt(**kwargs):
+        source = str(kwargs["source"])
+        attempts.append(source)
+        target = Path(kwargs["output_dir"])
+        target.mkdir(parents=True, exist_ok=True)
+        (target / "proxies.json").write_text(
+            json.dumps([{"protocol": "socks4", "is_working": False}]) + "\n",
+            encoding="utf-8",
+        )
+        (target / "metadata.json").write_text('{"final_count": 1}\n', encoding="utf-8")
+        return 0, "completed without a working proxy\n"
+
+    monkeypatch.setattr(run_live_smoke, "_run_attempt", fake_attempt)
+
+    assert run_live_smoke.run(args) == 0
+    assert attempts == ["https://example.test/one", "https://example.test/two"]
+    assert not args.selected_source.exists()
+
+
+def test_live_smoke_fails_when_a_source_produces_broken_output(
+    tmp_path: Path, monkeypatch
+) -> None:
+    args = _run_args(tmp_path)
+    args.sources.write_text("https://example.test/one\n", encoding="utf-8")
+
+    def fake_attempt(**kwargs):
+        target = Path(kwargs["output_dir"])
+        target.mkdir(parents=True, exist_ok=True)
+        (target / "proxies.json").write_text("not-json\n", encoding="utf-8")
+        (target / "metadata.json").write_text('{"final_count": 1}\n', encoding="utf-8")
+        return 0, "invalid output\n"
+
+    monkeypatch.setattr(run_live_smoke, "_run_attempt", fake_attempt)
+
+    assert run_live_smoke.run(args) == 1
+    assert not args.selected_source.exists()
 
 
 def test_live_smoke_workflow_is_read_only_bounded_and_full_path() -> None:
@@ -168,12 +232,18 @@ def test_live_smoke_workflow_is_read_only_bounded_and_full_path() -> None:
     enforce_step = next(
         step
         for step in steps
-        if step.get("name") == "Enforce live working status on main and manual runs"
+        if step.get("name")
+        == "Enforce live production-path status on main and manual runs"
     )
     enforce_if = str(enforce_step["if"])
     assert "github.event_name != 'pull_request'" in enforce_if
     assert "steps.live_merge.outcome != 'success'" in enforce_if
+    assert "production path" in str(enforce_step.get("run", ""))
     assert "exit 1" in str(enforce_step.get("run", ""))
+
+    report_run = str(report_step.get("run", ""))
+    assert "path_verified" in report_run
+    assert "NO LIVE PROXIES (diagnostic only)" in report_run
 
     upload_step = next(
         step for step in steps if step.get("name") == "Upload live smoke diagnostics"

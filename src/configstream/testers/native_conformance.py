@@ -27,6 +27,7 @@ from ..security_validator import SecurityValidator
 from .python import PythonTester
 
 SAMPLES_PER_PROTOCOL = 3
+MAX_CANDIDATES_PER_PROTOCOL = 6
 MAX_CONCURRENCY = 4
 PROBE_TIMEOUT_SECONDS = 12.0
 _VERSION_RE = re.compile(r"\bversion\s+v?(\d+\.\d+\.\d+)\b", re.IGNORECASE)
@@ -61,7 +62,9 @@ def observed_singbox_version(binary: Path) -> str | None:
     return match.group(1) if match else None
 
 
-def select_samples(records: Iterable[object]) -> dict[str, list[Proxy]]:
+def select_samples(
+    records: Iterable[object], limit: int = SAMPLES_PER_PROTOCOL
+) -> dict[str, list[Proxy]]:
     """Select the lowest-latency deterministic representatives per protocol."""
     grouped: dict[str, list[Proxy]] = defaultdict(list)
     for raw in records:
@@ -85,7 +88,7 @@ def select_samples(records: Iterable[object]) -> dict[str, list[Proxy]]:
                 item.id,
             )
         )
-        selected[protocol] = proxies[:SAMPLES_PER_PROTOCOL]
+        selected[protocol] = proxies[: max(1, limit)]
     return dict(sorted(selected.items()))
 
 
@@ -122,6 +125,36 @@ async def _probe(
         return protocol, False, SecurityValidator.sanitize_log_message(category)
 
 
+async def _probe_samples(
+    tester: PythonTester,
+    samples: dict[str, list[Proxy]],
+    semaphore: asyncio.Semaphore,
+) -> list[tuple[str, bool, str | None]]:
+    tasks = [
+        _probe(tester, protocol, proxy, semaphore)
+        for protocol, proxies in samples.items()
+        for proxy in proxies
+    ]
+    return list(await asyncio.gather(*tasks))
+
+
+def eligible_pool_sizes(records: Iterable[object]) -> dict[str, int]:
+    """Count every eligible working candidate per protocol, ignoring sampling."""
+    grouped: dict[str, int] = defaultdict(int)
+    for raw in records:
+        if not isinstance(raw, dict):
+            continue
+        try:
+            proxy = Proxy.model_validate(raw)
+        except ValidationError:
+            continue
+        protocol = proxy.protocol.lower()
+        if protocol in _EXCLUDED_PROTOCOLS or not proxy.config or not proxy.is_working:
+            continue
+        grouped[protocol] += 1
+    return dict(sorted(grouped.items()))
+
+
 async def run_release_runtime_conformance(
     release_root: Path,
     *,
@@ -134,7 +167,8 @@ async def run_release_runtime_conformance(
     base: dict[str, Any] = {
         "expected_version": expected,
         "observed_version": observed,
-        "sample_limit_per_protocol": SAMPLES_PER_PROTOCOL,
+        "sample_limit_per_protocol": MAX_CANDIDATES_PER_PROTOCOL,
+        "initial_sample_limit_per_protocol": SAMPLES_PER_PROTOCOL,
         "protocols": {},
         "status": "failed",
     }
@@ -157,17 +191,35 @@ async def run_release_runtime_conformance(
     if not samples:
         base["error"] = "no working release proxies are eligible for native conformance"
         return base
+    pool_sizes = eligible_pool_sizes(records)
 
     tester = PythonTester(
         AppSettings(), timeout=PROBE_TIMEOUT_SECONDS, strict_security=False
     )
     semaphore = asyncio.Semaphore(MAX_CONCURRENCY)
-    tasks = [
-        _probe(tester, protocol, proxy, semaphore)
-        for protocol, proxies in samples.items()
-        for proxy in proxies
-    ]
-    results = await asyncio.gather(*tasks)
+    results = await _probe_samples(tester, samples, semaphore)
+
+    # A protocol only fails once every eligible release proxy has been retested.
+    # Proxies are screened by the embedded tester minutes earlier, so a bounded
+    # second wave over the remaining candidates absorbs that churn instead of
+    # failing the whole release on the first wave being entirely dead.
+    unresolved = {
+        protocol
+        for protocol in samples
+        if not any(passed for probed, passed, _ in results if probed == protocol)
+    }
+    if unresolved:
+        wider = select_samples(records, MAX_CANDIDATES_PER_PROTOCOL)
+        retries: dict[str, list[Proxy]] = {}
+        for protocol in sorted(unresolved):
+            already = {proxy.id for proxy in samples.get(protocol, [])}
+            remaining = [
+                proxy for proxy in wider.get(protocol, []) if proxy.id not in already
+            ]
+            if remaining:
+                retries[protocol] = remaining
+        if retries:
+            results.extend(await _probe_samples(tester, retries, semaphore))
 
     by_protocol: dict[str, list[tuple[bool, str | None]]] = defaultdict(list)
     for protocol, probe_passed, error in results:
@@ -187,6 +239,7 @@ async def run_release_runtime_conformance(
             "status": status,
             "attempted": attempted,
             "passed": passed_count,
+            "eligible_candidates": pool_sizes.get(protocol, attempted),
             "errors": errors[:3],
         }
 
@@ -226,19 +279,26 @@ def conformance_checks(
     for protocol, result in sorted(protocols.items()):
         if not isinstance(result, dict):
             continue
-        checks.append(
-            {
-                "core": f"sing-box-connectivity:{protocol}",
-                "path": "proxies.json",
-                "status": "passed" if result.get("status") == "passed" else "failed",
-                "command": ["sing-box", "release-runtime-connectivity", protocol],
-                "artifact_sha256": proxies_digest,
-                "binary_sha256": binary_digest,
-                "error": (
-                    None
-                    if result.get("status") == "passed"
-                    else str(conformance.get("error") or "native connectivity failed")
-                ),
-            }
-        )
+        attempted = result.get("attempted")
+        eligible = result.get("eligible_candidates")
+        check: dict[str, Any] = {
+            "core": f"sing-box-connectivity:{protocol}",
+            "path": "proxies.json",
+            "status": "passed" if result.get("status") == "passed" else "failed",
+            "command": ["sing-box", "release-runtime-connectivity", protocol],
+            "artifact_sha256": proxies_digest,
+            "binary_sha256": binary_digest,
+            "error": (
+                None
+                if result.get("status") == "passed"
+                else str(conformance.get("error") or "native connectivity failed")
+            ),
+        }
+        # Carry the bounded-sweep counters so the release gate can tell proven
+        # upstream unavailability (an exhausted pool) from a real coverage gap.
+        if not isinstance(attempted, bool) and isinstance(attempted, int):
+            check["attempted"] = attempted
+        if not isinstance(eligible, bool) and isinstance(eligible, int):
+            check["eligible_candidates"] = eligible
+        checks.append(check)
     return checks
