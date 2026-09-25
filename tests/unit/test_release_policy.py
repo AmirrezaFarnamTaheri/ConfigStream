@@ -24,6 +24,11 @@ from scripts.release_gate import safe_float, safe_int
         ("failed", 0, 0, True),
         # A live proxy anywhere means the protocol is proven working.
         ("passed", 1, 5, False),
+        # Nonsensical counts cannot prove exhaustion and must not be excused.
+        ("failed", 5, 0, True),
+        ("failed", 0, 0, True),
+        ("failed", 9, 3, True),
+        ("failed", 3, -1, True),
     ],
 )
 def test_exhausted_pool_connectivity_is_not_a_release_blocker(

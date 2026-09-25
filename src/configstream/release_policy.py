@@ -69,6 +69,10 @@ def connectivity_exhaustion_blocks_release(
         return True
     if attempted <= 0:
         return True
+    # Nonsensical counts mean the evidence cannot prove exhaustion. Reject them
+    # rather than letting a malformed report earn the availability exemption.
+    if pool_size <= 0 or attempted > pool_size:
+        return True
     # Only an exhausted pool counts as proven upstream unavailability. A partial
     # sweep means candidates remain untested, which is a real coverage gap.
     return attempted < pool_size

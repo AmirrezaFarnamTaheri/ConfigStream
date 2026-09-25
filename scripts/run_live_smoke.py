@@ -56,6 +56,10 @@ def classify_output(output_dir: Path) -> tuple[str, str]:
         return "broken", f"invalid JSON output: {exc}"
     if not isinstance(proxies, list) or not proxies:
         return "broken", "proxies.json is empty or not a list"
+    if not all(isinstance(proxy, dict) for proxy in proxies):
+        # Malformed entries mean the generator emitted invalid output, which is
+        # a real pipeline defect rather than an upstream availability problem.
+        return "broken", "proxies.json contains malformed entries"
     if not isinstance(metadata, dict):
         return "broken", "metadata.json is not an object"
     final_count = metadata.get("final_count", len(proxies))

@@ -79,6 +79,24 @@ def test_live_smoke_output_distinguishes_defects_from_missing_liveness(
     assert "with 1 working" in reason
 
 
+def test_live_smoke_rejects_malformed_proxy_entries(tmp_path: Path) -> None:
+    """Malformed output is a generator defect, not an availability problem."""
+    output = tmp_path / "output"
+    output.mkdir()
+    (output / "metadata.json").write_text('{"final_count": 1}\n', encoding="utf-8")
+
+    for payload in (
+        "[null]",
+        '["not-a-proxy"]',
+        "[1]",
+        '[{"is_working": false}, null]',
+    ):
+        (output / "proxies.json").write_text(payload + "\n", encoding="utf-8")
+        state, reason = run_live_smoke.classify_output(output)
+        assert state == "broken", payload
+        assert "malformed" in reason
+
+
 def test_live_smoke_falls_back_to_second_candidate(tmp_path: Path, monkeypatch) -> None:
     sources = tmp_path / "sources.txt"
     sources.write_text(
@@ -244,6 +262,18 @@ def test_live_smoke_workflow_is_read_only_bounded_and_full_path() -> None:
     report_run = str(report_step.get("run", ""))
     assert "path_verified" in report_run
     assert "NO LIVE PROXIES (diagnostic only)" in report_run
+
+    # The production public-output step must be addressable so the status
+    # artifact cannot claim the full path passed when that step failed.
+    assert public_step.get("id") == "public_output"
+    report_env = report_step.get("env", {})
+    assert "LIVE_PROBE_OUTCOME" in report_env
+    assert "steps.public_output.outcome" in str(
+        report_env.get("LIVE_PUBLIC_OUTPUT_OUTCOME")
+    )
+    assert "public_output_outcome == 'success'" in report_run
+    # Enforcement must fail on either step, not just the merge probe.
+    assert "steps.public_output.outcome != 'success'" in enforce_if
 
     upload_step = next(
         step for step in steps if step.get("name") == "Upload live smoke diagnostics"

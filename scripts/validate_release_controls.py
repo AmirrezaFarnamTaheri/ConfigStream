@@ -37,7 +37,7 @@ def validate(root: Path) -> list[str]:
     for control in (
         "def _blocks_release(",
         "connectivity_check_blocks_release",
-        'if report["blocking_failures"]:',
+        "if blocking_failures:",
         "return 1",
         "return 0 if checks else 1",
     ):

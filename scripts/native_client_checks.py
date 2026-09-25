@@ -272,18 +272,18 @@ def main() -> int:
     report["runtime_conformance"] = runtime_conformance
     report["checks"] = checks
     report["summary"] = summary
-    report["blocking_failures"] = sorted(
+    blocking_failures = sorted(
         f"{item['core']}:{item.get('path')}" for item in checks if _blocks_release(item)
     )
+    report["blocking_failures"] = blocking_failures
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(
         json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
     print(json.dumps(summary))
-    if report["blocking_failures"]:
+    if blocking_failures:
         print(
-            "blocking native validation failures: "
-            + ", ".join(report["blocking_failures"]),
+            "blocking native validation failures: " + ", ".join(blocking_failures),
             file=sys.stderr,
         )
         return 1
