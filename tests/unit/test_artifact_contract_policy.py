@@ -105,6 +105,15 @@ def test_release_gate_accepts_exhausted_connectivity_but_rejects_partial_sweep(
     for path in {"proxies.json", *release_gate.REQUIRED_NATIVE_TARGETS.values()}:
         (tmp_path / path).write_text("[]", encoding="utf-8")
     monkeypatch.setattr(release_gate, "digest", lambda _path: "a" * 64)
+    # The gate binds report provenance to the CI environment, so pin both sides
+    # instead of depending on whether GITHUB_* happens to be set on the host.
+    provenance = {
+        "GITHUB_SHA": "test-source-commit",
+        "GITHUB_RUN_ID": "test-run-id",
+        "GITHUB_RUN_ATTEMPT": "1",
+    }
+    for name, value in provenance.items():
+        monkeypatch.setenv(name, value)
 
     def _report(check: dict[str, object]) -> dict[str, object]:
         check = dict(check)
@@ -124,6 +133,9 @@ def test_release_gate_accepts_exhausted_connectivity_but_rejects_partial_sweep(
         checks = [*required, check]
         return {
             "schema_version": 2,
+            "source_commit": provenance["GITHUB_SHA"],
+            "run_id": provenance["GITHUB_RUN_ID"],
+            "run_attempt": provenance["GITHUB_RUN_ATTEMPT"],
             "checks": checks,
             "summary": {
                 "passed": len(required),
