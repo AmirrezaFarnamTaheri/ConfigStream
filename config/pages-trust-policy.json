@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
   "repository": "AmirrezaFarnamTaheri/ConfigStream",
-  "allow_unsigned_pages": true,
-  "rationale": "Keyless by operator decision: no Ed25519 signing key is stored in GitHub secrets, so the manifest signature implemented in src/configstream/signer.py stays inert and Pages publication is explicitly unsigned. Artifact integrity rests on the sealed manifest (per-file SHA-256, re-hashed by the browser on every download), repository-bound GitHub Actions provenance, current-main freshness, live smoke, and rollback gates. Set allow_unsigned_pages to false only together with a configured CS_SIGNING_PRIVATE_KEY_HEX/CS_PUBLIC_KEY pair that has been observed signing a full deploy end to end."
+  "allow_unsigned_pages": false,
+  "rationale": "Signed by default: every artifact manifest is signed with the repository's Ed25519 key (key_id sha256:018ff423dfc30ca1) and verified against the CS_PUBLIC_KEY trust anchor before publication, before the last-known-good snapshot, and again in the visitor's browser. Unsigned publication is disabled so that losing the signing secret fails the deploy loudly instead of silently downgrading trust. Flip this to true only together with editing the tripwire assertion in tests/unit/test_pages_deploy_workflow.py, so the downgrade is a deliberate, reviewed change."
 }

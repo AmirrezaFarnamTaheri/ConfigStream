@@ -90,7 +90,7 @@ def test_pages_signature_policy_is_explicit_at_every_trust_boundary() -> None:
         )
     )
     assert policy["repository"] == "AmirrezaFarnamTaheri/ConfigStream"
-    assert policy["allow_unsigned_pages"] is True
+    assert policy["allow_unsigned_pages"] is False
     assert workflow.count('signature_policy_args+=(--public-key "$CS_PUBLIC_KEY")') >= 4
     assert workflow.count("signature_policy_args+=(--allow-unsigned)") >= 4
 

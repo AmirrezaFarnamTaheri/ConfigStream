@@ -2,15 +2,28 @@
 
 This document describes the current Ed25519 signing pipeline, frontend verification trust anchor, and public-artifact secret-handling rules used by ConfigStream.
 
-## 0. Current posture: keyless by operator decision
+## 0. Current posture: signed and fail-closed
 
-**The signing pipeline below is implemented and tested, but deliberately inert.** No
-`CS_SIGNING_PRIVATE_KEY_HEX` / `CS_PUBLIC_KEY` secret is stored in this repository, so no
-artifact manifest is signed and `config/pages-trust-policy.json` keeps
-`allow_unsigned_pages: true` to describe that posture accurately. This is a choice, not an
-oversight: the operator does not keep release signing keys in GitHub secrets.
+**Release signing is live.** `CS_SIGNING_PRIVATE_KEY_HEX` (32-byte Ed25519 seed, hex) and
+`CS_PUBLIC_KEY` (SPKI base64) are configured as repository secrets, every artifact manifest
+is signed in `Config's Stream`, and `config/pages-trust-policy.json` sets
+`allow_unsigned_pages: false` so an unsigned artifact can never reach Pages.
 
-What actually protects a published artifact today:
+| Property | Value |
+| :--- | :--- |
+| Algorithm | Ed25519 (`cryptography.hazmat.primitives.asymmetric.ed25519`) |
+| `key_id` | `sha256:018ff423dfc30ca1` |
+| Public anchor (SPKI base64) | `MCowBQYDK2VwAyEAoCccrYn/1Ermw0haAUAh/uverHi0kySz1WpH38EY9ZY=` |
+| Signed payload | `uint64 big-endian timestamp` + canonical JSON (sorted keys, compact separators, `manifest_signature` removed) |
+
+The private seed exists only as a repository secret; GitHub never returns it. Keep an
+operator-held backup, because losing it means rotating the anchor: generate a new pair,
+update both secrets, wait for one signed deploy, and expect clients to trust the new
+`key_id` only. `scripts/preflight_release_inputs.py` refuses to publish when the two keys
+disagree, and `scripts/validate_pages_signature_policy.py` rejects a signed artifact that
+arrives without a valid trust anchor.
+
+Controls layered on top of the signature, all still mandatory:
 
 | Control | Mechanism | Where |
 | :--- | :--- | :--- |
@@ -20,16 +33,10 @@ What actually protects a published artifact today:
 | Freshness | Distribution blocked once the artifact exceeds 12h | `validateFreshness` in `artifact-state.js` |
 | Rollback | Last-known-good snapshot with LKG restore | `deploy-pages.yml` |
 
-What the missing signature does **not** cover: an attacker who can write to the Pages
-origin can replace the payload *and* the unsigned manifest together, so the hash check
-detects corruption, not origin-level tampering. Enabling signing removes that gap.
-
-To enable signing later: create an Ed25519 keypair, store the seed hex as the
-`CS_SIGNING_PRIVATE_KEY_HEX` secret and the SPKI base64 public key as `CS_PUBLIC_KEY`,
-confirm one full deploy verifies in `signed` mode, then set `allow_unsigned_pages` to
-`false` and update the tripwire assertion in `tests/unit/test_pages_deploy_workflow.py`
-in the same change. `scripts/preflight_release_inputs.py` cross-checks that the two keys
-are a matching pair before anything is published.
+The tripwire that keeps this posture honest lives in
+`tests/unit/test_pages_deploy_workflow.py` (`allow_unsigned_pages is False`): flipping the
+policy back to `true` requires editing that assertion in the same change, so the downgrade
+is always a deliberate, visible act.
 
 ## 1. Cryptographic signing and verification trust chain
 
