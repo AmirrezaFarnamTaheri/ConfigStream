@@ -85,7 +85,8 @@ test('explicit unsigned Pages policy permits a healthy hash-checked release', as
   const state = await runGuard({ allowUnsigned: true });
   assert.equal(state.canDistribute, true);
   assert.equal(state.signatureVerified, false);
-  assert.match(state.reason, /Unsigned release allowed by Pages policy/);
+  assert.match(state.reason, /published unsigned by repository policy/);
+  assert.match(state.reason, /re-hashed against the sealed manifest/);
 });
 
 test('unsigned release is blocked without explicit policy', async () => {
