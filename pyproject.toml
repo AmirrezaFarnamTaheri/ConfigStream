@@ -123,6 +123,16 @@ exclude = "^(invvest|Latest Outputs to investigate|output|data|verification-evid
 module = ["configstream.testers.go_tester"]
 disable_error_code = ["misc"]
 
+# `limits` (via slowapi) requires `Deprecated`, whose 3.x line ships PEP 695
+# `type` statements. Those only install on Python 3.12+, but mypy targets the
+# project's minimum supported version (3.10) and follows the import chain, so a
+# dependency release can break the type gate on syntax we never wrote. Skipping
+# analysis for that one package keeps the gate reporting our own errors while
+# staying immune to the dependency's release cadence.
+[[tool.mypy.overrides]]
+module = ["deprecated.*"]
+follow_imports = "skip"
+
 [[tool.mypy.overrides]]
 module = ["tests.unit.test_ws_origin"]
 disable_error_code = ["arg-type"]
