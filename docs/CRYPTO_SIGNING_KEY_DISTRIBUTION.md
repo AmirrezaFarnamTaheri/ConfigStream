@@ -2,12 +2,29 @@
 
 This document describes the current Ed25519 signing pipeline, frontend verification trust anchor, and public-artifact secret-handling rules used by ConfigStream.
 
-## 0. Current posture: signed and fail-closed
+## 0. Current posture: signed when possible, always publishable
 
-**Release signing is live.** `CS_SIGNING_PRIVATE_KEY_HEX` (32-byte Ed25519 seed, hex) and
-`CS_PUBLIC_KEY` (SPKI base64) are configured as repository secrets, every artifact manifest
-is signed in `Config's Stream`, and `config/pages-trust-policy.json` sets
-`allow_unsigned_pages: false` so an unsigned artifact can never reach Pages.
+**Release signing is live, and it is optional.** `CS_SIGNING_PRIVATE_KEY_HEX` (32-byte
+Ed25519 seed, hex) and `CS_PUBLIC_KEY` (SPKI base64) are configured as repository secrets
+and every artifact manifest is signed in `Config's Stream`. The project is nevertheless
+never *dependent* on them: a missing, malformed, half-configured or mismatched keypair
+degrades to unsigned publication with the reason recorded, and the site keeps updating.
+
+| Situation | Behaviour |
+| :--- | :--- |
+| Both halves present, valid, matching | Manifest is signed; CI and the browser verify against the anchor |
+| Neither present | Published unsigned; the banner states it is unsigned |
+| Malformed key or anchor | Ignored with a recorded reason; published unsigned |
+| Anchor without a signing key | Anchor ignored; published unsigned |
+| Mismatched pair | Both ignored; published unsigned (never signs against the wrong anchor) |
+| **Signed artifact, no valid anchor** | **Rejected** — a signature is never accepted unverified |
+| **Signed artifact, anchor mismatch** | **Rejected** |
+
+The last two rows are the only behaviour that does not degrade, and they are the point:
+availability applies to *publication*, never to *trust*. `src/configstream/signing_config.py`
+is the single resolver for this table; `scripts/preflight_release_inputs.py` exposes it to
+the workflows (`--print-signing-configured`), and `config/pages-trust-policy.json` keeps
+`allow_unsigned_pages: false` so that a working keypair is always required to be *used*.
 
 | Property | Value |
 | :--- | :--- |
@@ -18,10 +35,9 @@ is signed in `Config's Stream`, and `config/pages-trust-policy.json` sets
 
 The private seed exists only as a repository secret; GitHub never returns it. Keep an
 operator-held backup, because losing it means rotating the anchor: generate a new pair,
-update both secrets, wait for one signed deploy, and expect clients to trust the new
-`key_id` only. `scripts/preflight_release_inputs.py` refuses to publish when the two keys
-disagree, and `scripts/validate_pages_signature_policy.py` rejects a signed artifact that
-arrives without a valid trust anchor.
+update both secrets, and clients will trust only the new `key_id`. Because the pair is
+optional, a rotation is safe to attempt — worst case the next release publishes unsigned
+and says so.
 
 Controls layered on top of the signature, all still mandatory:
 

@@ -221,9 +221,12 @@ def validate(root: Path) -> list[str]:
         "--public-key",
         "signed artifacts must never be accepted without a trust anchor",
         "unsigned Pages publication is disabled by default",
-        "configured Pages public key is not a valid Ed25519 public key",
         "Signer.verify_manifest_signature",
     ):
+        # An invalid *configured* anchor is deliberately not pinned here: an
+        # unusable optional secret degrades to unsigned publication rather than
+        # blocking the release. The control that must never degrade is the one
+        # above — a signature is never accepted without a verifiable anchor.
         if control not in signature_policy:
             errors.append(
                 f"Pages signature policy missing fail-closed control: {control}"

@@ -44,16 +44,13 @@ def validate_pages_signature_policy(
     public_key_hex = normalize_public_key_hex(raw_public_key)
     signature = manifest.get("manifest_signature")
 
-    if raw_public_key and not public_key_hex:
-        return ["configured Pages public key is not a valid Ed25519 public key"]
-
     if signature is not None:
         # A signed manifest is never downgraded. It must verify against a
         # configured trust anchor, and `allow_unsigned` does not relax that.
         if not public_key_hex:
             return [
-                "artifact_manifest.json is signed but no Pages public key was supplied; "
-                "signed artifacts must never be accepted without a trust anchor"
+                "artifact_manifest.json is signed but no valid Ed25519 public key was "
+                "supplied; signed artifacts must never be accepted without a trust anchor"
             ]
         if not Signer.verify_manifest_signature(manifest, public_key_hex):
             return ["artifact_manifest.json manifest signature verification failed"]

@@ -70,3 +70,47 @@ def test_rejects_invalid_policy_schema(tmp_path: Path) -> None:
         resolve_allow_unsigned_pages(
             repository="owner/repo", override=None, policy_path=path
         )
+
+
+@pytest.mark.parametrize("committed", [True, False])
+def test_unsigned_publication_is_permitted_when_signing_is_not_configured(
+    tmp_path: Path, committed: bool
+) -> None:
+    """Availability contract: no usable keypair means the committed fail-closed
+    default must not stop the project from publishing."""
+
+    assert (
+        resolve_allow_unsigned_pages(
+            repository="owner/repo",
+            override=None,
+            policy_path=_policy(tmp_path, allow=committed),
+            signing_configured=False,
+        )
+        is True
+    )
+
+
+def test_explicit_override_still_wins_over_degraded_signing(tmp_path: Path) -> None:
+    assert (
+        resolve_allow_unsigned_pages(
+            repository="owner/repo",
+            override="false",
+            policy_path=_policy(tmp_path, allow=True),
+            signing_configured=False,
+        )
+        is False
+    )
+
+
+def test_repository_binding_still_applies_when_signing_is_configured(
+    tmp_path: Path,
+) -> None:
+    assert (
+        resolve_allow_unsigned_pages(
+            repository="fork/repo",
+            override=None,
+            policy_path=_policy(tmp_path, allow=True),
+            signing_configured=True,
+        )
+        is False
+    )

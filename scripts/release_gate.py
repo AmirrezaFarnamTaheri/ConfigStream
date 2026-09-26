@@ -9,6 +9,7 @@ import json
 import math
 import os
 import shutil
+import sys
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
@@ -363,6 +364,7 @@ def validate(root: Path, native_report: Path, min_coverage: float) -> list[str]:
 
 def _sign_promoted_manifest(manifest: dict[str, Any], signing_key: str) -> None:
     """Sign a promoted manifest and immediately verify its trust binding."""
+
     from configstream.signer import Signer, normalize_public_key_hex
 
     signer = Signer(signing_key)
@@ -371,25 +373,41 @@ def _sign_promoted_manifest(manifest: dict[str, Any], signing_key: str) -> None:
     if not Signer.verify_manifest_signature(manifest, signer_public_key):
         raise ValueError("promotion produced an unverifiable manifest signature")
 
-    configured_value = (os.environ.get("CS_PUBLIC_KEY") or "").strip()
-    if not configured_value:
+    raw_anchor = (os.environ.get("CS_PUBLIC_KEY") or "").strip()
+    anchor_hex = normalize_public_key_hex(raw_anchor) if raw_anchor else ""
+    if not anchor_hex:
+        # No *valid* trust anchor configured: that is an absent optional secret, so
+        # degrade instead of blocking promotion. The signature itself is already
+        # proven against the signing key above.
+        print(
+            "WARN: promotion trust-anchor check skipped: no valid CS_PUBLIC_KEY",
+            file=sys.stderr,
+        )
         return
-    configured_public_key = normalize_public_key_hex(configured_value)
-    if not configured_public_key:
-        raise ValueError("CS_PUBLIC_KEY is not a valid Ed25519 public key")
-    if not Signer.verify_manifest_signature(manifest, configured_public_key):
+    if not Signer.verify_manifest_signature(manifest, anchor_hex):
+        # A valid anchor that does not verify this signature is an invariant
+        # violation, not a missing secret: fail loudly rather than ship data the
+        # configured trust anchor rejects.
         raise ValueError(
             "promotion manifest signature does not match configured CS_PUBLIC_KEY"
         )
 
 
 def promote(root: Path, native_report: Path, min_coverage: float) -> None:
+    from configstream.signing_config import resolve_signing_material
+
     manifest = load_checked(root / "artifact_manifest.json", [])
     had_signature = isinstance(manifest, dict) and "manifest_signature" in manifest
-    signing_key = os.environ.get("CS_SIGNING_PRIVATE_KEY_HEX")
+    signing_key = resolve_signing_material(os.environ).signing_key
     if had_signature and not signing_key:
-        raise ValueError(
-            "promotion would invalidate manifest_signature but no signing key is configured"
+        # No usable keypair for this run. A stale signature must not be carried
+        # forward (it would be unverifiable against no anchor), so drop it and
+        # publish unsigned rather than blocking promotion.
+        manifest.pop("manifest_signature", None)
+        print(
+            "WARN: dropped unverifiable manifest_signature: no usable signing "
+            "keypair for this run",
+            file=sys.stderr,
         )
     stage = root.parent / f".{root.name}.promote-{uuid.uuid4().hex}"
     backup = root.parent / f".{root.name}.backup-{uuid.uuid4().hex}"

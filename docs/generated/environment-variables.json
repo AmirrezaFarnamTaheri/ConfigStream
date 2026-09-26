@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "source_digest": "8f5d988f03e2498364837c980d01d739bf6eb279e51bd72695308d4ac31c05d0",
-  "variable_count": 165,
+  "source_digest": "ff56338f720f5f659720ed5b5303c09cc01a4b63b941ee81c6a7719fca99ab55",
+  "variable_count": 172,
   "variables": [
     {
       "declared_in_settings": true,
@@ -99,6 +99,17 @@
       "sensitive": false,
       "sources": [
         "src/configstream/server/utils.py:222"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "ALLOW_UNSIGNED_PAGES",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/validate_frontend_placeholders.py:36"
       ],
       "type": null
     },
@@ -304,6 +315,18 @@
       "type": "Optional[str]"
     },
     {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "CONFIGSTREAM_SIGNING_PRIVATE_KEY_HEX",
+      "required": false,
+      "sensitive": true,
+      "sources": [
+        "scripts/validate_frontend_placeholders.py:82",
+        "src/configstream/signing_config.py:73"
+      ],
+      "type": null
+    },
+    {
       "declared_in_settings": true,
       "default": null,
       "name": "CONFIGSTREAM_TESTER_BIN",
@@ -341,14 +364,28 @@
     {
       "declared_in_settings": false,
       "default": null,
+      "name": "CS_IPNS_KEY",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/deploy_artifact_smoke.py:261",
+        "scripts/validate_frontend_placeholders.py:91"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
       "name": "CS_PUBLIC_KEY",
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/release_gate.py:374",
+        "scripts/release_gate.py:376",
         "scripts/snapshot_pages_release.py:461",
-        "scripts/validate_pages_artifact.py:209",
-        "scripts/verify_pages_deployment.py:474"
+        "scripts/validate_frontend_placeholders.py:76",
+        "scripts/validate_pages_artifact.py:205",
+        "scripts/verify_pages_deployment.py:474",
+        "src/configstream/signing_config.py:69"
       ],
       "type": null
     },
@@ -359,9 +396,8 @@
       "required": false,
       "sensitive": true,
       "sources": [
-        "scripts/refresh_shard_contract.py:55",
-        "scripts/release_gate.py:389",
-        "src/configstream/output/metadata.py:519"
+        "scripts/validate_frontend_placeholders.py:81",
+        "src/configstream/signing_config.py:70"
       ],
       "type": null
     },
@@ -504,6 +540,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
+        "scripts/verify_repository.py:575",
         "src/configstream/config.py:173",
         "src/configstream/testers/go_tester/binary_security.py:113"
       ],
@@ -744,13 +781,13 @@
         "scripts/finalize_release_outputs.py:682",
         "scripts/generate_evidence_bundle.py:20",
         "scripts/native_client_checks.py:248",
-        "scripts/release_gate.py:200",
-        "scripts/release_gate.py:443",
+        "scripts/release_gate.py:201",
+        "scripts/release_gate.py:461",
         "scripts/resilient_stage.py:491",
-        "scripts/validate_pages_artifact.py:1214",
-        "scripts/validate_pages_artifact.py:1251",
-        "src/configstream/output/metadata.py:560",
-        "src/configstream/output/metadata.py:597"
+        "scripts/validate_pages_artifact.py:1215",
+        "scripts/validate_pages_artifact.py:1252",
+        "src/configstream/output/metadata.py:568",
+        "src/configstream/output/metadata.py:605"
       ],
       "type": null
     },
@@ -765,13 +802,13 @@
         "scripts/finalize_release_outputs.py:681",
         "scripts/generate_evidence_bundle.py:19",
         "scripts/native_client_checks.py:247",
-        "scripts/release_gate.py:199",
-        "scripts/release_gate.py:440",
+        "scripts/release_gate.py:200",
+        "scripts/release_gate.py:458",
         "scripts/resilient_stage.py:490",
-        "scripts/validate_pages_artifact.py:1213",
-        "scripts/validate_pages_artifact.py:1250",
-        "src/configstream/output/metadata.py:559",
-        "src/configstream/output/metadata.py:596"
+        "scripts/validate_pages_artifact.py:1214",
+        "scripts/validate_pages_artifact.py:1251",
+        "src/configstream/output/metadata.py:567",
+        "src/configstream/output/metadata.py:604"
       ],
       "type": null
     },
@@ -786,13 +823,13 @@
         "scripts/finalize_release_outputs.py:680",
         "scripts/generate_evidence_bundle.py:21",
         "scripts/native_client_checks.py:246",
-        "scripts/release_gate.py:198",
-        "scripts/release_gate.py:437",
+        "scripts/release_gate.py:199",
+        "scripts/release_gate.py:455",
         "scripts/resilient_stage.py:492",
-        "scripts/validate_pages_artifact.py:1212",
-        "scripts/validate_pages_artifact.py:1249",
-        "src/configstream/output/metadata.py:558",
-        "src/configstream/output/metadata.py:595"
+        "scripts/validate_pages_artifact.py:1213",
+        "scripts/validate_pages_artifact.py:1250",
+        "src/configstream/output/metadata.py:566",
+        "src/configstream/output/metadata.py:603"
       ],
       "type": null
     },
@@ -804,6 +841,17 @@
       "sensitive": false,
       "sources": [
         "scripts/resilient_stage.py:489"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "GOTOOLCHAIN",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/verify_repository.py:576"
       ],
       "type": null
     },
@@ -1222,8 +1270,13 @@
       "sensitive": false,
       "sources": [
         "scripts/native_client_checks.py:108",
+        "scripts/verify_repository.py:336",
+        "src/configstream/security/utls_wrapper.py:142",
+        "src/configstream/testers/go_tester/binary_security.py:157",
         "src/configstream/testers/go_tester/manager.py:335",
-        "src/configstream/testers/go_tester/manager.py:92"
+        "src/configstream/testers/go_tester/manager.py:92",
+        "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py:98",
+        "src/configstream/tools/vwarp/binary.py:139"
       ],
       "type": null
     },
@@ -1304,6 +1357,28 @@
         "src/configstream/config.py:150"
       ],
       "type": "bool"
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "PYTHONINSPECT",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/verify_repository.py:569"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "PYTHONSTARTUP",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/verify_repository.py:568"
+      ],
+      "type": null
     },
     {
       "declared_in_settings": true,
@@ -1411,7 +1486,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/pages_trust_policy.py:53"
+        "scripts/pages_trust_policy.py:68"
       ],
       "type": null
     },
@@ -1550,6 +1625,17 @@
       "type": "float"
     },
     {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "SIGNING_CONFIGURED",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/pages_trust_policy.py:64"
+      ],
+      "type": null
+    },
+    {
       "declared_in_settings": true,
       "default": 10,
       "name": "SOURCE_DEAD_FAILURES",
@@ -1590,6 +1676,7 @@
       "sensitive": true,
       "sources": [
         "scripts/audit_pipeline_outputs.py:323",
+        "scripts/deploy_artifact_smoke.py:260",
         "src/configstream/config.py:139"
       ],
       "type": "Optional[str]"
@@ -1736,7 +1823,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/pages_trust_policy.py:54"
+        "scripts/pages_trust_policy.py:69"
       ],
       "type": null
     },

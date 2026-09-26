@@ -589,8 +589,12 @@ jobs:
         env:
           REPOSITORY: ${{ github.repository }}
           VARIABLE_ALLOW_UNSIGNED_PAGES: ${{ vars.ALLOW_UNSIGNED_PAGES }}
+          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
+          CS_SIGNING_PRIVATE_KEY_HEX: ${{ secrets.CS_SIGNING_PRIVATE_KEY_HEX }}
         run: |
           set -euo pipefail
+          signing_configured=$(python scripts/preflight_release_inputs.py --print-signing-configured)
+          echo "SIGNING_CONFIGURED=$signing_configured" >> "$GITHUB_ENV"
           resolved=$(python scripts/pages_trust_policy.py)
           echo "ALLOW_UNSIGNED_PAGES=$resolved" >> "$GITHUB_ENV"
       - name: Prepare public output artifact transactionally

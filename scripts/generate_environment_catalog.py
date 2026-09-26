@@ -101,6 +101,12 @@ def _constant_string(node: ast.AST) -> str | None:
     )
 
 
+# Parameter names that carry an environment mapping into a helper, so
+# `env.get("NAME")` is a direct environment reference just like
+# `os.environ.get("NAME")`.
+_ENV_MAPPING_PARAMETERS = frozenset({"env", "environ", "environment"})
+
+
 def _direct_environment_references(paths: list[Path]) -> dict[str, set[str]]:
     references: dict[str, set[str]] = {}
     for path in paths:
@@ -127,6 +133,16 @@ def _direct_environment_references(paths: list[Path]) -> dict[str, set[str]]:
                     and owner.id == "os"
                     and node.args
                 ):
+                    name = _constant_string(node.args[0])
+                elif (
+                    node.func.attr in {"get", "setdefault", "pop"}
+                    and isinstance(owner, ast.Name)
+                    and owner.id in _ENV_MAPPING_PARAMETERS
+                    and node.args
+                ):
+                    # Resolver helpers receive the environment as a mapping
+                    # (`def resolve(env)`) and read it exactly like
+                    # `os.environ`, so the same names belong in the catalog.
                     name = _constant_string(node.args[0])
             elif isinstance(node, ast.Subscript):
                 owner = node.value

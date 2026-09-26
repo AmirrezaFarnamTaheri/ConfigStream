@@ -516,17 +516,25 @@ def save_metadata(
 
 
 def _attach_manifest_signature(manifest: Dict[str, Any]) -> None:
-    private_key_hex = os.environ.get("CS_SIGNING_PRIVATE_KEY_HEX")
-    if not private_key_hex:
+    from ..signing_config import resolve_signing_material
+
+    material = resolve_signing_material(os.environ)
+    for note in material.notes:
+        logger.warning("Manifest signing unavailable [%s]", note)
+    signing_key = material.signing_key
+    if not signing_key:
+        # No usable keypair: publish unsigned rather than block the release. The
+        # Pages policy resolves unsigned publication in exactly this state.
         return
 
     from ..signer import Signer
-    from ..security_validator import SecurityValidator
 
     try:
-        signer = Signer(private_key_hex)
+        signer = Signer(signing_key)
         manifest["manifest_signature"] = signer.sign_manifest(manifest)
     except Exception as exc:
+        from ..security_validator import SecurityValidator
+
         safe_msg = SecurityValidator.sanitize_log_message(str(exc))
         logger.error(
             "Failed to sign manifest [%s]: %s",

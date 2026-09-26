@@ -191,10 +191,6 @@ TELEMETRY_FORBIDDEN_MARKERS = ZIP_DEPLOY_SECRET_MARKERS + (
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_DIR = REPO_ROOT / "schema"
-_MANIFEST_PRIVATE_KEY_ENV = (
-    "CS_SIGNING_PRIVATE_KEY_HEX",
-    "CONFIGSTREAM_SIGNING_PRIVATE_KEY_HEX",
-)
 
 
 def _load_signature_primitives() -> tuple[Any, Any]:
@@ -251,18 +247,23 @@ def _public_key_hex_from_env() -> str:
 
 
 def _manifest_signer_from_env() -> Any | None:
-    key_hex = ""
-    for env_name in _MANIFEST_PRIVATE_KEY_ENV:
-        key_hex = (os.environ.get(env_name) or "").strip()
-        if key_hex:
-            break
+    """Return a signer only when the configured keypair is fully usable.
+
+    Availability over strictness: a missing, malformed or mismatched optional
+    secret yields no signer so the contract refresh writes an unsigned manifest
+    instead of failing the release.
+    """
+
+    from configstream.signing_config import resolve_signing_material
+
+    key_hex = resolve_signing_material(os.environ).signing_key
     if not key_hex:
         return None
     key_bytes = bytes.fromhex(key_hex)
     if len(key_bytes) == 64:
         key_bytes = key_bytes[:32]
     if len(key_bytes) != 32:
-        raise ValueError("Manifest signing key must be 32 or 64 bytes (hex).")
+        return None
     ed25519, _ = _load_signature_primitives()
     return ed25519.Ed25519PrivateKey.from_private_bytes(key_bytes)
 

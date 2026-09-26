@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 from pathlib import Path
 
 from configstream.output_logic import write_public_artifact_contract
@@ -49,15 +50,23 @@ def _drop_transient_manifest_entries(manifest: dict[str, object]) -> None:
 
 
 def _rewrite_filtered_manifest(output_dir: Path, manifest: dict[str, object]) -> None:
+    from configstream.signing_config import resolve_signing_material
+
     had_signature = isinstance(manifest.pop("manifest_signature", None), dict)
     _drop_transient_manifest_entries(manifest)
     if had_signature:
-        private_key_hex = os.environ.get("CS_SIGNING_PRIVATE_KEY_HEX")
-        if not private_key_hex:
-            raise RuntimeError(
-                "cannot refresh a signed shard manifest without its signing key"
+        # Availability over strictness: with no usable keypair the refreshed
+        # manifest is published unsigned rather than failing the refresh. The
+        # stale signature was already removed, so it can never be carried forward.
+        signing_key = resolve_signing_material(os.environ).signing_key
+        if signing_key:
+            manifest["manifest_signature"] = Signer(signing_key).sign_manifest(manifest)
+        else:
+            print(
+                "WARN: refreshed shard manifest published unsigned: no usable "
+                "signing keypair",
+                file=sys.stderr,
             )
-        manifest["manifest_signature"] = Signer(private_key_hex).sign_manifest(manifest)
     AtomicFileWriter.write_text(
         output_dir / "artifact_manifest.json",
         json.dumps(manifest, indent=2, ensure_ascii=False),

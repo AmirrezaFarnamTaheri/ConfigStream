@@ -100,10 +100,34 @@ def test_signed_pages_verify_against_configured_trust_anchor(tmp_path: Path) -> 
     )
 
 
-def test_invalid_configured_public_key_is_not_treated_as_missing(
+def test_invalid_configured_public_key_degrades_an_unsigned_artifact(
     tmp_path: Path,
 ) -> None:
+    """Availability contract: a broken optional anchor must not stop publication
+    of an artifact that was never signed."""
+
     _write_manifest(tmp_path, _base_manifest())
+
+    assert (
+        validate_pages_signature_policy(
+            tmp_path,
+            public_key="not-a-valid-ed25519-key",
+            allow_unsigned=True,
+        )
+        == []
+    )
+
+
+def test_invalid_configured_public_key_never_verifies_a_signed_artifact(
+    tmp_path: Path,
+) -> None:
+    """The invariant that does not degrade: a signature is never accepted when
+    the configured anchor cannot verify it."""
+
+    private_key = "11" * 32
+    manifest = _base_manifest()
+    _sign_promoted_manifest(manifest, private_key)
+    _write_manifest(tmp_path, manifest)
 
     errors = validate_pages_signature_policy(
         tmp_path,
@@ -111,7 +135,8 @@ def test_invalid_configured_public_key_is_not_treated_as_missing(
         allow_unsigned=True,
     )
 
-    assert errors == ["configured Pages public key is not a valid Ed25519 public key"]
+    assert errors
+    assert any("without a" in error and "trust anchor" in error for error in errors)
 
 
 def test_invalid_signature_fails_closed_with_valid_trust_anchor(tmp_path: Path) -> None:
