@@ -371,7 +371,7 @@ def test_public_snapshot_rejects_unsigned_origin_under_signed_only_policy(
 
     site = tmp_path / "site"
     payloads = _build_site(site)
-    monkeypatch.setattr(snapshot_pages_release, _FETCH_PATH := "_fetch", _remote_fetcher(payloads))
+    monkeypatch.setattr(snapshot_pages_release, "_fetch", _remote_fetcher(payloads))
 
     with pytest.raises(ValueError, match="requires a signed artifact manifest"):
         snapshot_pages_release.snapshot(
