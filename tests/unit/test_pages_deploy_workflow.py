@@ -102,3 +102,8 @@ def test_pages_signature_policy_is_explicit_at_every_trust_boundary() -> None:
     )[0]
     assert "verify_args+=(--allow-unsigned)" not in snapshot
     assert "verify_args+=(--allow-unsigned)" in rollback
+    # A signed-only publication policy must not be able to deadlock its own
+    # cutover: the rollback snapshot is always allowed to capture an origin
+    # that predates signing, while the candidate stays strictly verified.
+    assert "snapshot_args+=(--allow-unsigned)" in snapshot
+    assert "signature_policy_args+=(--allow-unsigned)" in snapshot

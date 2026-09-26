@@ -363,6 +363,46 @@ def test_public_snapshot_accepts_explicit_unsigned_mode(
     assert report["local_source"] is False
 
 
+def test_public_snapshot_rejects_unsigned_origin_under_signed_only_policy(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """With a trust anchor configured and no opt-in, an unsigned origin stays
+    unsnapshotable: a signed-only policy must not quietly adopt unsigned data."""
+
+    site = tmp_path / "site"
+    payloads = _build_site(site)
+    monkeypatch.setattr(snapshot_pages_release, _FETCH_PATH := "_fetch", _remote_fetcher(payloads))
+
+    with pytest.raises(ValueError, match="requires a signed artifact manifest"):
+        snapshot_pages_release.snapshot(
+            "https://example.com/",
+            tmp_path / "snapshot",
+            public_key=Signer("11" * 32).get_public_key_hex(),
+        )
+
+
+def test_public_snapshot_captures_legacy_unsigned_origin_with_opt_in(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """An origin that predates signing must remain snapshot-able, otherwise
+    adopting a signed-only policy deadlocks the deploy that performs the
+    cutover: there would be no rollback baseline and no way to publish."""
+
+    site = tmp_path / "site"
+    payloads = _build_site(site)
+    monkeypatch.setattr(snapshot_pages_release, "_fetch", _remote_fetcher(payloads))
+
+    report = snapshot_pages_release.snapshot(
+        "https://example.com/",
+        tmp_path / "snapshot",
+        public_key=Signer("11" * 32).get_public_key_hex(),
+        allow_unsigned=True,
+    )
+
+    assert report["manifest_signature_verified"] is False
+    assert (tmp_path / "snapshot" / "artifact_manifest.json").is_file()
+
+
 def test_public_snapshot_never_downgrades_signed_artifact_to_unsigned(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

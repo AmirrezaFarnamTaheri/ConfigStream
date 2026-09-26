@@ -37,7 +37,7 @@ Variables: **165**
 | `CONFIGSTREAM_TESTER_BIN` | yes | `Optional[str]` |  | no | no | `src/configstream/config.py:143`<br>`src/configstream/testers/go_tester/process.py:20` |
 | `CONFIG_STREAM_KEY` | yes | `Optional[str]` |  | no | no | `scripts/audit_pipeline_outputs.py:323`<br>`src/configstream/config.py:140` |
 | `CORS_ALLOW_CREDENTIALS` | yes | `bool` | `false` | no | no | `src/configstream/config.py:166` |
-| `CS_PUBLIC_KEY` | no | `direct-only` |  | no | no | `scripts/release_gate.py:374`<br>`scripts/snapshot_pages_release.py:455`<br>`scripts/validate_pages_artifact.py:209`<br>`scripts/verify_pages_deployment.py:474` |
+| `CS_PUBLIC_KEY` | no | `direct-only` |  | no | no | `scripts/release_gate.py:374`<br>`scripts/snapshot_pages_release.py:461`<br>`scripts/validate_pages_artifact.py:209`<br>`scripts/verify_pages_deployment.py:474` |
 | `CS_SIGNING_PRIVATE_KEY_HEX` | no | `direct-only` | `<redacted>` | no | yes | `scripts/refresh_shard_contract.py:55`<br>`scripts/release_gate.py:389`<br>`src/configstream/output/metadata.py:519` |
 | `CS_STRICT_BINARY_TRUST` | no | `direct-only` |  | no | no | `src/configstream/testers/go_tester/binary_security.py:107` |
 | `DEDUP_IGNORE_PROTOCOL` | yes | `bool` | `false` | no | no | `src/configstream/config.py:155` |

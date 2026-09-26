@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "cdb1605d2ff8a904f7e0f387f019ba1ff6182ca1b059b873bc10dbbde44abb6f",
+  "source_digest": "8f5d988f03e2498364837c980d01d739bf6eb279e51bd72695308d4ac31c05d0",
   "variable_count": 165,
   "variables": [
     {
@@ -346,7 +346,7 @@
       "sensitive": false,
       "sources": [
         "scripts/release_gate.py:374",
-        "scripts/snapshot_pages_release.py:455",
+        "scripts/snapshot_pages_release.py:461",
         "scripts/validate_pages_artifact.py:209",
         "scripts/verify_pages_deployment.py:474"
       ],

@@ -297,7 +297,13 @@ def _validate_release_eligibility(
         )
         if not signature_verified:
             raise ValueError("artifact manifest signature is invalid")
-    elif public_key_hex:
+    elif public_key_hex and not allow_unsigned:
+        # A configured trust anchor normally makes an unsigned origin
+        # unsnapshotable. `allow_unsigned` exists for exactly one situation:
+        # capturing an origin that predates signing, so that adopting a
+        # signed-only publication policy cannot deadlock the deploy that would
+        # perform the cutover. The branch above still refuses to downgrade a
+        # signed artifact to an unsigned one.
         raise ValueError("public rollback snapshot requires a signed artifact manifest")
     elif not is_local and not allow_unsigned:
         raise ValueError(

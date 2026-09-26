@@ -47,17 +47,21 @@ def validate_pages_signature_policy(
     if raw_public_key and not public_key_hex:
         return ["configured Pages public key is not a valid Ed25519 public key"]
 
-    if public_key_hex:
+    if signature is not None:
+        # A signed manifest is never downgraded. It must verify against a
+        # configured trust anchor, and `allow_unsigned` does not relax that.
+        if not public_key_hex:
+            return [
+                "artifact_manifest.json is signed but no Pages public key was supplied; "
+                "signed artifacts must never be accepted without a trust anchor"
+            ]
         if not Signer.verify_manifest_signature(manifest, public_key_hex):
             return ["artifact_manifest.json manifest signature verification failed"]
         return []
 
-    if signature is not None:
-        return [
-            "artifact_manifest.json is signed but no Pages public key was supplied; "
-            "signed artifacts must never be accepted without a trust anchor"
-        ]
-
+    # Unsigned artifact. The explicit opt-in governs this case whether or not a
+    # trust anchor happens to be configured, so that adopting a signed-only
+    # publication policy cannot deadlock the deploy that performs the cutover.
     if not allow_unsigned:
         return [
             "unsigned Pages publication is disabled by default; configure signing "

@@ -232,21 +232,23 @@ jobs:
             repo_name="${GITHUB_REPOSITORY#*/}"
             page_url="https://${GITHUB_REPOSITORY_OWNER}.github.io/${repo_name}/"
           fi
+          # Capturing the currently served release is a rollback-safety operation,
+          # not a publication decision: the candidate itself is verified strictly
+          # in the previous step. Always permit an unsigned *snapshot* so that
+          # adopting a signed-only policy cannot deadlock the deploy that performs
+          # the cutover, when the live origin still predates signing. This never
+          # downgrades a signed artifact (the snapshot script refuses that).
           snapshot_args=()
-          if [ "${ALLOW_UNSIGNED_PAGES:-false}" = true ]; then
-            snapshot_args+=(--allow-unsigned)
-          fi
+          snapshot_args+=(--allow-unsigned)
           python scripts/snapshot_pages_release.py \
             "$page_url" \
             last-known-good \
             --report-file deploy-evidence/last-known-good-snapshot.json \
             "${snapshot_args[@]}"
           signature_policy_args=()
+          signature_policy_args+=(--allow-unsigned)
           if [ -n "${CS_PUBLIC_KEY:-}" ]; then
             signature_policy_args+=(--public-key "$CS_PUBLIC_KEY")
-          fi
-          if [ "${ALLOW_UNSIGNED_PAGES:-false}" = true ]; then
-            signature_policy_args+=(--allow-unsigned)
           fi
           python scripts/validate_pages_signature_policy.py last-known-good "${signature_policy_args[@]}"
       - name: Record last-known-good availability

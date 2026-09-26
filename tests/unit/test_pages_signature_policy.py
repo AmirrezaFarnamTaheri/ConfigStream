@@ -41,6 +41,36 @@ def test_unsigned_pages_require_explicit_opt_in(tmp_path: Path) -> None:
     assert validate_pages_signature_policy(tmp_path, allow_unsigned=True) == []
 
 
+def test_unsigned_pages_need_opt_in_even_with_a_configured_trust_anchor(
+    tmp_path: Path,
+) -> None:
+    _write_manifest(tmp_path, _base_manifest())
+    public_key = Signer("11" * 32).get_public_key_hex()
+
+    errors = validate_pages_signature_policy(tmp_path, public_key=public_key)
+
+    assert any(
+        "unsigned Pages publication is disabled by default" in error for error in errors
+    )
+
+
+def test_legacy_unsigned_origin_is_capturable_under_explicit_opt_in(
+    tmp_path: Path,
+) -> None:
+    """A pre-signing origin must stay snapshot-able, or adopting a signed-only
+    publication policy would deadlock the deploy that performs the cutover."""
+
+    _write_manifest(tmp_path, _base_manifest())
+    public_key = Signer("11" * 32).get_public_key_hex()
+
+    assert (
+        validate_pages_signature_policy(
+            tmp_path, public_key=public_key, allow_unsigned=True
+        )
+        == []
+    )
+
+
 def test_signed_pages_cannot_fall_back_to_unsigned_policy(tmp_path: Path) -> None:
     manifest = _base_manifest()
     _sign_promoted_manifest(manifest, "11" * 32)
