@@ -2,9 +2,9 @@
 
 Only licenses declared in checked-in package manifests/locks are reported. Unknown does not imply unlicensed.
 
-Components: **189**
+Components: **190**
 Manifest-declared licenses: **42**
-Unknown licenses requiring external resolution: **147**
+Unknown licenses requiring external resolution: **148**
 
 | Ecosystem | Package | Version | Scope | License evidence |
 |---|---|---|---|---|
@@ -139,6 +139,7 @@ Unknown licenses requiring external resolution: **147**
 | python | `click` | `8.3.3` | required | unknown |
 | python | `cryptography` | `50.0.0` | required | unknown |
 | python | `defusedxml` | `0.7.1` | required | unknown |
+| python | `Deprecated` | `1.3.1` | required | unknown |
 | python | `exceptiongroup` | `1.3.1` | required | unknown |
 | python | `fastapi` | `0.139.0` | required | unknown |
 | python | `filelock` | `4.0.0` | required | unknown |
