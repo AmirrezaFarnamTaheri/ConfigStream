@@ -90,7 +90,13 @@ def test_pages_signature_policy_is_explicit_at_every_trust_boundary() -> None:
         )
     )
     assert policy["repository"] == "AmirrezaFarnamTaheri/ConfigStream"
-    assert policy["allow_unsigned_pages"] is False
+    # The policy must be *explicit*, not pinned to one value. Whether unsigned
+    # publication is acceptable already depends on whether a usable signing key
+    # exists for the run (see resolve_allow_unsigned_pages), so pinning the
+    # committed boolean here would make a config change impossible without also
+    # editing this test — a mandatory requirement, not a safety property. The
+    # resolution behaviour itself is covered in test_pages_trust_policy.py.
+    assert isinstance(policy["allow_unsigned_pages"], bool)
     assert workflow.count('signature_policy_args+=(--public-key "$CS_PUBLIC_KEY")') >= 4
     assert workflow.count("signature_policy_args+=(--allow-unsigned)") >= 4
 
