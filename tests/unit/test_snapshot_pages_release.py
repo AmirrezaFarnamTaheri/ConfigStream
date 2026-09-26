@@ -15,6 +15,8 @@ from pathlib import Path
 
 import pytest
 
+import httpx
+
 from configstream.signer import CLOCK_SKEW_TOLERANCE_SECONDS, Signer
 from scripts import snapshot_pages_release
 
@@ -401,6 +403,51 @@ def test_public_snapshot_captures_legacy_unsigned_origin_with_opt_in(
 
     assert report["manifest_signature_verified"] is False
     assert (tmp_path / "snapshot" / "artifact_manifest.json").is_file()
+
+
+def test_transient_transport_errors_are_retried(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """A rollback snapshot is a safety net: one connection reset must not block
+    an otherwise healthy deployment."""
+
+    site = tmp_path / "site"
+    payloads = _build_site(site)
+    fetcher = _remote_fetcher(payloads)
+    attempts = {"count": 0}
+
+    def flaky(url: str, timeout: float, pins=None) -> bytes:
+        attempts["count"] += 1
+        if attempts["count"] == 1:
+            raise httpx.ConnectError("connection reset by peer")
+        result: bytes = fetcher(url, timeout, pins)
+        return result
+
+    monkeypatch.setattr(snapshot_pages_release, "_fetch", flaky)
+
+    report = snapshot_pages_release.snapshot(
+        "https://example.com/", tmp_path / "snapshot", allow_unsigned=True
+    )
+
+    assert attempts["count"] > 1
+    assert report["manifest_signature_verified"] is False
+
+
+def test_snapshot_still_fails_when_transport_errors_persist(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    def always_fails(url: str, timeout: float, pins=None) -> bytes:
+        raise httpx.ConnectError("connection reset by peer")
+
+    monkeypatch.setattr(snapshot_pages_release, "_fetch", always_fails)
+
+    with pytest.raises(httpx.ConnectError):
+        snapshot_pages_release.snapshot(
+            "https://example.com/",
+            tmp_path / "snapshot",
+            allow_unsigned=True,
+            fetch_attempts=2,
+        )
 
 
 def test_public_snapshot_never_downgrades_signed_artifact_to_unsigned(

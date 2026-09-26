@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "ff56338f720f5f659720ed5b5303c09cc01a4b63b941ee81c6a7719fca99ab55",
+  "source_digest": "08acc0b5311d0adadab1521c650bc59f5e2e1b4b7c18f402ef11ac36394dbf58",
   "variable_count": 172,
   "variables": [
     {
@@ -381,7 +381,7 @@
       "sensitive": false,
       "sources": [
         "scripts/release_gate.py:376",
-        "scripts/snapshot_pages_release.py:461",
+        "scripts/snapshot_pages_release.py:506",
         "scripts/validate_frontend_placeholders.py:76",
         "scripts/validate_pages_artifact.py:205",
         "scripts/verify_pages_deployment.py:474",

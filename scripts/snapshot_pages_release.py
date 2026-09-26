@@ -11,7 +11,9 @@ import json
 import os
 import re
 import shutil
+import sys
 import tempfile
+import time
 import urllib.error
 import urllib.parse
 from datetime import datetime, timezone
@@ -174,6 +176,41 @@ def _fetch(
             finally:
                 response.close()
     raise ValueError("snapshot exceeded redirect limit")
+
+
+# A rollback snapshot exists as a safety net, so one transient connection reset
+# must not block an otherwise healthy deployment. Only transport failures are
+# retried: HTTP status errors, hash mismatches and the pinned-origin security
+# checks still fail on the first attempt.
+TRANSIENT_FETCH_ATTEMPTS = 3
+TRANSIENT_FETCH_BACKOFF_SECONDS = 1.0
+
+
+def _fetch_with_retry(
+    url: str,
+    timeout: float,
+    pins: dict[str, set[str]] | None = None,
+    *,
+    attempts: int = TRANSIENT_FETCH_ATTEMPTS,
+    backoff: float = TRANSIENT_FETCH_BACKOFF_SECONDS,
+) -> bytes:
+    """Fetch a snapshot file, retrying transient transport failures."""
+
+    last_error: httpx.TransportError | None = None
+    for attempt in range(1, max(1, attempts) + 1):
+        try:
+            return _fetch(url, timeout, pins)
+        except httpx.TransportError as exc:
+            last_error = exc
+            if attempt >= max(1, attempts):
+                raise
+            print(
+                "WARN: snapshot fetch attempt %d/%d failed for %s: %s"
+                % (attempt, attempts, url, type(exc).__name__),
+                file=sys.stderr,
+            )
+            time.sleep(backoff * attempt)
+    raise last_error if last_error else ValueError("snapshot fetch failed")
 
 
 def _safe_relative(value: object) -> str:
@@ -378,13 +415,19 @@ def snapshot(
     timeout: float = 20.0,
     public_key: str | None = None,
     allow_unsigned: bool = False,
+    fetch_attempts: int = TRANSIENT_FETCH_ATTEMPTS,
 ) -> dict[str, Any]:
     _, is_local = _parse_base_url(base_url)
     destination = Path(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
     _recover_interrupted_swap(destination)
     pins: dict[str, set[str]] = {}
-    manifest_body = _fetch(_join(base_url, "artifact_manifest.json"), timeout, pins)
+    manifest_body = _fetch_with_retry(
+        _join(base_url, "artifact_manifest.json"),
+        timeout,
+        pins,
+        attempts=fetch_attempts,
+    )
     manifest = _json_object(manifest_body, "artifact manifest")
     if not isinstance(manifest.get("files"), list):
         raise ValueError("artifact manifest must contain a files list")
@@ -437,7 +480,9 @@ def snapshot(
 
     prefetched: dict[str, bytes] = {}
     for relative in ("metadata.json", "health.json"):
-        body = _fetch(_join(base_url, relative), timeout, pins)
+        body = _fetch_with_retry(
+            _join(base_url, relative), timeout, pins, attempts=fetch_attempts
+        )
         expected_size, expected_digest = entries[relative]
         _validate_body(relative, body, expected_size, expected_digest)
         prefetched[relative] = body
@@ -471,7 +516,9 @@ def snapshot(
         for relative, expected_size, expected_digest in planned:
             file_body = prefetched.get(relative)
             if file_body is None:
-                file_body = _fetch(_join(base_url, relative), timeout, pins)
+                file_body = _fetch_with_retry(
+                    _join(base_url, relative), timeout, pins, attempts=fetch_attempts
+                )
                 _validate_body(relative, file_body, expected_size, expected_digest)
             target = stage.joinpath(*PurePosixPath(relative).parts)
             target.parent.mkdir(parents=True, exist_ok=True)

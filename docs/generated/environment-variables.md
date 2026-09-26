@@ -40,7 +40,7 @@ Variables: **172**
 | `CONFIG_STREAM_KEY` | yes | `Optional[str]` |  | no | no | `scripts/audit_pipeline_outputs.py:323`<br>`src/configstream/config.py:140` |
 | `CORS_ALLOW_CREDENTIALS` | yes | `bool` | `false` | no | no | `src/configstream/config.py:166` |
 | `CS_IPNS_KEY` | no | `direct-only` |  | no | no | `scripts/deploy_artifact_smoke.py:261`<br>`scripts/validate_frontend_placeholders.py:91` |
-| `CS_PUBLIC_KEY` | no | `direct-only` |  | no | no | `scripts/release_gate.py:376`<br>`scripts/snapshot_pages_release.py:461`<br>`scripts/validate_frontend_placeholders.py:76`<br>`scripts/validate_pages_artifact.py:205`<br>`scripts/verify_pages_deployment.py:474`<br>`src/configstream/signing_config.py:69` |
+| `CS_PUBLIC_KEY` | no | `direct-only` |  | no | no | `scripts/release_gate.py:376`<br>`scripts/snapshot_pages_release.py:506`<br>`scripts/validate_frontend_placeholders.py:76`<br>`scripts/validate_pages_artifact.py:205`<br>`scripts/verify_pages_deployment.py:474`<br>`src/configstream/signing_config.py:69` |
 | `CS_SIGNING_PRIVATE_KEY_HEX` | no | `direct-only` | `<redacted>` | no | yes | `scripts/validate_frontend_placeholders.py:81`<br>`src/configstream/signing_config.py:70` |
 | `CS_STRICT_BINARY_TRUST` | no | `direct-only` |  | no | no | `src/configstream/testers/go_tester/binary_security.py:107` |
 | `DEDUP_IGNORE_PROTOCOL` | yes | `bool` | `false` | no | no | `src/configstream/config.py:155` |
