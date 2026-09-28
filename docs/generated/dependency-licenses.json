@@ -658,7 +658,7 @@
       "name": "@oxc-project/types",
       "scope": "development",
       "source": "package-lock.json",
-      "version": "0.149.0"
+      "version": "0.151.0"
     },
     {
       "ecosystem": "npm",
@@ -669,7 +669,7 @@
       "name": "@rolldown/binding-android-arm-eabi",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
       "ecosystem": "npm",
@@ -680,7 +680,7 @@
       "name": "@rolldown/binding-android-arm64",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
       "ecosystem": "npm",
@@ -691,7 +691,7 @@
       "name": "@rolldown/binding-darwin-arm64",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
       "ecosystem": "npm",
@@ -702,7 +702,7 @@
       "name": "@rolldown/binding-darwin-x64",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
       "ecosystem": "npm",
@@ -713,7 +713,7 @@
       "name": "@rolldown/binding-freebsd-x64",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
       "ecosystem": "npm",
@@ -724,7 +724,7 @@
       "name": "@rolldown/binding-linux-arm-gnueabihf",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
       "ecosystem": "npm",
@@ -735,7 +735,7 @@
       "name": "@rolldown/binding-linux-arm64-gnu",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
       "ecosystem": "npm",
@@ -746,7 +746,7 @@
       "name": "@rolldown/binding-linux-arm64-musl",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
       "ecosystem": "npm",
@@ -757,7 +757,7 @@
       "name": "@rolldown/binding-linux-ppc64-gnu",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
       "ecosystem": "npm",
@@ -768,7 +768,7 @@
       "name": "@rolldown/binding-linux-s390x-gnu",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
       "ecosystem": "npm",
@@ -779,7 +779,7 @@
       "name": "@rolldown/binding-linux-x64-gnu",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
       "ecosystem": "npm",
@@ -790,7 +790,7 @@
       "name": "@rolldown/binding-linux-x64-musl",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
       "ecosystem": "npm",
@@ -801,7 +801,7 @@
       "name": "@rolldown/binding-openharmony-arm64",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
       "ecosystem": "npm",
@@ -812,7 +812,7 @@
       "name": "@rolldown/binding-win32-arm64-msvc",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
       "ecosystem": "npm",
@@ -823,7 +823,7 @@
       "name": "@rolldown/binding-win32-x64-msvc",
       "scope": "optional",
       "source": "package-lock.json",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
       "ecosystem": "npm",
@@ -1065,7 +1065,7 @@
       "name": "rolldown",
       "scope": "development",
       "source": "package-lock.json",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
       "ecosystem": "npm",
@@ -1109,7 +1109,7 @@
       "name": "vite",
       "scope": "development",
       "source": "package-lock.json",
-      "version": "8.3.0"
+      "version": "8.3.1"
     },
     {
       "ecosystem": "python",

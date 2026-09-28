@@ -1587,7 +1587,7 @@
       "version": "1.3.0"
     },
     {
-      "bom-ref": "pkg:npm/@oxc-project/types@0.149.0",
+      "bom-ref": "pkg:npm/@oxc-project/types@0.151.0",
       "licenses": [
         {
           "license": {
@@ -1610,13 +1610,13 @@
           "value": "package-lock.json"
         }
       ],
-      "purl": "pkg:npm/@oxc-project/types@0.149.0",
+      "purl": "pkg:npm/@oxc-project/types@0.151.0",
       "scope": "optional",
       "type": "library",
-      "version": "0.149.0"
+      "version": "0.151.0"
     },
     {
-      "bom-ref": "pkg:npm/@rolldown/binding-android-arm-eabi@1.2.8",
+      "bom-ref": "pkg:npm/@rolldown/binding-android-arm-eabi@1.2.11",
       "licenses": [
         {
           "license": {
@@ -1639,13 +1639,13 @@
           "value": "package-lock.json"
         }
       ],
-      "purl": "pkg:npm/@rolldown/binding-android-arm-eabi@1.2.8",
+      "purl": "pkg:npm/@rolldown/binding-android-arm-eabi@1.2.11",
       "scope": "optional",
       "type": "library",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
-      "bom-ref": "pkg:npm/@rolldown/binding-android-arm64@1.2.8",
+      "bom-ref": "pkg:npm/@rolldown/binding-android-arm64@1.2.11",
       "licenses": [
         {
           "license": {
@@ -1668,13 +1668,13 @@
           "value": "package-lock.json"
         }
       ],
-      "purl": "pkg:npm/@rolldown/binding-android-arm64@1.2.8",
+      "purl": "pkg:npm/@rolldown/binding-android-arm64@1.2.11",
       "scope": "optional",
       "type": "library",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
-      "bom-ref": "pkg:npm/@rolldown/binding-darwin-arm64@1.2.8",
+      "bom-ref": "pkg:npm/@rolldown/binding-darwin-arm64@1.2.11",
       "licenses": [
         {
           "license": {
@@ -1697,13 +1697,13 @@
           "value": "package-lock.json"
         }
       ],
-      "purl": "pkg:npm/@rolldown/binding-darwin-arm64@1.2.8",
+      "purl": "pkg:npm/@rolldown/binding-darwin-arm64@1.2.11",
       "scope": "optional",
       "type": "library",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
-      "bom-ref": "pkg:npm/@rolldown/binding-darwin-x64@1.2.8",
+      "bom-ref": "pkg:npm/@rolldown/binding-darwin-x64@1.2.11",
       "licenses": [
         {
           "license": {
@@ -1726,13 +1726,13 @@
           "value": "package-lock.json"
         }
       ],
-      "purl": "pkg:npm/@rolldown/binding-darwin-x64@1.2.8",
+      "purl": "pkg:npm/@rolldown/binding-darwin-x64@1.2.11",
       "scope": "optional",
       "type": "library",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
-      "bom-ref": "pkg:npm/@rolldown/binding-freebsd-x64@1.2.8",
+      "bom-ref": "pkg:npm/@rolldown/binding-freebsd-x64@1.2.11",
       "licenses": [
         {
           "license": {
@@ -1755,13 +1755,13 @@
           "value": "package-lock.json"
         }
       ],
-      "purl": "pkg:npm/@rolldown/binding-freebsd-x64@1.2.8",
+      "purl": "pkg:npm/@rolldown/binding-freebsd-x64@1.2.11",
       "scope": "optional",
       "type": "library",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
-      "bom-ref": "pkg:npm/@rolldown/binding-linux-arm-gnueabihf@1.2.8",
+      "bom-ref": "pkg:npm/@rolldown/binding-linux-arm-gnueabihf@1.2.11",
       "licenses": [
         {
           "license": {
@@ -1784,13 +1784,13 @@
           "value": "package-lock.json"
         }
       ],
-      "purl": "pkg:npm/@rolldown/binding-linux-arm-gnueabihf@1.2.8",
+      "purl": "pkg:npm/@rolldown/binding-linux-arm-gnueabihf@1.2.11",
       "scope": "optional",
       "type": "library",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
-      "bom-ref": "pkg:npm/@rolldown/binding-linux-arm64-gnu@1.2.8",
+      "bom-ref": "pkg:npm/@rolldown/binding-linux-arm64-gnu@1.2.11",
       "licenses": [
         {
           "license": {
@@ -1813,13 +1813,13 @@
           "value": "package-lock.json"
         }
       ],
-      "purl": "pkg:npm/@rolldown/binding-linux-arm64-gnu@1.2.8",
+      "purl": "pkg:npm/@rolldown/binding-linux-arm64-gnu@1.2.11",
       "scope": "optional",
       "type": "library",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
-      "bom-ref": "pkg:npm/@rolldown/binding-linux-arm64-musl@1.2.8",
+      "bom-ref": "pkg:npm/@rolldown/binding-linux-arm64-musl@1.2.11",
       "licenses": [
         {
           "license": {
@@ -1842,13 +1842,13 @@
           "value": "package-lock.json"
         }
       ],
-      "purl": "pkg:npm/@rolldown/binding-linux-arm64-musl@1.2.8",
+      "purl": "pkg:npm/@rolldown/binding-linux-arm64-musl@1.2.11",
       "scope": "optional",
       "type": "library",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
-      "bom-ref": "pkg:npm/@rolldown/binding-linux-ppc64-gnu@1.2.8",
+      "bom-ref": "pkg:npm/@rolldown/binding-linux-ppc64-gnu@1.2.11",
       "licenses": [
         {
           "license": {
@@ -1871,13 +1871,13 @@
           "value": "package-lock.json"
         }
       ],
-      "purl": "pkg:npm/@rolldown/binding-linux-ppc64-gnu@1.2.8",
+      "purl": "pkg:npm/@rolldown/binding-linux-ppc64-gnu@1.2.11",
       "scope": "optional",
       "type": "library",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
-      "bom-ref": "pkg:npm/@rolldown/binding-linux-s390x-gnu@1.2.8",
+      "bom-ref": "pkg:npm/@rolldown/binding-linux-s390x-gnu@1.2.11",
       "licenses": [
         {
           "license": {
@@ -1900,13 +1900,13 @@
           "value": "package-lock.json"
         }
       ],
-      "purl": "pkg:npm/@rolldown/binding-linux-s390x-gnu@1.2.8",
+      "purl": "pkg:npm/@rolldown/binding-linux-s390x-gnu@1.2.11",
       "scope": "optional",
       "type": "library",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
-      "bom-ref": "pkg:npm/@rolldown/binding-linux-x64-gnu@1.2.8",
+      "bom-ref": "pkg:npm/@rolldown/binding-linux-x64-gnu@1.2.11",
       "licenses": [
         {
           "license": {
@@ -1929,13 +1929,13 @@
           "value": "package-lock.json"
         }
       ],
-      "purl": "pkg:npm/@rolldown/binding-linux-x64-gnu@1.2.8",
+      "purl": "pkg:npm/@rolldown/binding-linux-x64-gnu@1.2.11",
       "scope": "optional",
       "type": "library",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
-      "bom-ref": "pkg:npm/@rolldown/binding-linux-x64-musl@1.2.8",
+      "bom-ref": "pkg:npm/@rolldown/binding-linux-x64-musl@1.2.11",
       "licenses": [
         {
           "license": {
@@ -1958,13 +1958,13 @@
           "value": "package-lock.json"
         }
       ],
-      "purl": "pkg:npm/@rolldown/binding-linux-x64-musl@1.2.8",
+      "purl": "pkg:npm/@rolldown/binding-linux-x64-musl@1.2.11",
       "scope": "optional",
       "type": "library",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
-      "bom-ref": "pkg:npm/@rolldown/binding-openharmony-arm64@1.2.8",
+      "bom-ref": "pkg:npm/@rolldown/binding-openharmony-arm64@1.2.11",
       "licenses": [
         {
           "license": {
@@ -1987,13 +1987,13 @@
           "value": "package-lock.json"
         }
       ],
-      "purl": "pkg:npm/@rolldown/binding-openharmony-arm64@1.2.8",
+      "purl": "pkg:npm/@rolldown/binding-openharmony-arm64@1.2.11",
       "scope": "optional",
       "type": "library",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
-      "bom-ref": "pkg:npm/@rolldown/binding-win32-arm64-msvc@1.2.8",
+      "bom-ref": "pkg:npm/@rolldown/binding-win32-arm64-msvc@1.2.11",
       "licenses": [
         {
           "license": {
@@ -2016,13 +2016,13 @@
           "value": "package-lock.json"
         }
       ],
-      "purl": "pkg:npm/@rolldown/binding-win32-arm64-msvc@1.2.8",
+      "purl": "pkg:npm/@rolldown/binding-win32-arm64-msvc@1.2.11",
       "scope": "optional",
       "type": "library",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
-      "bom-ref": "pkg:npm/@rolldown/binding-win32-x64-msvc@1.2.8",
+      "bom-ref": "pkg:npm/@rolldown/binding-win32-x64-msvc@1.2.11",
       "licenses": [
         {
           "license": {
@@ -2045,10 +2045,10 @@
           "value": "package-lock.json"
         }
       ],
-      "purl": "pkg:npm/@rolldown/binding-win32-x64-msvc@1.2.8",
+      "purl": "pkg:npm/@rolldown/binding-win32-x64-msvc@1.2.11",
       "scope": "optional",
       "type": "library",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
       "bom-ref": "pkg:npm/@rolldown/pluginutils@1.0.1",
@@ -2660,7 +2660,7 @@
       "version": "8.5.28"
     },
     {
-      "bom-ref": "pkg:npm/rolldown@1.2.8",
+      "bom-ref": "pkg:npm/rolldown@1.2.11",
       "licenses": [
         {
           "license": {
@@ -2683,10 +2683,10 @@
           "value": "package-lock.json"
         }
       ],
-      "purl": "pkg:npm/rolldown@1.2.8",
+      "purl": "pkg:npm/rolldown@1.2.11",
       "scope": "optional",
       "type": "library",
-      "version": "1.2.8"
+      "version": "1.2.11"
     },
     {
       "bom-ref": "pkg:npm/source-map-js@1.2.1",
@@ -2776,7 +2776,7 @@
       "version": "2.3.3"
     },
     {
-      "bom-ref": "pkg:npm/vite@8.3.0",
+      "bom-ref": "pkg:npm/vite@8.3.1",
       "licenses": [
         {
           "license": {
@@ -2799,10 +2799,10 @@
           "value": "package-lock.json"
         }
       ],
-      "purl": "pkg:npm/vite@8.3.0",
+      "purl": "pkg:npm/vite@8.3.1",
       "scope": "optional",
       "type": "library",
-      "version": "8.3.0"
+      "version": "8.3.1"
     },
     {
       "bom-ref": "pkg:pypi/aiodns@3.6.1",
