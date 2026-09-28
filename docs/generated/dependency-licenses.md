@@ -177,7 +177,7 @@ Unknown licenses requiring external resolution: **148**
 | python | `pyparsing` | `3.3.2` | required | unknown |
 | python | `python-dotenv` | `1.2.3` | required | unknown |
 | python | `python-slugify` | `8.0.4` | required | unknown |
-| python | `python-socks` | `2.8.2` | required | unknown |
+| python | `python-socks` | `3.1.1` | required | unknown |
 | python | `python-telegram-bot` | `22.5` | required | unknown |
 | python | `PyYAML` | `6.0.3` | required | unknown |
 | python | `requests` | `2.34.2` | required | unknown |
