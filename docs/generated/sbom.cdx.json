@@ -4147,7 +4147,7 @@
       "version": "0.2.7"
     },
     {
-      "bom-ref": "pkg:pypi/slowapi@0.1.9",
+      "bom-ref": "pkg:pypi/slowapi@0.1.10",
       "name": "slowapi",
       "properties": [
         {
@@ -4163,10 +4163,10 @@
           "value": "requirements-prod.txt"
         }
       ],
-      "purl": "pkg:pypi/slowapi@0.1.9",
+      "purl": "pkg:pypi/slowapi@0.1.10",
       "scope": "required",
       "type": "library",
-      "version": "0.1.9"
+      "version": "0.1.10"
     },
     {
       "bom-ref": "pkg:pypi/sniffio@1.3.1",
