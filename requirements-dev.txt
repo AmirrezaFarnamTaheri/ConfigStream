@@ -11,7 +11,7 @@ mypy_extensions==1.1.0
 mccabe==0.7.0
 pycodestyle==2.14.0
 pyflakes==3.4.0
-types-PyYAML==6.0.12.20260518
+types-PyYAML==6.0.12.20260906
 types-aiofiles==25.1.0.20260518
 types-cachetools==7.0.0.20260713
 types-orjson==3.6.2
