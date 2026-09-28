@@ -141,7 +141,7 @@ Unknown licenses requiring external resolution: **148**
 | python | `defusedxml` | `0.7.1` | required | unknown |
 | python | `Deprecated` | `1.3.1` | required | unknown |
 | python | `exceptiongroup` | `1.3.1` | required | unknown |
-| python | `fastapi` | `0.139.0` | required | unknown |
+| python | `fastapi` | `0.141.1` | required | unknown |
 | python | `filelock` | `4.0.0` | required | unknown |
 | python | `frozenlist` | `1.8.0` | required | unknown |
 | python | `geographiclib` | `2.1` | required | unknown |
