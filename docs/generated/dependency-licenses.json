@@ -1667,7 +1667,7 @@
       "name": "slowapi",
       "scope": "required",
       "source": "requirements-prod.txt",
-      "version": "0.1.9"
+      "version": "0.1.10"
     },
     {
       "ecosystem": "python",
