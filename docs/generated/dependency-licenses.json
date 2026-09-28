@@ -1289,7 +1289,7 @@
       "name": "fastapi",
       "scope": "required",
       "source": "requirements-prod.txt",
-      "version": "0.139.0"
+      "version": "0.141.1"
     },
     {
       "ecosystem": "python",
