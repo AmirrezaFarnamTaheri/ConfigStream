@@ -28,9 +28,9 @@ EVASION_MODE=stealth
 
 | Your Situation | Recommended Mode | DNS Profile | Output File |
 |---|---|---|---|
-| Normal network, occasional blocks | `standard` | Standard | `singbox.json` |
-| DNS poisoning, basic DPI | `stealth` | DNS-Safe | `singbox-dns-safe.json` |
-| Severe blocking, DNS poisoning, DPI | `aggressive` | DNS-Hardened | `singbox-dns-hardened.json` |
+| Normal network, occasional blocks | `standard` | Standard | `singbox-profile.json` |
+| DNS poisoning, basic DPI | `stealth` | DNS-Safe | `singbox-profile-dns-safe.json` |
+| Severe blocking, DNS poisoning, DPI | `aggressive` | DNS-Hardened | `singbox-profile-dns-hardened.json` |
 | Extreme censorship, ISP-level blocking | `aggressive` | DNS-Hardened | `singbox-chains.json` (Gold/Shielded) |
 
 **Escalation strategy**: Start with `standard`. If connections fail, escalate to `stealth`, then `aggressive`. If even aggressive mode fails, use Gold/Shielded chains from `singbox-chains.json`.
@@ -352,12 +352,14 @@ Output: All 60+ files generated with evasion features embedded
 
 ## Output Files
 
-| Category | Sing-box | Clash | Base64 | Shadowrocket | Surge | Loon | Quantumult X |
+| Category | Sing-box node subscription | Clash node subscription | Base64 | Shadowrocket | Surge | Loon | Quantumult X |
 |---|---|---|---|---|---|---|---|
 | **Standard** | `singbox.json` | `clash.yaml` | `base64.txt` | `shadowrocket.txt` | `surge.conf` | `loon.conf` | `quantumult.conf` |
 | **DNS-Safe** | `singbox-dns-safe.json` | `clash-dns-safe.yaml` | `base64-dns-safe.txt` | `shadowrocket-dns-safe.txt` | `surge-dns-safe.conf` | `loon-dns-safe.conf` | `quantumult-dns-safe.conf` |
 | **DNS-Hardened** | `singbox-dns-hardened.json` | `clash-dns-hardened.yaml` | `base64-dns-hardened.txt` | `shadowrocket-dns-hardened.txt` | `surge-dns-hardened.conf` | `loon-dns-hardened.conf` | `quantumult-dns-hardened.conf` |
 | **Gold/Shielded** | `chains.json` | — | — | — | Surge chains | Loon chains | — |
+
+The short Sing-box and Clash names above are node subscriptions. When the client/core must apply routing or DNS policy as one runnable configuration, use the corresponding `singbox-profile*.json` or `clash-profile*.yaml` artifact instead.
 
 Each category also generates `proxies-*.txt` (plaintext URIs), `chosen/base64-*.txt` (curated subset), `sip008-*.json`, and `side_products-*.zip`.
 Gold/Shielded chains have DNS variants too: `chains-dns-safe.json` and `chains-dns-hardened.json`.
