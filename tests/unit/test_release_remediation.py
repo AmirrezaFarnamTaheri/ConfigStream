@@ -267,6 +267,9 @@ def test_release_gate_rejects_skipped_or_missing_native_validation(
             }
         },
     )
+    write_json(root / "singbox.json", {"outbounds": [], "endpoints": []})
+    write_json(root / "xray.json", {"outbounds": []})
+    (root / "clash.yaml").write_text("proxies: []\n", encoding="utf-8")
     for name in ("singbox-profile.json", "xray-profile.json"):
         write_json(root / name, {})
     (root / "clash-profile.yaml").write_text("proxies: []\nproxy-groups: []\nrules: []\n", encoding="utf-8")
