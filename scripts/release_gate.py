@@ -365,11 +365,15 @@ def validate(root: Path, native_report: Path, min_coverage: float) -> list[str]:
     try:
         errors.extend(validate_xray_json_subscription(xray, "xray.json"))
     except (TypeError, ValueError, KeyError) as exc:
-        errors.append(f"xray subscription validation failed safely: {type(exc).__name__}")
+        errors.append(
+            f"xray subscription validation failed safely: {type(exc).__name__}"
+        )
     try:
         errors.extend(validate_singbox_json_subscription(singbox, "singbox.json"))
     except (TypeError, ValueError, KeyError) as exc:
-        errors.append(f"sing-box subscription validation failed safely: {type(exc).__name__}")
+        errors.append(
+            f"sing-box subscription validation failed safely: {type(exc).__name__}"
+        )
     errors.extend(validate_manifest(root, manifest))
     return errors
 
