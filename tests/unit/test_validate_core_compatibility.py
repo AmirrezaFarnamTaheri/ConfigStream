@@ -73,7 +73,9 @@ def test_validate_core_compatibility_rejects_missing_output(
 
     errors = validate_core_compatibility.validate_core_compatibility(report)
 
-    assert any("references missing output: singbox-profile.json" in error for error in errors)
+    assert any(
+        "references missing output: singbox-profile.json" in error for error in errors
+    )
 
 
 def test_validate_core_compatibility_rejects_unimplemented_planned_xray_output(
@@ -81,7 +83,8 @@ def test_validate_core_compatibility_rejects_unimplemented_planned_xray_output(
 ) -> None:
     report = _write_json(tmp_path / "core_compatibility_report.json", _valid_report())
     matrix = _write_json(
-        tmp_path / "output_matrix.json", _output_matrix(["singbox-profile.json", "xray-profile.json"])
+        tmp_path / "output_matrix.json",
+        _output_matrix(["singbox-profile.json", "xray-profile.json"]),
     )
     monkeypatch.setattr(validate_core_compatibility, "OUTPUT_MATRIX_PATH", matrix)
 
