@@ -190,7 +190,9 @@ def main() -> int:
     if singbox_binary is not None and singbox_digest is not None:
         singbox_paths = discover_singbox_configs(root)
         if not singbox_paths:
-            checks.append(missing_artifact("sing-box", "singbox-profile.json", singbox_digest))
+            checks.append(
+                missing_artifact("sing-box", "singbox-profile.json", singbox_digest)
+            )
         for path in singbox_paths:
             checks.append(
                 run(
@@ -207,7 +209,9 @@ def main() -> int:
     if mihomo_binary is not None and mihomo_digest is not None:
         mihomo_paths = discover_mihomo_configs(root)
         if not mihomo_paths:
-            checks.append(missing_artifact("mihomo", "clash-profile.yaml", mihomo_digest))
+            checks.append(
+                missing_artifact("mihomo", "clash-profile.yaml", mihomo_digest)
+            )
         for path in mihomo_paths:
             checks.append(
                 run(
