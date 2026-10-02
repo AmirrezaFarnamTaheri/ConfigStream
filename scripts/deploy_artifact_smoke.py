@@ -59,7 +59,6 @@ def _singbox_payload() -> dict[str, object]:
     }
 
 
-
 def _singbox_subscription_payload() -> dict[str, object]:
     return {
         "outbounds": [
@@ -72,6 +71,7 @@ def _singbox_subscription_payload() -> dict[str, object]:
         ],
         "endpoints": [],
     }
+
 
 def _clash_payload() -> str:
     return "\n".join(
@@ -90,7 +90,6 @@ def _clash_payload() -> str:
     )
 
 
-
 def _clash_subscription_payload() -> str:
     return "\n".join(
         [
@@ -103,6 +102,7 @@ def _clash_subscription_payload() -> str:
         ]
     )
 
+
 def _xray_payload() -> dict[str, object]:
     return {
         "outbounds": [
@@ -111,7 +111,6 @@ def _xray_payload() -> dict[str, object]:
         ],
         "routing": {"rules": []},
     }
-
 
 
 def _xray_subscription_payload() -> dict[str, object]:
@@ -129,6 +128,7 @@ def _xray_subscription_payload() -> dict[str, object]:
             }
         ]
     }
+
 
 def _proxy_fixture() -> str:
     return (
