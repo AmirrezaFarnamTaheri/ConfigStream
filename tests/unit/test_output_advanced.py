@@ -97,6 +97,7 @@ def test_generate_split_outputs(tmp_path, sample_proxies):
 
     assert "singbox_vpn" in files
     assert "singbox" in files
+    assert "singbox_profile" in files
     assert "clash" in files
 
     with open(files["singbox_vpn"], encoding="utf-8") as f:
@@ -107,7 +108,7 @@ def test_generate_split_outputs(tmp_path, sample_proxies):
         assert "🛡️ Secure-RU-1" not in tags
         assert "🛡️ Secure-RU-1" in endpoint_tags
 
-    with open(files["singbox"], encoding="utf-8") as f:
+    with open(files["singbox_profile"], encoding="utf-8") as f:
         sniper_conf = json.load(f)
         assert sniper_conf["inbounds"][0]["type"] == "mixed"
         for o in sniper_conf["outbounds"]:
@@ -175,7 +176,7 @@ def test_split_uniquifies_duplicate_chain_tags(tmp_path):
     output_dir = tmp_path / "output"
     output_dir.mkdir()
     files = generate_split_outputs([], output_dir, smart_chains=smart_chains)
-    with open(files["singbox"], encoding="utf-8") as f:
+    with open(files["singbox_profile"], encoding="utf-8") as f:
         data = json.load(f)
     endpoint_tags = [
         endpoint.get("tag")
@@ -218,7 +219,7 @@ def test_split_filters_legacy_outbounds_before_group_membership(
 
     files = generate_split_outputs([], output_dir, smart_chains=smart_chains)
 
-    for key in ("singbox", "singbox_vpn"):
+    for key in ("singbox_profile", "singbox_vpn"):
         config = json.loads(files[key].read_text(encoding="utf-8"))
         assert all(
             outbound.get("type") not in {"block", "dns"}
