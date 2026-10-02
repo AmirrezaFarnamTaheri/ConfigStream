@@ -863,46 +863,6 @@
       "text": "Broad exception boundary requires semantic review and structured outcome."
     },
     {
-      "path": "src/configstream/output/metadata.py",
-      "line": 173,
-      "marker": "LARGE_FUNCTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Function save_metadata spans 365 lines (threshold: 300)."
-    },
-    {
-      "path": "src/configstream/output/metadata.py",
-      "line": 397,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/output/metadata.py",
-      "line": 557,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/output/subscriptions.py",
-      "line": 41,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/output/subscriptions.py",
-      "line": 178,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
       "path": "src/configstream/output_handler.py",
       "line": 132,
       "marker": "BROAD_EXCEPTION",
@@ -1025,6 +985,46 @@
     {
       "path": "src/configstream/output_transport.py",
       "line": 51,
+      "marker": "BROAD_EXCEPTION",
+      "category": "production",
+      "priority": "P1 - High",
+      "text": "Broad exception boundary requires semantic review and structured outcome."
+    },
+    {
+      "path": "src/configstream/output/metadata.py",
+      "line": 173,
+      "marker": "LARGE_FUNCTION",
+      "category": "production",
+      "priority": "P1 - High",
+      "text": "Function save_metadata spans 365 lines (threshold: 300)."
+    },
+    {
+      "path": "src/configstream/output/metadata.py",
+      "line": 397,
+      "marker": "BROAD_EXCEPTION",
+      "category": "production",
+      "priority": "P1 - High",
+      "text": "Broad exception boundary requires semantic review and structured outcome."
+    },
+    {
+      "path": "src/configstream/output/metadata.py",
+      "line": 557,
+      "marker": "BROAD_EXCEPTION",
+      "category": "production",
+      "priority": "P1 - High",
+      "text": "Broad exception boundary requires semantic review and structured outcome."
+    },
+    {
+      "path": "src/configstream/output/subscriptions.py",
+      "line": 41,
+      "marker": "BROAD_EXCEPTION",
+      "category": "production",
+      "priority": "P1 - High",
+      "text": "Broad exception boundary requires semantic review and structured outcome."
+    },
+    {
+      "path": "src/configstream/output/subscriptions.py",
+      "line": 178,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1319,6 +1319,14 @@
       "text": "Broad exception boundary requires semantic review and structured outcome."
     },
     {
+      "path": "src/configstream/security_validator.py",
+      "line": 165,
+      "marker": "BROAD_EXCEPTION",
+      "category": "production",
+      "priority": "P1 - High",
+      "text": "Broad exception boundary requires semantic review and structured outcome."
+    },
+    {
       "path": "src/configstream/security/honeypot.py",
       "line": 41,
       "marker": "BROAD_EXCEPTION",
@@ -1369,14 +1377,6 @@
     {
       "path": "src/configstream/security/virus_total.py",
       "line": 149,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/security_validator.py",
-      "line": 165,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
