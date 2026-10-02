@@ -3,20 +3,20 @@
 ## Executive Summary
 This matrix represents **actionable** technical debt. Noise from test mocks, documentation placeholders, and historical reports has been filtered out.
 
-- Total actionable markers: **247**
+- Total actionable markers: **246**
 - `BROAD_EXCEPTION`: **236**
-- `LARGE_FUNCTION`: **9**
+- `LARGE_FUNCTION`: **8**
 - `PLACEHOLDER`: **2**
 
 ## Categories
 
 - `other`: **12**
-- `production`: **198**
+- `production`: **197**
 - `tooling`: **37**
 
 ## Actionable Priorities
 
-### P1 - High (198)
+### P1 - High (197)
 - `src/configstream/adapters/loon.py`
 - `src/configstream/adapters/quantumult.py`
 - `src/configstream/adapters/shadowrocket.py`
@@ -27,7 +27,7 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - `src/configstream/backup.py`
 - `src/configstream/bot_cli.py`
 - `src/configstream/cli.py`
-- ... and 48 more files.
+- ... and 47 more files.
 
 ### P2 - Routine (49)
 - `scripts/check_license_headers.py`
@@ -84,7 +84,6 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 | `src/configstream/fetcher_worker.py` | 1 | BROAD_EXCEPTION |
 | `src/configstream/generators/clash.py` | 2 | BROAD_EXCEPTION |
 | `src/configstream/generators/singbox.py` | 1 | BROAD_EXCEPTION |
-| `src/configstream/generators/split.py` | 1 | LARGE_FUNCTION |
 | `src/configstream/geoip.py` | 3 | BROAD_EXCEPTION |
 | `src/configstream/hard_stop.py` | 3 | BROAD_EXCEPTION |
 | `src/configstream/history/export.py` | 4 | BROAD_EXCEPTION |
@@ -263,9 +262,6 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 
 ### `src/configstream/generators/singbox.py`
 - L157 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-
-### `src/configstream/generators/split.py`
-- L337 [`LARGE_FUNCTION`] **P1 - High**: `Function generate_split_outputs spans 300 lines (threshold: 300).`
 
 ### `src/configstream/geoip.py`
 - L98 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
