@@ -606,6 +606,14 @@ def test_singbox_json_subscription_expands_independent_nodes() -> None:
     assert validate_singbox_json_subscription(payload) == []
 
 
+def test_empty_node_subscription_shapes_are_valid() -> None:
+    assert validate_singbox_json_subscription(
+        {"outbounds": [], "endpoints": []}, "singbox.json"
+    ) == []
+    assert validate_xray_json_subscription({"outbounds": []}, "xray.json") == []
+    assert validate_clash_node_subscription({"proxies": []}, "clash.yaml") == []
+
+
 def test_xray_json_subscription_has_no_full_profile_envelope() -> None:
     payload, report = generate_xray_json_subscription(
         [
