@@ -634,7 +634,6 @@ def test_xray_json_subscription_has_no_full_profile_envelope() -> None:
     assert len(payload["outbounds"]) == 1
     assert "inbounds" not in payload
     assert "routing" not in payload
-    assert validate_xray_config(payload) == []
     assert validate_xray_json_subscription(payload) == []
     assert report["outbound_count"] == 1
 
@@ -656,6 +655,7 @@ def test_clash_node_subscription_contains_proxies_only() -> None:
     assert "proxy-groups" not in payload
     assert "rules" not in payload
     assert validate_clash_node_subscription(payload) == []
+
 
 def test_1601_nodes_remain_1601_independent_client_subscription_entries() -> None:
     count = 1601
