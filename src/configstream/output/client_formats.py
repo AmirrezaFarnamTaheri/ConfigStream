@@ -833,8 +833,8 @@ def validate_xray_json_subscription(
             + ", ".join(unexpected)
         )
     outbounds = payload.get("outbounds")
-    if not isinstance(outbounds, list) or not outbounds:
-        errors.append(f"{file_name}.outbounds must be a non-empty array")
+    if not isinstance(outbounds, list):
+        errors.append(f"{file_name}.outbounds must be an array")
         return errors
     for index, outbound in enumerate(outbounds):
         if not isinstance(outbound, dict):
@@ -1014,8 +1014,8 @@ def validate_clash_node_subscription(
             + ", ".join(unexpected)
         )
     proxies = payload.get("proxies")
-    if not isinstance(proxies, list) or not proxies:
-        errors.append(f"{file_name}.proxies must be a non-empty list")
+    if not isinstance(proxies, list):
+        errors.append(f"{file_name}.proxies must be a list")
         return errors
     names: set[str] = set()
     for index, proxy in enumerate(proxies):

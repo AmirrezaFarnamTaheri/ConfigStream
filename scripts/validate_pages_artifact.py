@@ -383,33 +383,7 @@ def collect_native_client_report(root: Path) -> dict[str, object]:
 
     sing_box = _first_available_binary(SING_BOX_BINARY_NAMES)
     tools["sing-box"] = {"available": bool(sing_box), "binary": sing_box}
-    for rel_path in (
-        "singbox.json",
-        "singbox-dns-safe.json",
-        "singbox-dns-hardened.json",
-        "chosen/singbox.json",
-    ):
-        target = root / rel_path
-        if not target.is_file():
-            continue
-        payload, error = _load_json(target)
-        if not error:
-            errors.extend(validate_singbox_json_subscription(payload, rel_path))
-
-    for rel_path in (
-        "clash.yaml",
-        "clash-dns-safe.yaml",
-        "clash-dns-hardened.yaml",
-        "chosen/clash.yaml",
-    ):
-        target = root / rel_path
-        if not target.is_file():
-            continue
-        payload, error = _load_yaml(target)
-        if error:
-            errors.append(error.replace(target.name, rel_path, 1))
-            continue
-        errors.extend(validate_clash_node_subscription(payload, rel_path))
+    errors.extend(_validate_node_subscription_surfaces(root))
 
     for target in discover_singbox_configs(root):
         rel_path = target.relative_to(root).as_posix()
@@ -460,6 +434,41 @@ def collect_native_client_report(root: Path) -> dict[str, object]:
         )
 
     return report
+
+
+def _validate_node_subscription_surfaces(root: Path) -> list[str]:
+    """Validate short public client URLs as independent-node subscriptions."""
+    errors: list[str] = []
+    for rel_path in (
+        "singbox.json",
+        "singbox-dns-safe.json",
+        "singbox-dns-hardened.json",
+        "chosen/singbox.json",
+    ):
+        target = root / rel_path
+        if not target.is_file():
+            continue
+        payload, error = _load_json(target)
+        if error:
+            errors.append(error.replace(target.name, rel_path, 1))
+            continue
+        errors.extend(validate_singbox_json_subscription(payload, rel_path))
+
+    for rel_path in (
+        "clash.yaml",
+        "clash-dns-safe.yaml",
+        "clash-dns-hardened.yaml",
+        "chosen/clash.yaml",
+    ):
+        target = root / rel_path
+        if not target.is_file():
+            continue
+        payload, error = _load_yaml(target)
+        if error:
+            errors.append(error.replace(target.name, rel_path, 1))
+            continue
+        errors.extend(validate_clash_node_subscription(payload, rel_path))
+    return errors
 
 
 def _validate_native_clients(root: Path) -> list[str]:
@@ -1470,7 +1479,6 @@ def validate_pages_artifact(
     if xray_subscription.is_file():
         payload, error = _load_json(xray_subscription)
         if not error:
-            errors.extend(validate_xray_config(payload, "xray.json"))
             errors.extend(validate_xray_json_subscription(payload, "xray.json"))
 
     errors.extend(validate_nekobox_subscriptions(root))

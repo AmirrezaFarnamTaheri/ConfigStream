@@ -219,6 +219,7 @@ async def download_subscription(request: Request, fmt: str):
         "clash": "clash.yaml",
         "clash-dns-safe": "clash-dns-safe.yaml",
         "clash-dns-hardened": "clash-dns-hardened.yaml",
+        "xray": "xray.json",
         "singbox": "singbox.json",
         "singbox-dns-safe": "singbox-dns-safe.json",
         "singbox-dns-hardened": "singbox-dns-hardened.json",

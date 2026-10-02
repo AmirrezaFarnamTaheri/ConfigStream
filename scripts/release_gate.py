@@ -287,6 +287,7 @@ def validate(root: Path, native_report: Path, min_coverage: float) -> list[str]:
     compatibility = load_checked(root / "format_compatibility.json", errors)
     report = load_checked(native_report, errors)
     xray = load_checked(root / "xray.json", errors)
+    xray_profile = load_checked(root / "xray-profile.json", errors)
     singbox = load_checked(root / "singbox.json", errors)
     if errors:
         return errors
@@ -358,7 +359,10 @@ def validate(root: Path, native_report: Path, min_coverage: float) -> list[str]:
                     errors.append(f"compatibility target is not generated: {target}")
     errors.extend(validate_native_report(root, report))
     try:
-        errors.extend(validate_xray_config(xray, "xray.json"))
+        errors.extend(validate_xray_config(xray_profile, "xray-profile.json"))
+    except (TypeError, ValueError, KeyError) as exc:
+        errors.append(f"xray profile validation failed safely: {type(exc).__name__}")
+    try:
         errors.extend(validate_xray_json_subscription(xray, "xray.json"))
     except (TypeError, ValueError, KeyError) as exc:
         errors.append(f"xray subscription validation failed safely: {type(exc).__name__}")
