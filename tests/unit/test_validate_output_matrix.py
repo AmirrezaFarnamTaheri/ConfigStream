@@ -51,10 +51,18 @@ def _minimal_valid_matrix() -> dict[str, object]:
         elif rel_path == "chosen/clash-profile.yaml":
             family = "clash"
             is_client_config = True
-        elif rel_path.startswith("countries/") and rel_path.endswith(".json") and not rel_path.endswith(".list.json"):
+        elif (
+            rel_path.startswith("countries/")
+            and rel_path.endswith(".json")
+            and not rel_path.endswith(".list.json")
+        ):
             family = "singbox"
             is_client_config = True
-        elif rel_path.startswith("protocols/") and rel_path.endswith(".json") and not rel_path.endswith(".list.json"):
+        elif (
+            rel_path.startswith("protocols/")
+            and rel_path.endswith(".json")
+            and not rel_path.endswith(".list.json")
+        ):
             family = "singbox"
             is_client_config = True
         elif rel_path.startswith("singbox"):
@@ -67,7 +75,11 @@ def _minimal_valid_matrix() -> dict[str, object]:
             {
                 "path": rel_path,
                 "family": family,
-                "category": "client-config" if is_client_config else ("control" if rel_path.endswith(".json") else "subscription"),
+                "category": (
+                    "client-config"
+                    if is_client_config
+                    else ("control" if rel_path.endswith(".json") else "subscription")
+                ),
                 "format": "json" if rel_path.endswith(".json") else "text",
                 "required": True,
                 "nonempty": rel_path in REQUIRED_NONEMPTY,
@@ -85,9 +97,7 @@ def _minimal_valid_matrix() -> dict[str, object]:
                         "core_format": (
                             "clash"
                             if family == "clash"
-                            else "xray"
-                            if family == "xray"
-                            else "sing-box"
+                            else "xray" if family == "xray" else "sing-box"
                         ),
                         "artifact_type": (
                             "full_config_alias"
