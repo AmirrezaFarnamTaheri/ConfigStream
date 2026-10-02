@@ -280,13 +280,16 @@ def generate(root: Path, *, check: bool = False) -> list[str]:
                         (
                             index
                             for index, pair in enumerate(
-                                zip(current_lines, expected_lines, strict=False), start=1
+                                zip(current_lines, expected_lines, strict=False),
+                                start=1,
                             )
                             if pair[0] != pair[1]
                         ),
-                        min(len(current_lines), len(expected_lines)) + 1
-                        if current_lines != expected_lines
-                        else 0,
+                        (
+                            min(len(current_lines), len(expected_lines)) + 1
+                            if current_lines != expected_lines
+                            else 0
+                        ),
                     )
                     detail = ""
                     if path.suffix == ".json":
