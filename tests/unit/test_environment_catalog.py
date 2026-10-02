@@ -39,4 +39,3 @@ def test_check_mode_reports_non_object_json_as_stale(tmp_path: Path) -> None:
 
     assert errors
     assert "source_digest current=None" in errors[0]
-
