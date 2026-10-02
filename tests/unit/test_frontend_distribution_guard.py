@@ -98,6 +98,14 @@ def test_client_format_links_are_node_subscription_actions() -> None:
     assert 'id="dynamic-action-btn"' in html
     assert '<option value="xray"' in html
 
+    def selected_client_object(key: str) -> str:
+        match = re.search(
+            rf"(?ms)^\\s{{8}}{re.escape(key)}:\\s*\\{{(?P<body>.*?)^\\s{{8}}\\}},",
+            dynamic,
+        )
+        assert match is not None, key
+        return match.group("body")
+
     for key, filename in (
         ("singbox", "singbox.json"),
         ("xray", "xray.json"),
@@ -106,21 +114,17 @@ def test_client_format_links_are_node_subscription_actions() -> None:
         ("base64", "base64.txt"),
         ("plaintext", "proxies.txt"),
     ):
-        assert re.search(
-            rf'{key}:\s*\{{.*?file:\s*"{re.escape(filename)}".*?action:\s*"node"',
-            dynamic,
-            re.DOTALL,
-        )
+        client = selected_client_object(key)
+        assert re.search(rf'file:\s*"{re.escape(filename)}"', client)
+        assert re.search(r'action:\s*"node"', client)
 
     for key, filename in (
         ("singboxvpn", "singbox-vpn.json"),
         ("chains", "singbox-chains.json"),
     ):
-        assert re.search(
-            rf'{key}:\s*\{{.*?file:\s*"{re.escape(filename)}".*?action:\s*"download"',
-            dynamic,
-            re.DOTALL,
-        )
+        client = selected_client_object(key)
+        assert re.search(rf'file:\s*"{re.escape(filename)}"', client)
+        assert re.search(r'action:\s*"download"', client)
 
     assert "Copy Node Subscription URL" in html
     assert "downloads.copyNodeSubscription" in dynamic
