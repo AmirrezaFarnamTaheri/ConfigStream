@@ -383,7 +383,6 @@ def collect_native_client_report(root: Path) -> dict[str, object]:
 
     sing_box = _first_available_binary(SING_BOX_BINARY_NAMES)
     tools["sing-box"] = {"available": bool(sing_box), "binary": sing_box}
-    errors.extend(_validate_node_subscription_surfaces(root))
 
     for target in discover_singbox_configs(root):
         rel_path = target.relative_to(root).as_posix()
@@ -1441,6 +1440,8 @@ def validate_pages_artifact(
             continue
         if bad_member:
             errors.append(f"corrupt ZIP member in {rel_path}: {bad_member}")
+
+    errors.extend(_validate_node_subscription_surfaces(root))
 
     for target in discover_singbox_configs(root):
         rel_path = target.relative_to(root).as_posix()
