@@ -124,6 +124,10 @@ def test_client_format_links_are_node_subscription_actions() -> None:
 
     assert "Copy Node Subscription URL" in html
     assert "downloads.copyNodeSubscription" in dynamic
+    assert "<strong>Sing-box JSON Subscription</strong>" in html
+    assert "separate singbox-profile download" in html
+    assert "<strong>Clash / Mihomo Subscription</strong>" in html
+    assert "Complete JSON profile with smart routing" not in html
 
 
 def test_dynamic_download_icons_do_not_use_unsafe_global_feather_replacement() -> None:
