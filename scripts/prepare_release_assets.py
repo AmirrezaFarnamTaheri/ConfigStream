@@ -29,7 +29,9 @@ def get_release_assets(output_dir: str, matrix_file: str) -> List[str]:
     output_path = Path(output_dir)
     assets: List[str] = []
     for entry in matrix.get("outputs", []):
-        if entry.get("category") in {"subscription", "client-config"} and entry.get("family") in {
+        if entry.get("category") in {"subscription", "client-config"} and entry.get(
+            "family"
+        ) in {
             "universal",
             "singbox",
             "clash",
