@@ -163,7 +163,10 @@ function initDynamicDownloads() {
         }
 
         if (window.i18n && typeof window.i18n.t === 'function' && client.descKey) {
-            desc.textContent = window.i18n.t(client.descKey) || client.desc;
+            const translated = window.i18n.t(client.descKey);
+            desc.textContent = translated && translated !== client.descKey
+                ? translated
+                : client.desc;
         } else {
             desc.textContent = client.desc;
         }
