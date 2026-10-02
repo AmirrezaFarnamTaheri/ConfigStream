@@ -294,6 +294,8 @@ def generate(root: Path, *, check: bool = False) -> list[str]:
                             current_payload = json.loads(current)
                         except (json.JSONDecodeError, TypeError):
                             current_payload = {}
+                        if not isinstance(current_payload, dict):
+                            current_payload = {}
                         detail = (
                             f"; source_digest current={current_payload.get('source_digest')!r}"
                             f" expected={payload.get('source_digest')!r}"
