@@ -23,6 +23,7 @@ def test_catalog_contains_direct_and_settings_environment_variables() -> None:
     assert variables["CS_SIGNING_PRIVATE_KEY_HEX"]["default"] is None
     assert "GITHUB_SHA" in variables
 
+
 def test_check_mode_reports_non_object_json_as_stale(tmp_path: Path) -> None:
     config_dir = tmp_path / "src/configstream"
     config_dir.mkdir(parents=True)
