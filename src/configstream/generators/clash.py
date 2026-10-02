@@ -355,9 +355,7 @@ def generate_clash_node_subscription(
     if not yaml:
         return "proxies: []\n"
 
-    full = yaml.safe_load(
-        generate_clash_config(proxies, ignore_status=ignore_status)
-    )
+    full = yaml.safe_load(generate_clash_config(proxies, ignore_status=ignore_status))
     values = full.get("proxies", []) if isinstance(full, dict) else []
     independent = [
         item
