@@ -585,6 +585,7 @@ def generate_xray_json_subscription(
     }
     return subscription, subscription_report
 
+
 def validate_xray_config(payload: object, file_name: str = "xray.json") -> list[str]:
     """Validate Xray references and modern outbound shapes before native checks."""
     if not isinstance(payload, dict):
@@ -818,7 +819,6 @@ def validate_mihomo_config(payload: object, file_name: str) -> list[str]:
     return errors
 
 
-
 def validate_xray_json_subscription(
     payload: object, file_name: str = "xray.json"
 ) -> list[str]:
@@ -855,6 +855,7 @@ def validate_xray_json_subscription(
                 f"{file_name}.outbounds[{index}] depends on dialerProxy {dialer}"
             )
     return errors
+
 
 def generate_nekobox_json_subscription(proxies: list[Proxy]) -> str:
     """Render NekoBox's multi-node JSON subscription container.
