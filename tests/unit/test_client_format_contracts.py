@@ -607,9 +607,12 @@ def test_singbox_json_subscription_expands_independent_nodes() -> None:
 
 
 def test_empty_node_subscription_shapes_are_valid() -> None:
-    assert validate_singbox_json_subscription(
-        {"outbounds": [], "endpoints": []}, "singbox.json"
-    ) == []
+    assert (
+        validate_singbox_json_subscription(
+            {"outbounds": [], "endpoints": []}, "singbox.json"
+        )
+        == []
+    )
     assert validate_xray_json_subscription({"outbounds": []}, "xray.json") == []
     assert validate_clash_node_subscription({"proxies": []}, "clash.yaml") == []
 
@@ -672,7 +675,11 @@ def test_1601_nodes_remain_1601_independent_client_subscription_entries() -> Non
             uuid=f"00000000-0000-0000-0000-{index:012x}",
             remarks=f"Node-{index}",
             is_working=True,
-            details={"security": "tls", "tls": True, "sni": f"node-{index}.example.com"},
+            details={
+                "security": "tls",
+                "tls": True,
+                "sni": f"node-{index}.example.com",
+            },
         )
         for index in range(count)
     ]
