@@ -545,7 +545,6 @@ def generate_xray_config(
     return config, report
 
 
-
 def generate_xray_json_subscription(
     records: list[dict[str, Any]],
 ) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -918,7 +917,6 @@ def generate_nekobox_json_subscription(proxies: list[Proxy]) -> str:
     return json.dumps(payload, indent=2, ensure_ascii=False) + "\n"
 
 
-
 def generate_singbox_json_subscription(proxies: list[Proxy]) -> str:
     """Render a Sing-box JSON subscription whose entries are independent nodes.
 
@@ -934,6 +932,7 @@ def validate_singbox_json_subscription(
 ) -> list[str]:
     """Validate a Sing-box node subscription with the minimal container contract."""
     return validate_nekobox_json_subscription(payload, file_name)
+
 
 def validate_nekobox_json_subscription(
     payload: object, file_name: str = "nekobox.json"
@@ -1000,7 +999,6 @@ def validate_nekobox_json_subscription(
     return errors
 
 
-
 def validate_clash_node_subscription(
     payload: object, file_name: str = "clash.yaml"
 ) -> list[str]:
@@ -1037,6 +1035,7 @@ def validate_clash_node_subscription(
                 f"{file_name}.proxies[{index}] depends on dialer-proxy"
             )
     return errors
+
 
 def validate_nekobox_subscriptions(root: Path) -> list[str]:
     """Validate share-link/Base64 subscriptions consumed by NekoBox/v2rayN."""
