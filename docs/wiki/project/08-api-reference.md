@@ -195,7 +195,7 @@ curl -s http://localhost:8000/api/stats | jq '.total_valid_proxies'
 ```
 
 #### `GET /api/proxies`
-Returns the full proxy list (JSON array of proxy objects). For full Sing-box configuration objects, use static file paths (e.g. `singbox.json`). Supports query filters:
+Returns the full proxy list (JSON array of proxy objects). For a full runnable Sing-box configuration, use the explicit profile artifact (for example `singbox-profile.json`); `singbox.json` is the independent-node subscription. Supports query filters:
 ```bash
 # Filter by country
 curl -s "http://localhost:8000/api/proxies?country=US" | jq length
