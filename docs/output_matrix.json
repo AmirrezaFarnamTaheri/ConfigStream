@@ -249,8 +249,7 @@
       "notes": "Sing-box JSON node subscription (dns-safe); minimal outbounds/endpoints container with no inbound, DNS, route, selector, helper, or detour dependencies. Subscription updaters expand proxies as independent entries.",
       "client_compatibility": [
         "NekoBox",
-        "v2rayN",
-        "Hiddify"
+        "v2rayN"
       ],
       "validation": "minimal outbounds/endpoints node container; unique tags; no profile keys, helper groups, or detours"
     },
@@ -279,8 +278,7 @@
       "notes": "Sing-box JSON node subscription (dns-hardened); minimal outbounds/endpoints container with no inbound, DNS, route, selector, helper, or detour dependencies. Subscription updaters expand proxies as independent entries.",
       "client_compatibility": [
         "NekoBox",
-        "v2rayN",
-        "Hiddify"
+        "v2rayN"
       ],
       "validation": "minimal outbounds/endpoints node container; unique tags; no profile keys, helper groups, or detours"
     },
@@ -379,8 +377,7 @@
       "client_compatibility": [
         "Mihomo",
         "Clash Meta",
-        "NekoBox",
-        "Hiddify"
+        "NekoBox"
       ],
       "validation": "proxies list; unique names; no dialer-proxy dependencies"
     },
@@ -410,8 +407,7 @@
       "client_compatibility": [
         "Mihomo",
         "Clash Meta",
-        "NekoBox",
-        "Hiddify"
+        "NekoBox"
       ],
       "validation": "proxies list; unique names; no dialer-proxy dependencies"
     },
