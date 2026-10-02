@@ -566,9 +566,7 @@ def generate_xray_json_subscription(
         if protocol in {"freedom", "blackhole", "dns", "loopback"}:
             continue
         dialer = (
-            outbound.get("streamSettings", {})
-            .get("sockopt", {})
-            .get("dialerProxy")
+            outbound.get("streamSettings", {}).get("sockopt", {}).get("dialerProxy")
         )
         if dialer:
             dependency_omitted += 1
@@ -845,9 +843,7 @@ def validate_xray_json_subscription(
                 f"{file_name}.outbounds[{index}] is not an independent proxy outbound"
             )
         dialer = (
-            outbound.get("streamSettings", {})
-            .get("sockopt", {})
-            .get("dialerProxy")
+            outbound.get("streamSettings", {}).get("sockopt", {}).get("dialerProxy")
         )
         if dialer:
             errors.append(
@@ -1031,9 +1027,7 @@ def validate_clash_node_subscription(
         if not str(proxy.get("type") or "").strip():
             errors.append(f"{file_name}.proxies[{index}] missing type")
         if proxy.get("dialer-proxy") not in (None, ""):
-            errors.append(
-                f"{file_name}.proxies[{index}] depends on dialer-proxy"
-            )
+            errors.append(f"{file_name}.proxies[{index}] depends on dialer-proxy")
     return errors
 
 
