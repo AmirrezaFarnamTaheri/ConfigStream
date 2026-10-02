@@ -143,7 +143,10 @@ async def test_generate_categorized_outputs(proxies, output_dir):
         ),
         patch(
             "configstream.output_logic.generate_split_outputs",
-            return_value={"singbox": output_dir / "singbox.json"},
+            return_value={
+                "singbox": output_dir / "singbox.json",
+                "singbox_profile": output_dir / "singbox-profile.json",
+            },
         ),
         patch("configstream.output_transport.ProxyHistoryTracker") as MockHistory,
     ):  # Mock history to return serializable data
