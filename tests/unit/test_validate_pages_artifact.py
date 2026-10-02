@@ -54,7 +54,6 @@ def _singbox_payload() -> dict:
     }
 
 
-
 def _singbox_subscription_payload() -> dict:
     return {
         "outbounds": [
@@ -67,6 +66,7 @@ def _singbox_subscription_payload() -> dict:
         ],
         "endpoints": [],
     }
+
 
 def _clash_payload() -> str:
     return "\n".join(
@@ -83,7 +83,6 @@ def _clash_payload() -> str:
             "",
         ]
     )
-
 
 
 def _clash_subscription_payload() -> str:
@@ -128,6 +127,7 @@ def _xray_profile_payload() -> dict:
         }
     ]
     return payload
+
 
 def _metadata_payload() -> dict:
     now = datetime.now(timezone.utc).isoformat()
@@ -813,7 +813,8 @@ def test_validate_pages_artifact_reports_singbox_unknown_outbound_reference(
     errors = validate_pages_artifact(tmp_path)
 
     assert any(
-        "singbox-profile.json unknown outbound reference: missing" in error for error in errors
+        "singbox-profile.json unknown outbound reference: missing" in error
+        for error in errors
     )
 
 
@@ -831,7 +832,8 @@ def test_validate_pages_artifact_reports_singbox_unknown_detour(
     errors = validate_pages_artifact(tmp_path)
 
     assert any(
-        "singbox-profile.json unknown outbound detour: missing" in error for error in errors
+        "singbox-profile.json unknown outbound detour: missing" in error
+        for error in errors
     )
 
 
@@ -847,7 +849,8 @@ def test_validate_pages_artifact_reports_singbox_unknown_route_outbound(
     errors = validate_pages_artifact(tmp_path)
 
     assert any(
-        "singbox-profile.json unknown route outbound: missing" in error for error in errors
+        "singbox-profile.json unknown route outbound: missing" in error
+        for error in errors
     )
 
 
@@ -864,7 +867,9 @@ def test_validate_pages_artifact_reports_singbox_unknown_dns_detour(
 
     errors = validate_pages_artifact(tmp_path)
 
-    assert any("singbox-profile.json unknown DNS detour: missing" in error for error in errors)
+    assert any(
+        "singbox-profile.json unknown DNS detour: missing" in error for error in errors
+    )
 
 
 def test_validate_pages_artifact_reports_clash_unknown_group_reference(
@@ -924,7 +929,8 @@ def test_validate_pages_artifact_reports_clash_unknown_rule_policy(
     errors = validate_pages_artifact(tmp_path)
 
     assert any(
-        "clash-profile.yaml rules[0] unknown policy: MISSING" in error for error in errors
+        "clash-profile.yaml rules[0] unknown policy: MISSING" in error
+        for error in errors
     )
 
 
