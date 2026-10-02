@@ -20,7 +20,7 @@ def _valid_report() -> dict[str, object]:
             {
                 "core": "sing-box",
                 "status": "stable",
-                "pipeline_outputs": ["singbox.json"],
+                "pipeline_outputs": ["singbox-profile.json"],
             },
             {
                 "core": "xray",
@@ -28,7 +28,7 @@ def _valid_report() -> dict[str, object]:
                 "pipeline_outputs": [],
             },
         ],
-        "planned_pipeline_outputs_requiring_implementation": ["xray.json"],
+        "planned_pipeline_outputs_requiring_implementation": ["xray-profile.json"],
     }
 
 
@@ -36,13 +36,13 @@ def _output_matrix(paths: list[str]) -> dict[str, object]:
     outputs = []
     for path in paths:
         item: dict[str, object] = {"path": path}
-        if path.startswith("singbox"):
+        if path.startswith("singbox-profile"):
             item.update({"core_format": "sing-box", "artifact_type": "full_config"})
         elif path.startswith("chains"):
             item.update(
                 {"core_format": "sing-box", "artifact_type": "full_config_alias"}
             )
-        elif path.startswith("clash"):
+        elif path.startswith("clash-profile"):
             item.update({"core_format": "clash", "artifact_type": "full_config"})
         outputs.append(item)
     return {"outputs": outputs}
@@ -57,7 +57,7 @@ def test_validate_core_compatibility_accepts_valid_report(
 ) -> None:
     report = _write_json(tmp_path / "core_compatibility_report.json", _valid_report())
     matrix = _write_json(
-        tmp_path / "output_matrix.json", _output_matrix(["singbox.json"])
+        tmp_path / "output_matrix.json", _output_matrix(["singbox-profile.json"])
     )
     monkeypatch.setattr(validate_core_compatibility, "OUTPUT_MATRIX_PATH", matrix)
 
@@ -73,7 +73,9 @@ def test_validate_core_compatibility_rejects_missing_output(
 
     errors = validate_core_compatibility.validate_core_compatibility(report)
 
-    assert any("references missing output: singbox.json" in error for error in errors)
+    assert any(
+        "references missing output: singbox-profile.json" in error for error in errors
+    )
 
 
 def test_validate_core_compatibility_rejects_unimplemented_planned_xray_output(
@@ -81,13 +83,14 @@ def test_validate_core_compatibility_rejects_unimplemented_planned_xray_output(
 ) -> None:
     report = _write_json(tmp_path / "core_compatibility_report.json", _valid_report())
     matrix = _write_json(
-        tmp_path / "output_matrix.json", _output_matrix(["singbox.json", "xray.json"])
+        tmp_path / "output_matrix.json",
+        _output_matrix(["singbox-profile.json", "xray-profile.json"]),
     )
     monkeypatch.setattr(validate_core_compatibility, "OUTPUT_MATRIX_PATH", matrix)
 
     errors = validate_core_compatibility.validate_core_compatibility(report)
 
-    assert any("xray.json" in error for error in errors)
+    assert any("xray-profile.json" in error for error in errors)
 
 
 def test_validate_core_compatibility_rejects_core_format_drift(
@@ -99,7 +102,7 @@ def test_validate_core_compatibility_rejects_core_format_drift(
         {
             "outputs": [
                 {
-                    "path": "singbox.json",
+                    "path": "singbox-profile.json",
                     "core_format": "clash",
                     "artifact_type": "full_config",
                 }

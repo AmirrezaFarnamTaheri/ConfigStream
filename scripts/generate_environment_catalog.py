@@ -274,8 +274,38 @@ def generate(root: Path, *, check: bool = False) -> list[str]:
                 errors.append(f"missing generated catalog: {path.relative_to(root)}")
             else:
                 if current != content:
+                    current_lines = current.splitlines()
+                    expected_lines = content.splitlines()
+                    first_diff = next(
+                        (
+                            index
+                            for index, pair in enumerate(
+                                zip(current_lines, expected_lines, strict=False),
+                                start=1,
+                            )
+                            if pair[0] != pair[1]
+                        ),
+                        (
+                            min(len(current_lines), len(expected_lines)) + 1
+                            if current_lines != expected_lines
+                            else 0
+                        ),
+                    )
+                    detail = ""
+                    if path.suffix == ".json":
+                        try:
+                            current_payload = json.loads(current)
+                        except (json.JSONDecodeError, TypeError):
+                            current_payload = {}
+                        if not isinstance(current_payload, dict):
+                            current_payload = {}
+                        detail = (
+                            f"; source_digest current={current_payload.get('source_digest')!r}"
+                            f" expected={payload.get('source_digest')!r}"
+                        )
                     errors.append(
                         f"generated catalog is stale: {path.relative_to(root)}"
+                        f"; first differing line={first_diff}{detail}"
                     )
         else:
             path.parent.mkdir(parents=True, exist_ok=True)

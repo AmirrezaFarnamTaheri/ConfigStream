@@ -22,9 +22,12 @@ from pathlib import Path
 from typing import Any, cast
 
 from configstream.output.client_formats import (
+    validate_clash_node_subscription,
     validate_mihomo_config,
     validate_nekobox_subscriptions,
+    validate_singbox_json_subscription,
     validate_xray_config,
+    validate_xray_json_subscription,
 )
 from configstream.artifact_freshness import validate_metadata_freshness
 from configstream.constants import PAGES_UNSERVABLE_ROOT_FILES
@@ -68,13 +71,20 @@ REQUIRED_EXISTS: tuple[str, ...] = (
     "singbox.json",
     "singbox-dns-safe.json",
     "singbox-dns-hardened.json",
+    "singbox-profile.json",
+    "singbox-profile-dns-safe.json",
+    "singbox-profile-dns-hardened.json",
     "singbox-vpn.json",
     "singbox-vpn-dns-safe.json",
     "singbox-vpn-dns-hardened.json",
     "clash.yaml",
     "clash-dns-safe.yaml",
     "clash-dns-hardened.yaml",
+    "clash-profile.yaml",
+    "clash-profile-dns-safe.yaml",
+    "clash-profile-dns-hardened.yaml",
     "xray.json",
+    "xray-profile.json",
     "singbox-chains.json",
     "singbox-chains-dns-safe.json",
     "singbox-chains-dns-hardened.json",
@@ -82,10 +92,12 @@ REQUIRED_EXISTS: tuple[str, ...] = (
     "chains-dns-safe.json",
     "chains-dns-hardened.json",
     "chosen/singbox.json",
+    "chosen/singbox-profile.json",
     "chosen/nekobox.json",
     "chosen/nekobox-dns-safe.json",
     "chosen/nekobox-dns-hardened.json",
     "chosen/clash.yaml",
+    "chosen/clash-profile.yaml",
     "side_products.zip",
     "side_products-dns-safe.zip",
     "side_products-dns-hardened.zip",
@@ -113,13 +125,20 @@ REQUIRED_NONEMPTY: tuple[str, ...] = (
     "singbox.json",
     "singbox-dns-safe.json",
     "singbox-dns-hardened.json",
+    "singbox-profile.json",
+    "singbox-profile-dns-safe.json",
+    "singbox-profile-dns-hardened.json",
     "singbox-vpn.json",
     "singbox-vpn-dns-safe.json",
     "singbox-vpn-dns-hardened.json",
     "clash.yaml",
     "clash-dns-safe.yaml",
     "clash-dns-hardened.yaml",
+    "clash-profile.yaml",
+    "clash-profile-dns-safe.yaml",
+    "clash-profile-dns-hardened.yaml",
     "xray.json",
+    "xray-profile.json",
     "singbox-chains.json",
     "singbox-chains-dns-safe.json",
     "singbox-chains-dns-hardened.json",
@@ -127,7 +146,9 @@ REQUIRED_NONEMPTY: tuple[str, ...] = (
     "chains-dns-safe.json",
     "chains-dns-hardened.json",
     "chosen/singbox.json",
+    "chosen/singbox-profile.json",
     "chosen/clash.yaml",
+    "chosen/clash-profile.yaml",
     "side_products.zip",
     "side_products-dns-safe.zip",
     "side_products-dns-hardened.zip",
@@ -151,7 +172,7 @@ JSON_FILES: tuple[str, ...] = tuple(
 ZIP_FILES: tuple[str, ...] = tuple(
     name for name in REQUIRED_EXISTS if name.endswith(".zip")
 )
-XRAY_FILES: tuple[str, ...] = ("xray.json",)
+XRAY_FILES: tuple[str, ...] = ("xray-profile.json",)
 SING_BOX_BINARY_NAMES: tuple[str, ...] = ("sing-box", "sing-box.exe")
 MIHOMO_BINARY_NAMES: tuple[str, ...] = (
     "mihomo",
@@ -362,6 +383,7 @@ def collect_native_client_report(root: Path) -> dict[str, object]:
 
     sing_box = _first_available_binary(SING_BOX_BINARY_NAMES)
     tools["sing-box"] = {"available": bool(sing_box), "binary": sing_box}
+
     for target in discover_singbox_configs(root):
         rel_path = target.relative_to(root).as_posix()
         resolved, path_error = resolve_public_config(root, target)
@@ -411,6 +433,41 @@ def collect_native_client_report(root: Path) -> dict[str, object]:
         )
 
     return report
+
+
+def _validate_node_subscription_surfaces(root: Path) -> list[str]:
+    """Validate short public client URLs as independent-node subscriptions."""
+    errors: list[str] = []
+    for rel_path in (
+        "singbox.json",
+        "singbox-dns-safe.json",
+        "singbox-dns-hardened.json",
+        "chosen/singbox.json",
+    ):
+        target = root / rel_path
+        if not target.is_file():
+            continue
+        payload, error = _load_json(target)
+        if error:
+            errors.append(error.replace(target.name, rel_path, 1))
+            continue
+        errors.extend(validate_singbox_json_subscription(payload, rel_path))
+
+    for rel_path in (
+        "clash.yaml",
+        "clash-dns-safe.yaml",
+        "clash-dns-hardened.yaml",
+        "chosen/clash.yaml",
+    ):
+        target = root / rel_path
+        if not target.is_file():
+            continue
+        payload, error = _load_yaml(target)
+        if error:
+            errors.append(error.replace(target.name, rel_path, 1))
+            continue
+        errors.extend(validate_clash_node_subscription(payload, rel_path))
+    return errors
 
 
 def _validate_native_clients(root: Path) -> list[str]:
@@ -482,6 +539,26 @@ def write_native_client_report(root: Path, report_path: Path) -> None:
     )
 
 
+def _is_client_config_path(rel_path: str) -> bool:
+    """Return whether a public artifact is a complete client/core config."""
+    name = rel_path.rsplit("/", 1)[-1]
+    if rel_path.startswith(("countries/", "protocols/")):
+        return rel_path.endswith(".json") and not rel_path.endswith(".list.json")
+    if rel_path in {
+        "xray-profile.json",
+        "chosen/singbox-profile.json",
+        "chosen/clash-profile.yaml",
+    }:
+        return True
+    return (
+        (name.startswith("singbox-profile") and name.endswith(".json"))
+        or (name.startswith("singbox-vpn") and name.endswith(".json"))
+        or (name.startswith("singbox-chains") and name.endswith(".json"))
+        or (name.startswith("chains") and name.endswith(".json"))
+        or (name.startswith("clash-profile") and name.endswith(".yaml"))
+    )
+
+
 def _artifact_category(rel_path: str) -> str:
     if rel_path in {
         "metadata.json",
@@ -498,6 +575,8 @@ def _artifact_category(rel_path: str) -> str:
         return "docs"
     if rel_path.startswith("data/"):
         return "analytics"
+    if _is_client_config_path(rel_path):
+        return "client-config"
     if rel_path.endswith(".zip"):
         return "side-product"
     return "subscription"
@@ -1206,7 +1285,7 @@ def write_pages_contract(root: Path) -> None:
     total_tested = int(metadata_obj.get("total_tested", 0) or 0)
 
     health: dict[str, object] = {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "status": "degraded" if total_working == 0 else "ok",
         "generated_at": generated_at,
         "trace_id": trace_id,
@@ -1243,7 +1322,7 @@ def write_pages_contract(root: Path) -> None:
         )
 
     manifest: dict[str, object] = {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "generated_at": generated_at,
         "artifact_generated_at": generated_at,
         "trace_id": trace_id,
@@ -1362,6 +1441,8 @@ def validate_pages_artifact(
         if bad_member:
             errors.append(f"corrupt ZIP member in {rel_path}: {bad_member}")
 
+    errors.extend(_validate_node_subscription_surfaces(root))
+
     for target in discover_singbox_configs(root):
         rel_path = target.relative_to(root).as_posix()
         resolved, path_error = resolve_public_config(root, target)
@@ -1394,6 +1475,12 @@ def validate_pages_artifact(
         if error:
             continue
         errors.extend(validate_xray_config(payload, rel_path))
+
+    xray_subscription = root / "xray.json"
+    if xray_subscription.is_file():
+        payload, error = _load_json(xray_subscription)
+        if not error:
+            errors.extend(validate_xray_json_subscription(payload, "xray.json"))
 
     errors.extend(validate_nekobox_subscriptions(root))
 

@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import List, Dict, Any, Set, Optional, Tuple
 
 from ..models import Proxy
-from .clash import generate_clash_config
+from .clash import generate_clash_config, generate_clash_node_subscription
 from ..converters import to_singbox_outbound
 from ..converters.singbox import wireguard_outbound_to_endpoint
 from ..converters.chain_outbounds import chain_outbounds_from_details
@@ -217,6 +217,121 @@ def _append_tank_groups(
     return True
 
 
+def _write_singbox_subscription_surfaces(
+    output_dir: Path,
+    suffix: str,
+    key_suffix_str: str,
+    sniper_config: Dict[str, Any],
+    clean_outbounds: List[Dict[str, Any]],
+    sniper_endpoints: List[Dict[str, Any]],
+) -> Dict[str, Path]:
+    """Write the separate runnable Sing-box profile and independent-node feed."""
+    files: Dict[str, Path] = {}
+
+    profile_path = output_dir / f"singbox-profile{suffix}.json"
+    AtomicFileWriter.write_text(
+        profile_path, json.dumps(sniper_config, indent=2, ensure_ascii=False)
+    )
+    files[f"singbox_profile{key_suffix_str}"] = profile_path
+
+    helper_types = {"selector", "urltest", "direct", "block", "dns"}
+    subscription_payload: Dict[str, Any] = {
+        "outbounds": [
+            copy.deepcopy(outbound)
+            for outbound in clean_outbounds
+            if str(outbound.get("type") or "").lower() not in helper_types
+            and not outbound.get("detour")
+        ],
+        "endpoints": [
+            copy.deepcopy(endpoint)
+            for endpoint in sniper_endpoints
+            if not endpoint.get("detour")
+        ],
+    }
+    subscription_path = output_dir / f"singbox{suffix}.json"
+    AtomicFileWriter.write_text(
+        subscription_path,
+        json.dumps(subscription_payload, indent=2, ensure_ascii=False),
+    )
+    files[f"singbox{key_suffix_str}"] = subscription_path
+    return files
+
+
+def _write_clash_subscription_surfaces(
+    proxies: List[Proxy],
+    output_dir: Path,
+    suffix: str,
+    key_suffix_str: str,
+    clash_dns_profile: Optional[Dict[str, Any]],
+) -> Dict[str, Path]:
+    """Write the separate runnable Clash profile and proxies-only provider."""
+    files: Dict[str, Path] = {}
+
+    profile_content = generate_clash_config(
+        proxies, dns_profile=clash_dns_profile, ignore_status=True
+    )
+    if profile_content:
+        profile_path = output_dir / f"clash-profile{suffix}.yaml"
+        AtomicFileWriter.write_text(profile_path, profile_content)
+        files[f"clash_profile{key_suffix_str}"] = profile_path
+
+    subscription = generate_clash_node_subscription(proxies, ignore_status=True)
+    if subscription:
+        subscription_path = output_dir / f"clash{suffix}.yaml"
+        AtomicFileWriter.write_text(subscription_path, subscription)
+        files[f"clash{key_suffix_str}"] = subscription_path
+    return files
+
+
+def _write_tank_profile(
+    tank_outbounds: List[Dict[str, Any]],
+    tank_proxy_tags: List[str],
+    output_dir: Path,
+    suffix: str,
+    key_suffix_str: str,
+    singbox_dns_profile: Optional[Dict[str, Any]],
+) -> Dict[str, Path]:
+    """Finalize and write the runnable Sing-box TUN profile."""
+    has_proxy_selector = _append_tank_groups(tank_outbounds, tank_proxy_tags)
+    if not any(o.get("tag") == "direct" for o in tank_outbounds):
+        tank_outbounds.append({"type": "direct", "tag": "direct"})
+
+    clean_outbounds = _strip_internal_metadata(tank_outbounds)
+    clean_outbounds, endpoints = _modernize_singbox_nodes(clean_outbounds)
+    config: Dict[str, Any] = {
+        "log": {"level": "info"},
+        "inbounds": [
+            {
+                "type": "tun",
+                "tag": "tun-in",
+                "interface_name": "tun0",
+                "address": ["172.19.0.1/30"],
+                "auto_route": True,
+                "strict_route": True,
+            }
+        ],
+        "outbounds": clean_outbounds,
+        "route": {
+            "rules": [
+                {"protocol": "dns", "action": "hijack-dns"},
+                {"clash_mode": "Direct", "outbound": "direct"},
+                {
+                    "clash_mode": "Global",
+                    "outbound": "🌍 Proxy Select" if has_proxy_selector else "direct",
+                },
+            ]
+        },
+    }
+    if endpoints:
+        config["endpoints"] = endpoints
+    if singbox_dns_profile:
+        _attach_dns_profile(config, singbox_dns_profile, has_proxy_selector)
+
+    path = output_dir / f"singbox-vpn{suffix}.json"
+    AtomicFileWriter.write_text(path, json.dumps(config, indent=2, ensure_ascii=False))
+    return {f"singbox_vpn{key_suffix_str}": path}
+
+
 def generate_split_outputs(
     proxies: List[Proxy],
     output_dir: Path,
@@ -228,9 +343,7 @@ def generate_split_outputs(
     singbox_dns_profile: Optional[Dict[str, Any]] = None,
     clash_dns_profile: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Path]:
-    """
-    Generates split outputs (Tank/Sniper strategies) and Clash.
-    """
+    """Generate split outputs for Tank/Sniper strategies and Clash."""
     files: Dict[str, Path] = {}
     suffix = f"-{name_suffix}" if name_suffix else ""
     key_suffix_str = f"_{key_suffix}" if key_suffix else ""
@@ -421,11 +534,18 @@ def generate_split_outputs(
     if singbox_dns_profile:
         _attach_dns_profile(sniper_config, singbox_dns_profile, bool(selector_tags))
 
-    sniper_path = output_dir / f"singbox{suffix}.json"
-    AtomicFileWriter.write_text(
-        sniper_path, json.dumps(sniper_config, indent=2, ensure_ascii=False)
+    # The short filename is the independent-node subscription; the runnable
+    # routing/DNS document is preserved separately under *-profile.
+    files.update(
+        _write_singbox_subscription_surfaces(
+            output_dir,
+            suffix,
+            key_suffix_str,
+            sniper_config,
+            clean_outbounds,
+            sniper_endpoints,
+        )
     )
-    files[f"singbox{key_suffix_str}"] = sniper_path
 
     # 2. Tank (singbox-vpn.json) - Full VPN/TUN - No Fragmentation (usually)
     tank_outbounds: List[Dict[str, Any]] = []
@@ -488,59 +608,25 @@ def generate_split_outputs(
                     tank_proxy_tags,
                 )
 
-    has_proxy_selector = _append_tank_groups(tank_outbounds, tank_proxy_tags)
-
-    if not any(o.get("tag") == "direct" for o in tank_outbounds):
-        tank_outbounds.append({"type": "direct", "tag": "direct"})
-
-    # Strip internal metadata fields and modernize WireGuard before serializing.
-    clean_tank_outbounds = _strip_internal_metadata(tank_outbounds)
-    clean_tank_outbounds, tank_endpoints = _modernize_singbox_nodes(
-        clean_tank_outbounds
+    files.update(
+        _write_tank_profile(
+            tank_outbounds,
+            tank_proxy_tags,
+            output_dir,
+            suffix,
+            key_suffix_str,
+            singbox_dns_profile,
+        )
     )
 
-    tank_config: Dict[str, Any] = {
-        "log": {"level": "info"},
-        "inbounds": [
-            {
-                "type": "tun",
-                "tag": "tun-in",
-                "interface_name": "tun0",
-                "address": ["172.19.0.1/30"],
-                "auto_route": True,
-                "strict_route": True,
-            }
-        ],
-        "outbounds": clean_tank_outbounds,
-        "route": {
-            "rules": [
-                {"protocol": "dns", "action": "hijack-dns"},
-                {"clash_mode": "Direct", "outbound": "direct"},
-                {
-                    "clash_mode": "Global",
-                    "outbound": "🌍 Proxy Select" if has_proxy_selector else "direct",
-                },
-            ]
-        },
-    }
-    if tank_endpoints:
-        tank_config["endpoints"] = tank_endpoints
-    if singbox_dns_profile:
-        _attach_dns_profile(tank_config, singbox_dns_profile, has_proxy_selector)
-
-    tank_path = output_dir / f"singbox-vpn{suffix}.json"
-    AtomicFileWriter.write_text(
-        tank_path, json.dumps(tank_config, indent=2, ensure_ascii=False)
+    files.update(
+        _write_clash_subscription_surfaces(
+            proxies,
+            output_dir,
+            suffix,
+            key_suffix_str,
+            clash_dns_profile,
+        )
     )
-    files[f"singbox_vpn{key_suffix_str}"] = tank_path
-
-    # Clash
-    clash_content = generate_clash_config(
-        proxies, dns_profile=clash_dns_profile, ignore_status=True
-    )
-    if clash_content:
-        clash_path = output_dir / f"clash{suffix}.yaml"
-        AtomicFileWriter.write_text(clash_path, clash_content)
-        files[f"clash{key_suffix_str}"] = clash_path
 
     return files

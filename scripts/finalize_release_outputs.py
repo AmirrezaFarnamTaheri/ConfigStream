@@ -18,7 +18,10 @@ from urllib.parse import urlparse
 from configstream.constants import ARTIFACT_TRANSIENT_SUFFIXES as TRANSIENT_SUFFIXES
 from configstream.constants import PAGES_UNSERVABLE_ROOT_FILES
 from configstream.converters.singbox import wireguard_outbound_to_endpoint
-from configstream.output.client_formats import generate_xray_config
+from configstream.output.client_formats import (
+    generate_xray_config,
+    generate_xray_json_subscription,
+)
 from configstream.release_policy import (
     MIN_SOURCE_COVERAGE,
     MAX_TESTER_ERROR_RATIO,
@@ -525,7 +528,9 @@ def finalize(root: Path, repo_root: Path, threshold: float) -> None:
             _write(resolved, modernize_singbox(payload))
             modernized.append(path.relative_to(root).as_posix())
 
-    xray, xray_report = generate_xray_config(records)
+    xray_profile, xray_profile_report = generate_xray_config(records)
+    _write(root / "xray-profile.json", xray_profile)
+    xray, xray_report = generate_xray_json_subscription(records)
     _write(root / "xray.json", xray)
     clash_report = _repair_clash(root, records)
     copied_wasm: list[str] = []
@@ -603,6 +608,7 @@ def finalize(root: Path, repo_root: Path, threshold: float) -> None:
                 "modernized_files": modernized,
             },
             "xray": xray_report,
+            "xray-profile": xray_profile_report,
             "mihomo": clash_report,
             "surge": {"status": "generated"},
             "loon": {"status": "generated"},

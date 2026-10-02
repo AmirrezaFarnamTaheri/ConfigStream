@@ -545,6 +545,44 @@ def generate_xray_config(
     return config, report
 
 
+def generate_xray_json_subscription(
+    records: list[dict[str, Any]],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Render an Xray JSON subscription as independently importable outbounds.
+
+    The absence of ``inbounds`` is intentional: current v2rayN treats an
+    object with both inbounds/outbounds as one custom configuration, but
+    expands an outbounds-only document into subscription items.  Outbounds
+    that depend on another outbound through ``dialerProxy`` are omitted so
+    every emitted entry remains usable on its own.
+    """
+    full, report = generate_xray_config(records)
+    independent: list[dict[str, Any]] = []
+    dependency_omitted = 0
+    for outbound in full.get("outbounds", []):
+        if not isinstance(outbound, dict):
+            continue
+        protocol = str(outbound.get("protocol") or "").lower()
+        if protocol in {"freedom", "blackhole", "dns", "loopback"}:
+            continue
+        dialer = (
+            outbound.get("streamSettings", {}).get("sockopt", {}).get("dialerProxy")
+        )
+        if dialer:
+            dependency_omitted += 1
+            continue
+        independent.append(outbound)
+
+    subscription = {"outbounds": independent}
+    subscription_report = {
+        **report,
+        "target": "Xray/v2rayN outbound subscription",
+        "outbound_count": len(independent),
+        "dependency_omitted": dependency_omitted,
+    }
+    return subscription, subscription_report
+
+
 def validate_xray_config(payload: object, file_name: str = "xray.json") -> list[str]:
     """Validate Xray references and modern outbound shapes before native checks."""
     if not isinstance(payload, dict):
@@ -778,6 +816,42 @@ def validate_mihomo_config(payload: object, file_name: str) -> list[str]:
     return errors
 
 
+def validate_xray_json_subscription(
+    payload: object, file_name: str = "xray.json"
+) -> list[str]:
+    """Validate the outbounds-only Xray subscription contract."""
+    if not isinstance(payload, dict):
+        return [f"{file_name} must be a JSON object"]
+    unexpected = sorted(str(key) for key in payload if key != "outbounds")
+    errors: list[str] = []
+    if unexpected:
+        errors.append(
+            f"{file_name} contains profile-level/unsupported top-level keys: "
+            + ", ".join(unexpected)
+        )
+    outbounds = payload.get("outbounds")
+    if not isinstance(outbounds, list):
+        errors.append(f"{file_name}.outbounds must be an array")
+        return errors
+    for index, outbound in enumerate(outbounds):
+        if not isinstance(outbound, dict):
+            errors.append(f"{file_name}.outbounds[{index}] must be an object")
+            continue
+        protocol = str(outbound.get("protocol") or "").lower()
+        if protocol in {"", "freedom", "blackhole", "dns", "loopback"}:
+            errors.append(
+                f"{file_name}.outbounds[{index}] is not an independent proxy outbound"
+            )
+        dialer = (
+            outbound.get("streamSettings", {}).get("sockopt", {}).get("dialerProxy")
+        )
+        if dialer:
+            errors.append(
+                f"{file_name}.outbounds[{index}] depends on dialerProxy {dialer}"
+            )
+    return errors
+
+
 def generate_nekobox_json_subscription(proxies: list[Proxy]) -> str:
     """Render NekoBox's multi-node JSON subscription container.
 
@@ -837,6 +911,23 @@ def generate_nekobox_json_subscription(proxies: list[Proxy]) -> str:
 
     payload = {"outbounds": outbounds, "endpoints": endpoints}
     return json.dumps(payload, indent=2, ensure_ascii=False) + "\n"
+
+
+def generate_singbox_json_subscription(proxies: list[Proxy]) -> str:
+    """Render a Sing-box JSON subscription whose entries are independent nodes.
+
+    The wire shape intentionally matches the proven NekoBox/v2rayN
+    outbounds/endpoints container and contains no inbound, DNS or route policy
+    that could make a subscription updater classify it as one full profile.
+    """
+    return generate_nekobox_json_subscription(proxies)
+
+
+def validate_singbox_json_subscription(
+    payload: object, file_name: str = "singbox.json"
+) -> list[str]:
+    """Validate a Sing-box node subscription with the minimal container contract."""
+    return validate_nekobox_json_subscription(payload, file_name)
 
 
 def validate_nekobox_json_subscription(
@@ -901,6 +992,42 @@ def validate_nekobox_json_subscription(
             if any(str(key).startswith("_") for key in item):
                 errors.append(f"{location} contains private ConfigStream metadata")
 
+    return errors
+
+
+def validate_clash_node_subscription(
+    payload: object, file_name: str = "clash.yaml"
+) -> list[str]:
+    """Validate proxies-only Clash/Mihomo subscription YAML."""
+    if not isinstance(payload, dict):
+        return [f"{file_name} must be a YAML mapping"]
+    errors: list[str] = []
+    unexpected = sorted(str(key) for key in payload if key != "proxies")
+    if unexpected:
+        errors.append(
+            f"{file_name} contains profile-level/unsupported top-level keys: "
+            + ", ".join(unexpected)
+        )
+    proxies = payload.get("proxies")
+    if not isinstance(proxies, list):
+        errors.append(f"{file_name}.proxies must be a list")
+        return errors
+    names: set[str] = set()
+    for index, proxy in enumerate(proxies):
+        if not isinstance(proxy, dict):
+            errors.append(f"{file_name}.proxies[{index}] must be an object")
+            continue
+        name = str(proxy.get("name") or "").strip()
+        if not name:
+            errors.append(f"{file_name}.proxies[{index}] missing name")
+        elif name in names:
+            errors.append(f"{file_name} duplicate proxy name: {name}")
+        else:
+            names.add(name)
+        if not str(proxy.get("type") or "").strip():
+            errors.append(f"{file_name}.proxies[{index}] missing type")
+        if proxy.get("dialer-proxy") not in (None, ""):
+            errors.append(f"{file_name}.proxies[{index}] depends on dialer-proxy")
     return errors
 
 

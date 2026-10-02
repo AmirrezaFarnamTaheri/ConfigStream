@@ -31,6 +31,7 @@ VALID_CATEGORIES = {
     "analytics",
     "side-product",
     "subscription",
+    "client-config",
 }
 VALID_FORMATS = {
     "base64",
@@ -151,14 +152,18 @@ def validate_output_matrix(path: Path = MATRIX_PATH) -> list[str]:
             errors.append(f"{prefix}.notes must be a non-empty string")
 
         family = str(item.get("family", ""))
-        if family in CLIENT_CONFIG_FAMILIES:
+        if item.get("category") == "client-config":
+            if family not in CLIENT_CONFIG_FAMILIES:
+                errors.append(
+                    f"{prefix}.category client-config requires a client-config family"
+                )
             if item.get("core_format") not in VALID_CORE_FORMATS:
                 errors.append(f"{prefix}.core_format is required for client configs")
             if item.get("artifact_type") not in VALID_ARTIFACT_TYPES:
                 errors.append(f"{prefix}.artifact_type is required for client configs")
         elif "core_format" in item or "artifact_type" in item:
             errors.append(
-                f"{prefix} declares core metadata outside a client config family"
+                f"{prefix} declares core metadata outside a client config artifact"
             )
 
         for field in ("required", "nonempty", "schema_validation", "degraded_valid"):

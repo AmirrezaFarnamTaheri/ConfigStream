@@ -52,9 +52,9 @@ def validate(root: Path) -> list[str]:
 
     gate = (root / "scripts/release_gate.py").read_text(encoding="utf-8")
     for target, artifact in (
-        ("sing-box", "singbox.json"),
-        ("mihomo", "clash.yaml"),
-        ("xray", "xray.json"),
+        ("sing-box", "singbox-profile.json"),
+        ("mihomo", "clash-profile.yaml"),
+        ("xray", "xray-profile.json"),
     ):
         if f'"{target}": "{artifact}"' not in gate:
             errors.append(

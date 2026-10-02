@@ -83,6 +83,57 @@ def test_home_page_does_not_claim_auto_updating_before_verification() -> None:
     assert "artifact verification succeeds" in main.lower()
 
 
+def test_client_format_links_are_node_subscription_actions() -> None:
+    html = (ROOT / "frontend/index.html").read_text(encoding="utf-8")
+    dynamic = (ROOT / "frontend/assets/js/dynamic-downloads.js").read_text(
+        encoding="utf-8"
+    )
+
+    # Canonical client-format links are subscriptions. Their runnable profiles
+    # exist under explicit *-profile filenames so the two contracts cannot blur.
+    assert 'copy-btn" data-file="singbox.json"' in html
+    assert 'download="singbox-profile.json"' in html
+    assert 'copy-btn" data-file="clash.yaml"' in html
+    assert 'download="clash-profile.yaml"' in html
+    assert 'id="dynamic-action-btn"' in html
+    assert '<option value="xray"' in html
+
+    def selected_client_object(key: str) -> str:
+        match = re.search(
+            rf"(?ms)^[ \t]*{re.escape(key)}:[ \t]*\{{(?P<body>.*?)^[ \t]*\}},[ \t]*$",
+            dynamic,
+        )
+        assert match is not None, key
+        return match.group("body")
+
+    for key, filename in (
+        ("singbox", "singbox.json"),
+        ("xray", "xray.json"),
+        ("clash", "clash.yaml"),
+        ("nekobox", "nekobox.json"),
+        ("base64", "base64.txt"),
+        ("plaintext", "proxies.txt"),
+    ):
+        client = selected_client_object(key)
+        assert re.search(rf'file:\s*"{re.escape(filename)}"', client)
+        assert re.search(r'action:\s*"node"', client)
+
+    for key, filename in (
+        ("singboxvpn", "singbox-vpn.json"),
+        ("chains", "singbox-chains.json"),
+    ):
+        client = selected_client_object(key)
+        assert re.search(rf'file:\s*"{re.escape(filename)}"', client)
+        assert re.search(r'action:\s*"download"', client)
+
+    assert "Copy Node Subscription URL" in html
+    assert "downloads.copyNodeSubscription" in dynamic
+    assert "<strong>Sing-box JSON Subscription</strong>" in html
+    assert "separate singbox-profile download" in html
+    assert "<strong>Clash / Mihomo Subscription</strong>" in html
+    assert "Complete JSON profile with smart routing" not in html
+
+
 def test_dynamic_download_icons_do_not_use_unsafe_global_feather_replacement() -> None:
     dynamic_downloads = (ROOT / "frontend/assets/js/dynamic-downloads.js").read_text(
         encoding="utf-8"
