@@ -53,7 +53,7 @@ def test_missing_required_native_target_fails_closed(
     assert missing == {
         ("sing-box", "singbox-profile.json"),
         ("mihomo", "clash-profile.yaml"),
-        ("xray", "xray.json"),
+        ("xray", "xray-profile.json"),
     }
 
 
