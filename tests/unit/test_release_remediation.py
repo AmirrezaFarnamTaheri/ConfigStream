@@ -272,7 +272,9 @@ def test_release_gate_rejects_skipped_or_missing_native_validation(
     (root / "clash.yaml").write_text("proxies: []\n", encoding="utf-8")
     for name in ("singbox-profile.json", "xray-profile.json"):
         write_json(root / name, {})
-    (root / "clash-profile.yaml").write_text("proxies: []\nproxy-groups: []\nrules: []\n", encoding="utf-8")
+    (root / "clash-profile.yaml").write_text(
+        "proxies: []\nproxy-groups: []\nrules: []\n", encoding="utf-8"
+    )
     files = []
     for path in root.iterdir():
         if path.name == "artifact_manifest.json":
@@ -290,7 +292,11 @@ def test_release_gate_rejects_skipped_or_missing_native_validation(
         report,
         {
             "checks": [
-                {"core": "sing-box", "path": "singbox-profile.json", "status": "skipped"},
+                {
+                    "core": "sing-box",
+                    "path": "singbox-profile.json",
+                    "status": "skipped",
+                },
                 {"core": "mihomo", "path": "clash-profile.yaml", "status": "passed"},
             ]
         },
