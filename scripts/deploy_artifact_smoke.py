@@ -59,6 +59,20 @@ def _singbox_payload() -> dict[str, object]:
     }
 
 
+
+def _singbox_subscription_payload() -> dict[str, object]:
+    return {
+        "outbounds": [
+            {
+                "type": "socks",
+                "tag": "node",
+                "server": "127.0.0.1",
+                "server_port": 1080,
+            }
+        ],
+        "endpoints": [],
+    }
+
 def _clash_payload() -> str:
     return "\n".join(
         [
@@ -76,6 +90,19 @@ def _clash_payload() -> str:
     )
 
 
+
+def _clash_subscription_payload() -> str:
+    return "\n".join(
+        [
+            "proxies:",
+            "  - name: node",
+            "    type: socks5",
+            "    server: 127.0.0.1",
+            "    port: 1080",
+            "",
+        ]
+    )
+
 def _xray_payload() -> dict[str, object]:
     return {
         "outbounds": [
@@ -85,6 +112,23 @@ def _xray_payload() -> dict[str, object]:
         "routing": {"rules": []},
     }
 
+
+
+def _xray_subscription_payload() -> dict[str, object]:
+    return {
+        "outbounds": [
+            {
+                "tag": "node",
+                "protocol": "socks",
+                "settings": {"address": "127.0.0.1", "port": 1080},
+                "streamSettings": {
+                    "method": "raw",
+                    "rawSettings": {},
+                    "security": "none",
+                },
+            }
+        ]
+    }
 
 def _proxy_fixture() -> str:
     return (
@@ -219,16 +263,39 @@ def _write_output_fixture(root: Path) -> None:
             )
         elif rel_path == "proxies.json" or rel_path == "api/proxies":
             _write_text(target, "[]")
+        elif rel_path in {
+            "singbox.json",
+            "singbox-dns-safe.json",
+            "singbox-dns-hardened.json",
+            "chosen/singbox.json",
+        }:
+            _write_text(
+                target,
+                json.dumps(_singbox_subscription_payload(), ensure_ascii=False),
+            )
         elif (
             rel_path.startswith(("singbox", "chains"))
-            or rel_path == "chosen/singbox.json"
+            or rel_path == "chosen/singbox-profile.json"
         ) and rel_path.endswith(".json"):
             _write_text(target, json.dumps(_singbox_payload(), ensure_ascii=False))
+        elif rel_path in {
+            "clash.yaml",
+            "clash-dns-safe.yaml",
+            "clash-dns-hardened.yaml",
+            "chosen/clash.yaml",
+        }:
+            _write_text(target, _clash_subscription_payload())
         elif (
-            rel_path.startswith("clash") or rel_path == "chosen/clash.yaml"
+            rel_path.startswith("clash-profile")
+            or rel_path == "chosen/clash-profile.yaml"
         ) and rel_path.endswith(".yaml"):
             _write_text(target, _clash_payload())
         elif rel_path == "xray.json":
+            _write_text(
+                target,
+                json.dumps(_xray_subscription_payload(), ensure_ascii=False),
+            )
+        elif rel_path == "xray-profile.json":
             _write_text(target, json.dumps(_xray_payload(), ensure_ascii=False))
         elif Path(rel_path).name.startswith("base64") and rel_path.endswith(".txt"):
             _write_text(target, _base64_fixture())

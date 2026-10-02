@@ -46,12 +46,12 @@ def test_prepare_release_assets_uses_output_matrix_without_legacy_fallback(tmp_p
                         "path": "base64.txt",
                     },
                     {
-                        "category": "subscription",
+                        "category": "client-config",
                         "family": "singbox",
                         "path": "singbox.json",
                     },
                     {
-                        "category": "subscription",
+                        "category": "client-config",
                         "family": "clash",
                         "path": "missing.yaml",
                     },

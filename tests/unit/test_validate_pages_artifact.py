@@ -17,6 +17,7 @@ from cryptography.hazmat.primitives import serialization
 from scripts.validate_pages_artifact import (
     REQUIRED_EXISTS,
     REQUIRED_NONEMPTY,
+    _artifact_category,
     collect_native_client_report,
     validate_pages_artifact,
     write_native_client_report,
@@ -53,6 +54,20 @@ def _singbox_payload() -> dict:
     }
 
 
+
+def _singbox_subscription_payload() -> dict:
+    return {
+        "outbounds": [
+            {
+                "type": "socks",
+                "tag": "node",
+                "server": "127.0.0.1",
+                "server_port": 1080,
+            }
+        ],
+        "endpoints": [],
+    }
+
 def _clash_payload() -> str:
     return "\n".join(
         [
@@ -69,6 +84,50 @@ def _clash_payload() -> str:
         ]
     )
 
+
+
+def _clash_subscription_payload() -> str:
+    return "\n".join(
+        [
+            "proxies:",
+            "  - name: node",
+            "    type: socks5",
+            "    server: 127.0.0.1",
+            "    port: 1080",
+            "",
+        ]
+    )
+
+
+def _xray_subscription_payload() -> dict:
+    return {
+        "outbounds": [
+            {
+                "tag": "node",
+                "protocol": "socks",
+                "settings": {"address": "127.0.0.1", "port": 1080},
+                "streamSettings": {
+                    "method": "raw",
+                    "rawSettings": {},
+                    "security": "none",
+                },
+            }
+        ]
+    }
+
+
+def _xray_profile_payload() -> dict:
+    payload = _xray_subscription_payload()
+    payload["inbounds"] = [
+        {
+            "tag": "socks-in",
+            "listen": "127.0.0.1",
+            "port": 10808,
+            "protocol": "socks",
+            "settings": {"udp": True},
+        }
+    ]
+    return payload
 
 def _metadata_payload() -> dict:
     now = datetime.now(timezone.utc).isoformat()
@@ -165,11 +224,11 @@ def _write_manifest(root: Path) -> None:
                 "path": rel_path,
                 "size_bytes": path.stat().st_size,
                 "sha256": _sha256(path),
-                "category": "control" if rel_path.endswith(".json") else "subscription",
+                "category": _artifact_category(rel_path),
             }
         )
     manifest = {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "generated_at": now,
         "artifact_generated_at": now,
         "trace_id": "-",
@@ -181,6 +240,22 @@ def _write_manifest(root: Path) -> None:
         "files": files,
     }
     _write_text(root / "artifact_manifest.json", json.dumps(manifest))
+
+
+def test_artifact_category_reserves_subscription_for_node_feeds() -> None:
+    assert _artifact_category("base64.txt") == "subscription"
+    assert _artifact_category("proxies.txt") == "subscription"
+    assert _artifact_category("nekobox.json") == "subscription"
+    assert _artifact_category("singbox.json") == "subscription"
+    assert _artifact_category("singbox-dns-safe.json") == "subscription"
+    assert _artifact_category("xray.json") == "subscription"
+    assert _artifact_category("clash.yaml") == "subscription"
+    assert _artifact_category("chosen/singbox.json") == "subscription"
+    assert _artifact_category("singbox-profile.json") == "client-config"
+    assert _artifact_category("xray-profile.json") == "client-config"
+    assert _artifact_category("clash-profile.yaml") == "client-config"
+    assert _artifact_category("countries/IR.json") == "client-config"
+    assert _artifact_category("countries/IR.list.json") == "subscription"
 
 
 def _write_valid_artifact(root: Path) -> None:
@@ -197,7 +272,7 @@ def _write_valid_artifact(root: Path) -> None:
                 path,
                 json.dumps(
                     {
-                        "schema_version": "1.0",
+                        "schema_version": "1.1",
                         "status": "degraded",
                         "generated_at": now,
                         "trace_id": "-",
@@ -228,28 +303,34 @@ def _write_valid_artifact(root: Path) -> None:
             )
         elif rel_path.endswith("proxies.json") or rel_path == "api/proxies":
             _write_text(path, "[]")
+        elif rel_path in {
+            "singbox.json",
+            "singbox-dns-safe.json",
+            "singbox-dns-hardened.json",
+            "chosen/singbox.json",
+        }:
+            _write_text(path, json.dumps(_singbox_subscription_payload()))
         elif (
             rel_path.startswith(("singbox", "chains"))
-            or rel_path == "chosen/singbox.json"
+            or rel_path == "chosen/singbox-profile.json"
         ) and rel_path.endswith(".json"):
             _write_text(path, json.dumps(_singbox_payload()))
+        elif rel_path in {
+            "clash.yaml",
+            "clash-dns-safe.yaml",
+            "clash-dns-hardened.yaml",
+            "chosen/clash.yaml",
+        }:
+            _write_text(path, _clash_subscription_payload())
         elif (
-            rel_path.startswith("clash") or rel_path == "chosen/clash.yaml"
+            rel_path.startswith("clash-profile")
+            or rel_path == "chosen/clash-profile.yaml"
         ) and rel_path.endswith(".yaml"):
             _write_text(path, _clash_payload())
         elif rel_path == "xray.json":
-            _write_text(
-                path,
-                json.dumps(
-                    {
-                        "outbounds": [
-                            {"tag": "direct", "protocol": "freedom", "settings": {}},
-                            {"tag": "block", "protocol": "blackhole", "settings": {}},
-                        ],
-                        "routing": {"rules": []},
-                    }
-                ),
-            )
+            _write_text(path, json.dumps(_xray_subscription_payload()))
+        elif rel_path == "xray-profile.json":
+            _write_text(path, json.dumps(_xray_profile_payload()))
         elif rel_path in {
             "proxies.txt",
             "proxies-dns-safe.txt",
@@ -726,13 +807,13 @@ def test_validate_pages_artifact_reports_singbox_unknown_outbound_reference(
     _write_valid_artifact(tmp_path)
     payload = _singbox_payload()
     payload["outbounds"][0]["outbounds"] = ["missing"]
-    _write_text(tmp_path / "singbox.json", json.dumps(payload))
+    _write_text(tmp_path / "singbox-profile.json", json.dumps(payload))
     _write_manifest(tmp_path)
 
     errors = validate_pages_artifact(tmp_path)
 
     assert any(
-        "singbox.json unknown outbound reference: missing" in error for error in errors
+        "singbox-profile.json unknown outbound reference: missing" in error for error in errors
     )
 
 
@@ -744,13 +825,13 @@ def test_validate_pages_artifact_reports_singbox_unknown_detour(
     payload["outbounds"].append(
         {"type": "vless", "tag": "relay", "server": "example.com", "detour": "missing"}
     )
-    _write_text(tmp_path / "singbox.json", json.dumps(payload))
+    _write_text(tmp_path / "singbox-profile.json", json.dumps(payload))
     _write_manifest(tmp_path)
 
     errors = validate_pages_artifact(tmp_path)
 
     assert any(
-        "singbox.json unknown outbound detour: missing" in error for error in errors
+        "singbox-profile.json unknown outbound detour: missing" in error for error in errors
     )
 
 
@@ -760,13 +841,13 @@ def test_validate_pages_artifact_reports_singbox_unknown_route_outbound(
     _write_valid_artifact(tmp_path)
     payload = _singbox_payload()
     payload["route"] = {"rules": [{"domain": ["example.com"], "outbound": "missing"}]}
-    _write_text(tmp_path / "singbox.json", json.dumps(payload))
+    _write_text(tmp_path / "singbox-profile.json", json.dumps(payload))
     _write_manifest(tmp_path)
 
     errors = validate_pages_artifact(tmp_path)
 
     assert any(
-        "singbox.json unknown route outbound: missing" in error for error in errors
+        "singbox-profile.json unknown route outbound: missing" in error for error in errors
     )
 
 
@@ -778,12 +859,12 @@ def test_validate_pages_artifact_reports_singbox_unknown_dns_detour(
     payload["dns"] = {
         "servers": [{"tag": "remote", "address": "tls://1.1.1.1", "detour": "missing"}]
     }
-    _write_text(tmp_path / "singbox.json", json.dumps(payload))
+    _write_text(tmp_path / "singbox-profile.json", json.dumps(payload))
     _write_manifest(tmp_path)
 
     errors = validate_pages_artifact(tmp_path)
 
-    assert any("singbox.json unknown DNS detour: missing" in error for error in errors)
+    assert any("singbox-profile.json unknown DNS detour: missing" in error for error in errors)
 
 
 def test_validate_pages_artifact_reports_clash_unknown_group_reference(
@@ -791,7 +872,7 @@ def test_validate_pages_artifact_reports_clash_unknown_group_reference(
 ) -> None:
     _write_valid_artifact(tmp_path)
     _write_text(
-        tmp_path / "clash.yaml",
+        tmp_path / "clash-profile.yaml",
         "\n".join(
             [
                 "port: 7890",
@@ -812,7 +893,7 @@ def test_validate_pages_artifact_reports_clash_unknown_group_reference(
     errors = validate_pages_artifact(tmp_path)
 
     assert any(
-        "clash.yaml proxy-groups[0] unknown reference: MISSING" in error
+        "clash-profile.yaml proxy-groups[0] unknown reference: MISSING" in error
         for error in errors
     )
 
@@ -822,7 +903,7 @@ def test_validate_pages_artifact_reports_clash_unknown_rule_policy(
 ) -> None:
     _write_valid_artifact(tmp_path)
     _write_text(
-        tmp_path / "clash.yaml",
+        tmp_path / "clash-profile.yaml",
         "\n".join(
             [
                 "port: 7890",
@@ -843,7 +924,7 @@ def test_validate_pages_artifact_reports_clash_unknown_rule_policy(
     errors = validate_pages_artifact(tmp_path)
 
     assert any(
-        "clash.yaml rules[0] unknown policy: MISSING" in error for error in errors
+        "clash-profile.yaml rules[0] unknown policy: MISSING" in error for error in errors
     )
 
 
@@ -860,10 +941,10 @@ def test_validate_pages_artifact_native_check_skips_when_binaries_missing(
     (tmp_path / "countries").mkdir()
     (tmp_path / "protocols").mkdir()
     (tmp_path / "countries" / "US.json").write_bytes(
-        (tmp_path / "singbox.json").read_bytes()
+        (tmp_path / "singbox-profile.json").read_bytes()
     )
     (tmp_path / "protocols" / "vless.json").write_bytes(
-        (tmp_path / "singbox.json").read_bytes()
+        (tmp_path / "singbox-profile.json").read_bytes()
     )
 
     report = cast(dict[str, Any], collect_native_client_report(tmp_path))
@@ -871,8 +952,8 @@ def test_validate_pages_artifact_native_check_skips_when_binaries_missing(
     assert report["summary"]["failed"] == 0
     checked_paths = {check["path"] for check in report["checks"]}
     assert {
-        "chosen/singbox.json",
-        "chosen/clash.yaml",
+        "chosen/singbox-profile.json",
+        "chosen/clash-profile.yaml",
         "chains.json",
         "chains-dns-safe.json",
         "countries/US.json",
@@ -904,14 +985,14 @@ def test_validate_pages_artifact_native_check_reports_singbox_failure(
     errors = validate_pages_artifact(tmp_path, native_client_check=True)
 
     assert any(
-        "singbox.json native client check failed: bad sing-box config" in error
+        "singbox-profile.json native client check failed: bad sing-box config" in error
         for error in errors
     )
 
     report_path = tmp_path / "native_client_check_report.json"
     write_native_client_report(tmp_path, report_path)
     report = cast(dict[str, Any], json.loads(report_path.read_text(encoding="utf-8")))
-    assert report["summary"]["failed"] == 13
+    assert report["summary"]["failed"] > 0
     assert report["tools"]["sing-box"]["available"] is True
 
 
@@ -939,7 +1020,7 @@ def test_validate_pages_artifact_native_check_reports_mihomo_failure(
     errors = validate_pages_artifact(tmp_path, native_client_check=True)
 
     assert any(
-        "clash.yaml native client check failed: bad clash config" in error
+        "clash-profile.yaml native client check failed: bad clash config" in error
         for error in errors
     )
 

@@ -19,7 +19,11 @@ from configstream.constants import (
     ARTIFACT_TRANSIENT_SUFFIXES as TRANSIENT_SUFFIXES,
     PAGES_UNSERVABLE_ROOT_FILES,
 )
-from configstream.output.client_formats import validate_xray_config
+from configstream.output.client_formats import (
+    validate_singbox_json_subscription,
+    validate_xray_config,
+    validate_xray_json_subscription,
+)
 from configstream.output.singbox_contract import validate_singbox_config
 from configstream.release_policy import (
     MIN_SOURCE_COVERAGE,
@@ -30,9 +34,9 @@ from configstream.release_policy import (
 )
 
 REQUIRED_NATIVE_TARGETS = {
-    "sing-box": "singbox.json",
-    "mihomo": "clash.yaml",
-    "xray": "xray.json",
+    "sing-box": "singbox-profile.json",
+    "mihomo": "clash-profile.yaml",
+    "xray": "xray-profile.json",
 }
 REQUIRED_FILES = (
     "proxies.json",
@@ -43,6 +47,9 @@ REQUIRED_FILES = (
     "singbox.json",
     "clash.yaml",
     "xray.json",
+    "singbox-profile.json",
+    "clash-profile.yaml",
+    "xray-profile.json",
 )
 NATIVE_REPORT_RELATIVE_PATH = "evidence/native_client_check_report.json"
 MAX_FILES = 10000
@@ -352,12 +359,13 @@ def validate(root: Path, native_report: Path, min_coverage: float) -> list[str]:
     errors.extend(validate_native_report(root, report))
     try:
         errors.extend(validate_xray_config(xray, "xray.json"))
+        errors.extend(validate_xray_json_subscription(xray, "xray.json"))
     except (TypeError, ValueError, KeyError) as exc:
-        errors.append(f"xray validation failed safely: {type(exc).__name__}")
+        errors.append(f"xray subscription validation failed safely: {type(exc).__name__}")
     try:
-        errors.extend(validate_singbox_config(singbox, "singbox.json"))
+        errors.extend(validate_singbox_json_subscription(singbox, "singbox.json"))
     except (TypeError, ValueError, KeyError) as exc:
-        errors.append(f"sing-box validation failed safely: {type(exc).__name__}")
+        errors.append(f"sing-box subscription validation failed safely: {type(exc).__name__}")
     errors.extend(validate_manifest(root, manifest))
     return errors
 

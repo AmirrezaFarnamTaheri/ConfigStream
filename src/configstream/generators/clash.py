@@ -339,3 +339,35 @@ def generate_clash_config(
         config["dns"] = dns_profile
 
     return str(yaml.dump(config, allow_unicode=True, sort_keys=False))
+
+
+def generate_clash_node_subscription(
+    proxies: List[Proxy],
+    *,
+    ignore_status: bool = False,
+) -> str:
+    """Render a Clash/Mihomo subscription containing independent nodes only.
+
+    This omits listener, routing, DNS, controller and proxy-group policy.
+    Dependency-bearing dialer-proxy entries are excluded because each emitted
+    node must remain independently importable by a subscription updater.
+    """
+    if not yaml:
+        return "proxies: []\n"
+
+    full = yaml.safe_load(
+        generate_clash_config(proxies, ignore_status=ignore_status)
+    )
+    values = full.get("proxies", []) if isinstance(full, dict) else []
+    independent = [
+        item
+        for item in values
+        if isinstance(item, dict) and not item.get("dialer-proxy")
+    ]
+    return str(
+        yaml.dump(
+            {"proxies": independent},
+            allow_unicode=True,
+            sort_keys=False,
+        )
+    )

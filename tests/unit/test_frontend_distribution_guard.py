@@ -83,6 +83,49 @@ def test_home_page_does_not_claim_auto_updating_before_verification() -> None:
     assert "artifact verification succeeds" in main.lower()
 
 
+def test_client_format_links_are_node_subscription_actions() -> None:
+    html = (ROOT / "frontend/index.html").read_text(encoding="utf-8")
+    dynamic = (ROOT / "frontend/assets/js/dynamic-downloads.js").read_text(
+        encoding="utf-8"
+    )
+
+    # Canonical client-format links are subscriptions. Their runnable profiles
+    # exist under explicit *-profile filenames so the two contracts cannot blur.
+    assert 'copy-btn" data-file="singbox.json"' in html
+    assert 'download="singbox-profile.json"' in html
+    assert 'copy-btn" data-file="clash.yaml"' in html
+    assert 'download="clash-profile.yaml"' in html
+    assert 'id="dynamic-action-btn"' in html
+    assert '<option value="xray"' in html
+
+    for key, filename in (
+        ("singbox", "singbox.json"),
+        ("xray", "xray.json"),
+        ("clash", "clash.yaml"),
+        ("nekobox", "nekobox.json"),
+        ("base64", "base64.txt"),
+        ("plaintext", "proxies.txt"),
+    ):
+        assert re.search(
+            rf'{key}:\s*\{{.*?file:\s*"{re.escape(filename)}".*?action:\s*"node"',
+            dynamic,
+            re.DOTALL,
+        )
+
+    for key, filename in (
+        ("singboxvpn", "singbox-vpn.json"),
+        ("chains", "singbox-chains.json"),
+    ):
+        assert re.search(
+            rf'{key}:\s*\{{.*?file:\s*"{re.escape(filename)}".*?action:\s*"download"',
+            dynamic,
+            re.DOTALL,
+        )
+
+    assert "Copy Node Subscription URL" in html
+    assert "downloads.copyNodeSubscription" in dynamic
+
+
 def test_dynamic_download_icons_do_not_use_unsafe_global_feather_replacement() -> None:
     dynamic_downloads = (ROOT / "frontend/assets/js/dynamic-downloads.js").read_text(
         encoding="utf-8"

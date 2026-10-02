@@ -38,9 +38,9 @@ Downstream consumers should expect revived relay-plus-WireGuard chains to be rep
 
 ## Xray
 
-`xray.json` is a first-class full configuration artifact. It must contain a non-empty `outbounds` list with unique tags, modern flat VMess/VLESS settings, valid proxy-chain references, and valid routing references. Chains use `streamSettings.sockopt.dialerProxy`; removed outbound `proxySettings` is rejected. Legacy HTTP/H2 transport is not silently relabeled as XHTTP because that can pass syntax validation while being wire-incompatible with an unchanged server. Built-in `direct` and `block` outbounds remain available for routing rules.
+`xray.json` is an outbounds-only subscription artifact. It contains independently importable Xray outbounds and deliberately omits `inbounds`, routing policy, built-in direct/block helpers, and `dialerProxy` dependencies. The complete runnable core configuration is published separately as `xray-profile.json`.
 
-The Pages validator performs structural checks before mandatory release native-client validation against the pinned Xray v26.9.9 binary. The output matrix identifies `xray.json` with `core_format: xray` and `artifact_type: full_config`; the matrix `category: subscription` value is a release/distribution bucket and does not mean that the full config is a multi-node subscription container.
+The Pages validator validates `xray.json` as a subscription shape and runs the pinned Xray v26.9.9 native check against `xray-profile.json`. The short `xray.json` URL is therefore the subscription surface, while the profile filename is the runnable-core surface.
 
 ## NekoBox and v2rayN subscriptions
 
@@ -56,10 +56,12 @@ and dependency-bearing detours are absent, and WireGuard is emitted under the
 sing-box 1.13+ `endpoints` array. Chosen variants use the same contract under
 `chosen/nekobox*.json`.
 
-The complete `singbox*.json` and `xray.json` artifacts remain full client
-configuration documents. They must not be relabeled or reshaped as node
-subscriptions because doing so would discard their DNS, routing, inbound, and
-policy semantics.
+The canonical `singbox*.json`, `xray.json`, and `clash*.yaml` short names
+are node subscriptions. Sing-box uses a minimal `outbounds`/`endpoints` object,
+Xray uses an `outbounds`-only object, and Clash uses a `proxies`-only YAML
+document. Full runnable configurations are preserved separately under explicit
+`*-profile` filenames so subscription updates can expand nodes independently
+without discarding the runnable profile products.
 
 Plaintext subscription files and their Base64 counterparts are contract pairs:
 

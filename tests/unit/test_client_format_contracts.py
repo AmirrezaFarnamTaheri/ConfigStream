@@ -6,19 +6,26 @@ from __future__ import annotations
 import base64
 import json
 import pytest
+import yaml
 from pathlib import Path
 
 from configstream.models import Proxy
 
 from configstream.output.client_formats import (
     generate_nekobox_json_subscription,
+    generate_singbox_json_subscription,
     generate_xray_config,
+    generate_xray_json_subscription,
+    validate_clash_node_subscription,
     validate_mihomo_config,
     validate_nekobox_json_subscription,
     validate_nekobox_subscriptions,
+    validate_singbox_json_subscription,
     validate_xray_config,
+    validate_xray_json_subscription,
 )
 from configstream.output.singbox_contract import validate_singbox_config
+from configstream.generators.clash import generate_clash_node_subscription
 
 
 def test_singbox_endpoints_are_reference_targets() -> None:
@@ -559,8 +566,135 @@ def test_output_matrix_declares_xray_contract() -> None:
     matrix_path = Path(__file__).resolve().parents[2] / "docs" / "output_matrix.json"
     matrix = json.loads(matrix_path.read_text(encoding="utf-8"))
     xray = next(item for item in matrix["outputs"] if item["path"] == "xray.json")
-    assert xray["core_format"] == "xray"
-    assert xray["artifact_type"] == "full_config"
+    profile = next(
+        item for item in matrix["outputs"] if item["path"] == "xray-profile.json"
+    )
+    assert xray["category"] == "subscription"
+    assert "core_format" not in xray
+    assert "artifact_type" not in xray
+    assert profile["category"] == "client-config"
+    assert profile["core_format"] == "xray"
+    assert profile["artifact_type"] == "full_config"
+
+
+def test_singbox_json_subscription_expands_independent_nodes() -> None:
+    proxies = [
+        Proxy(
+            config="vless://00000000-0000-0000-0000-000000000001@example.com:443#node-a",
+            protocol="vless",
+            address="example.com",
+            port=443,
+            uuid="00000000-0000-0000-0000-000000000001",
+            remarks="node-a",
+            is_working=True,
+        ),
+        Proxy(
+            config="vless://00000000-0000-0000-0000-000000000002@example.net:443#node-b",
+            protocol="vless",
+            address="example.net",
+            port=443,
+            uuid="00000000-0000-0000-0000-000000000002",
+            remarks="node-b",
+            is_working=True,
+        ),
+    ]
+    payload = json.loads(generate_singbox_json_subscription(proxies))
+
+    assert set(payload) == {"outbounds", "endpoints"}
+    assert len(payload["outbounds"]) == 2
+    assert not ({"inbounds", "dns", "route", "routing"} & set(payload))
+    assert validate_singbox_json_subscription(payload) == []
+
+
+def test_xray_json_subscription_has_no_full_profile_envelope() -> None:
+    payload, report = generate_xray_json_subscription(
+        [
+            {
+                "id": "node-1",
+                "protocol": "vless",
+                "address": "example.com",
+                "port": 443,
+                "uuid": "00000000-0000-0000-0000-000000000001",
+                "remarks": "node",
+                "is_working": True,
+                "details": {"tls": True, "sni": "example.com"},
+            }
+        ]
+    )
+
+    assert set(payload) == {"outbounds"}
+    assert len(payload["outbounds"]) == 1
+    assert "inbounds" not in payload
+    assert "routing" not in payload
+    assert validate_xray_config(payload) == []
+    assert validate_xray_json_subscription(payload) == []
+    assert report["outbound_count"] == 1
+
+
+def test_clash_node_subscription_contains_proxies_only() -> None:
+    proxy = Proxy(
+        config="vless://00000000-0000-0000-0000-000000000001@example.com:443#node-a",
+        protocol="vless",
+        address="example.com",
+        port=443,
+        uuid="00000000-0000-0000-0000-000000000001",
+        remarks="node-a",
+        is_working=True,
+    )
+    payload = yaml.safe_load(generate_clash_node_subscription([proxy]))
+
+    assert set(payload) == {"proxies"}
+    assert len(payload["proxies"]) == 1
+    assert "proxy-groups" not in payload
+    assert "rules" not in payload
+    assert validate_clash_node_subscription(payload) == []
+
+def test_1601_nodes_remain_1601_independent_client_subscription_entries() -> None:
+    count = 1601
+    proxies = [
+        Proxy(
+            config=(
+                f"vless://00000000-0000-0000-0000-{index:012x}"
+                f"@node-{index}.example.com:443"
+                f"?security=tls&sni=node-{index}.example.com#Node-{index}"
+            ),
+            protocol="vless",
+            address=f"node-{index}.example.com",
+            port=443,
+            uuid=f"00000000-0000-0000-0000-{index:012x}",
+            remarks=f"Node-{index}",
+            is_working=True,
+            details={"security": "tls", "tls": True, "sni": f"node-{index}.example.com"},
+        )
+        for index in range(count)
+    ]
+    records = [
+        {
+            "id": f"node-{index}",
+            "protocol": "vless",
+            "address": f"node-{index}.example.com",
+            "port": 443,
+            "uuid": f"00000000-0000-0000-0000-{index:012x}",
+            "remarks": f"Node-{index}",
+            "is_working": True,
+            "details": {"tls": True, "sni": f"node-{index}.example.com"},
+        }
+        for index in range(count)
+    ]
+
+    singbox = json.loads(generate_singbox_json_subscription(proxies))
+    xray, _ = generate_xray_json_subscription(records)
+    nekobox = json.loads(generate_nekobox_json_subscription(proxies))
+    clash = yaml.safe_load(generate_clash_node_subscription(proxies))
+
+    assert len(singbox["outbounds"]) + len(singbox["endpoints"]) == count
+    assert len(xray["outbounds"]) == count
+    assert len(nekobox["outbounds"]) + len(nekobox["endpoints"]) == count
+    assert len(clash["proxies"]) == count
+
+    assert not ({"inbounds", "dns", "route", "routing"} & set(singbox))
+    assert not ({"inbounds", "dns", "route", "routing"} & set(xray))
+    assert set(clash) == {"proxies"}
 
 
 def test_nekobox_json_subscription_uses_minimal_node_container() -> None:

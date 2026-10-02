@@ -355,12 +355,15 @@
                                             <h3 class="download-title" data-i18n="downloads.singbox">Sing-box Config</h3>
                                             <p class="download-desc" data-i18n="downloads.singbox.desc">Optimized JSON configuration.</p>
                                             <div style="margin-top: 10px; display: flex; gap: 5px; flex-wrap: wrap; justify-content: center;">
-                                        <button class="btn btn-sm btn-secondary copy-btn" data-file="singbox.json" data-dns-file="singbox-dns-safe.json" data-dns-hardened-file="singbox-dns-hardened.json">
-                                            <i data-feather="target" aria-hidden="true"></i> <span data-i18n="downloads.sniper">Sniper</span>
+                                        <button class="btn btn-sm btn-primary copy-btn" data-file="singbox.json" data-dns-file="singbox-dns-safe.json" data-dns-hardened-file="singbox-dns-hardened.json">
+                                            <i data-feather="copy" aria-hidden="true"></i> <span>Copy Subscription</span>
                                         </button>
-                                        <button class="btn btn-sm btn-secondary copy-btn" data-file="singbox-vpn.json" data-dns-file="singbox-vpn-dns-safe.json" data-dns-hardened-file="singbox-vpn-dns-hardened.json">
-                                            <i data-feather="shield" aria-hidden="true"></i> <span data-i18n="downloads.tank">Tank</span>
-                                        </button>
+                                        <a href="singbox-profile.json" class="btn btn-sm btn-secondary" download="singbox-profile.json" data-file="singbox-profile.json" data-dns-file="singbox-profile-dns-safe.json" data-dns-hardened-file="singbox-profile-dns-hardened.json">
+                                            <i data-feather="download-cloud" aria-hidden="true"></i> <span>Full Profile</span>
+                                        </a>
+                                        <a href="singbox-vpn.json" class="btn btn-sm btn-secondary" download="singbox-vpn.json" data-file="singbox-vpn.json" data-dns-file="singbox-vpn-dns-safe.json" data-dns-hardened-file="singbox-vpn-dns-hardened.json">
+                                            <i data-feather="download-cloud" aria-hidden="true"></i> <span data-i18n="downloads.tank">Tank</span>
+                                        </a>
                                     </div>
                                         </div>
                                     </div>
@@ -370,10 +373,16 @@
                                             <h3 class="download-title" data-i18n="downloads.clash">Clash Config</h3>
                                             <p class="download-desc" data-i18n="downloads.clash.desc">A ready-to-use YAML file, perfect for Clash users.</p>
                                         </div>
-                                        <a href="clash.yaml" class="btn btn-primary" download="clash.yaml" data-file="clash.yaml" data-dns-file="clash-dns-safe.yaml" data-dns-hardened-file="clash-dns-hardened.yaml">
-                                            <i data-feather="download-cloud" aria-hidden="true"></i>
-                                            <span data-i18n="downloads.download">Download</span>
-                                        </a>
+                                        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; justify-content:center;">
+                                            <button class="btn btn-primary copy-btn" data-file="clash.yaml" data-dns-file="clash-dns-safe.yaml" data-dns-hardened-file="clash-dns-hardened.yaml">
+                                                <i data-feather="copy" aria-hidden="true"></i>
+                                                <span>Copy Subscription</span>
+                                            </button>
+                                            <a href="clash-profile.yaml" class="btn btn-secondary" download="clash-profile.yaml" data-file="clash-profile.yaml" data-dns-file="clash-profile-dns-safe.yaml" data-dns-hardened-file="clash-profile-dns-hardened.yaml">
+                                                <i data-feather="download-cloud" aria-hidden="true"></i>
+                                                <span>Full Profile</span>
+                                            </a>
+                                        </div>
                                     </div>
                                     <div class="download-card" style="--delay: 0.9s;">
                                         <div class="download-icon" id="dynamic-icon"><i data-feather="grid" aria-hidden="true"></i></div>
@@ -381,10 +390,11 @@
                                             <!-- Redesigned Dropdown for Clients -->
                                             <div class="client-dropdown-wrapper">
                                                 <select id="client-selector-dropdown" class="client-select" aria-label="Configuration client">
-                                                <option value="singbox" data-icon="shield">Sing-box Full Profile</option>
+                                                <option value="singbox" data-icon="shield">Sing-box JSON Subscription</option>
+                                                <option value="xray" data-icon="code">Xray JSON Subscription</option>
                                                 <option value="nekobox" data-icon="server">NekoBox Multi-Node JSON</option>
-                                                <option value="singboxvpn" data-icon="lock">Sing-box VPN (TUN)</option>
-                                                <option value="clash" data-icon="layers">Clash (Mihomo / Stash)</option>
+                                                <option value="singboxvpn" data-icon="lock">Sing-box VPN Full Config — Download</option>
+                                                <option value="clash" data-icon="layers">Clash / Mihomo Subscription</option>
                                                 <option value="base64" data-icon="file-text">Base64 Subscription</option>
                                                 <option value="plaintext" data-icon="list">Plain Text URIs</option>
                                                 <option value="shadowrocket" data-icon="send">Shadowrocket</option>
@@ -392,16 +402,16 @@
                                                 <option value="loon" data-icon="moon">Loon</option>
                                                 <option value="quantumultx" data-icon="box">Quantumult X</option>
                                                 <option value="sip008" data-icon="code">SIP008</option>
-                                                <option value="chains" data-icon="link-2">Chains (Shielded Candidates)</option>
+                                                <option value="chains" data-icon="link-2">Chains Full Config — Download</option>
                                                 <option value="sideproducts" data-icon="package">Side Products (.conf/.ovpn)</option>
                                                 </select>
                                                 <i data-feather="chevron-down" class="dropdown-arrow" aria-hidden="true"></i>
                                             </div>
-                                            <p class="download-desc" id="client-desc" style="margin-top: 1rem;" data-i18n="downloads.client.singbox.desc">Complete sing-box JSON profile with routing and DNS. Import as one profile, not as a node subscription.</p>
+                                            <p class="download-desc" id="client-desc" style="margin-top: 1rem;" data-i18n="downloads.client.singbox.desc">Sing-box JSON node subscription. Paste this URL into the subscription manager; each update imports the contained outbounds/endpoints as independent proxy entries.</p>
                                         </div>
-                                        <button id="dynamic-copy-btn" class="btn btn-primary copy-btn" data-file="singbox.json">
-                                            <i data-feather="copy" aria-hidden="true"></i>
-                                            <span data-i18n="table.copy">Copy Link</span>
+                                        <button id="dynamic-action-btn" class="btn btn-primary copy-btn" data-file="singbox.json" data-action="copy">
+                                            <span id="dynamic-action-icon"><i data-feather="copy" aria-hidden="true"></i></span>
+                                            <span id="dynamic-action-label">Copy Node Subscription URL</span>
                                         </button>
                                     </div>
                                     <!-- Side Products Download Card -->
@@ -433,9 +443,9 @@
                             <div>
                                 <p data-i18n="info.start.text" data-i18n-html="true" style="margin-bottom: 1rem;">Five steps to a working connection:</p>
                                 <ol style="margin-left: 1.5rem; line-height: 1.8;">
-                                    <li data-i18n="info.start.step1" data-i18n-html="true"><strong>Pick a format</strong> — choose the subscription that matches your VPN client (Sing-box, Clash, V2Ray, Shadowrocket, etc.)</li>
-                                    <li data-i18n="info.start.step2" data-i18n-html="true"><strong>Copy the link</strong> — click the copy button next to your chosen format</li>
-                                    <li data-i18n="info.start.step3" data-i18n-html="true"><strong>Import</strong> — paste the link into your client's subscription manager</li>
+                                    <li data-i18n="info.start.step1" data-i18n-html="true"><strong>Pick a subscription</strong> — Base64, raw URIs, Sing-box JSON, Xray JSON, Clash/Mihomo YAML, and NekoBox JSON are published as node lists</li>
+                                    <li data-i18n="info.start.step2" data-i18n-html="true"><strong>Copy the link</strong> — paste any subscription-format link into the client subscription manager; full runnable profiles are separate downloads</li>
+                                    <li data-i18n="info.start.step3" data-i18n-html="true"><strong>Import</strong> — paste the node-list URL into your client's subscription manager</li>
                                     <li data-i18n="info.start.step4" data-i18n-html="true"><strong>Update</strong> — refresh the subscription to fetch the latest proxies</li>
                                     <li data-i18n="info.start.step5" data-i18n-html="true"><strong>Connect</strong> — select any proxy from the list</li>
                                 </ol>

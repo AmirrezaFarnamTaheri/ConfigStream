@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "08acc0b5311d0adadab1521c650bc59f5e2e1b4b7c18f402ef11ac36394dbf58",
+  "source_digest": "bc3268abe19c996746792978c852cb23495fbf8fc3fbe31d1defb67c42b0e6f5",
   "variable_count": 172,
   "variables": [
     {
@@ -368,7 +368,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/deploy_artifact_smoke.py:261",
+        "scripts/deploy_artifact_smoke.py:328",
         "scripts/validate_frontend_placeholders.py:91"
       ],
       "type": null
@@ -380,10 +380,10 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/release_gate.py:376",
+        "scripts/release_gate.py:384",
         "scripts/snapshot_pages_release.py:506",
         "scripts/validate_frontend_placeholders.py:76",
-        "scripts/validate_pages_artifact.py:205",
+        "scripts/validate_pages_artifact.py:226",
         "scripts/verify_pages_deployment.py:474",
         "src/configstream/signing_config.py:69"
       ],
@@ -480,7 +480,7 @@
     },
     {
       "declared_in_settings": true,
-      "default": 4.0,
+      "default": 4,
       "name": "DNS_SAFE_RESOLVE_TIMEOUT",
       "required": false,
       "sensitive": false,
@@ -559,7 +559,7 @@
     },
     {
       "declared_in_settings": true,
-      "default": 2.0,
+      "default": 2,
       "name": "EVENT_STREAM_FLUSH_TIMEOUT_SECONDS",
       "required": false,
       "sensitive": false,
@@ -777,17 +777,17 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:633",
-        "scripts/finalize_release_outputs.py:682",
+        "scripts/finalize_release_outputs.py:639",
+        "scripts/finalize_release_outputs.py:688",
         "scripts/generate_evidence_bundle.py:20",
         "scripts/native_client_checks.py:248",
-        "scripts/release_gate.py:201",
-        "scripts/release_gate.py:461",
+        "scripts/release_gate.py:208",
+        "scripts/release_gate.py:469",
         "scripts/resilient_stage.py:491",
-        "scripts/validate_pages_artifact.py:1215",
-        "scripts/validate_pages_artifact.py:1252",
-        "src/configstream/output/metadata.py:568",
-        "src/configstream/output/metadata.py:605"
+        "scripts/validate_pages_artifact.py:1286",
+        "scripts/validate_pages_artifact.py:1323",
+        "src/configstream/output/metadata.py:590",
+        "src/configstream/output/metadata.py:627"
       ],
       "type": null
     },
@@ -798,17 +798,17 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:632",
-        "scripts/finalize_release_outputs.py:681",
+        "scripts/finalize_release_outputs.py:638",
+        "scripts/finalize_release_outputs.py:687",
         "scripts/generate_evidence_bundle.py:19",
         "scripts/native_client_checks.py:247",
-        "scripts/release_gate.py:200",
-        "scripts/release_gate.py:458",
+        "scripts/release_gate.py:207",
+        "scripts/release_gate.py:466",
         "scripts/resilient_stage.py:490",
-        "scripts/validate_pages_artifact.py:1214",
-        "scripts/validate_pages_artifact.py:1251",
-        "src/configstream/output/metadata.py:567",
-        "src/configstream/output/metadata.py:604"
+        "scripts/validate_pages_artifact.py:1285",
+        "scripts/validate_pages_artifact.py:1322",
+        "src/configstream/output/metadata.py:589",
+        "src/configstream/output/metadata.py:626"
       ],
       "type": null
     },
@@ -819,17 +819,17 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:631",
-        "scripts/finalize_release_outputs.py:680",
+        "scripts/finalize_release_outputs.py:637",
+        "scripts/finalize_release_outputs.py:686",
         "scripts/generate_evidence_bundle.py:21",
         "scripts/native_client_checks.py:246",
-        "scripts/release_gate.py:199",
-        "scripts/release_gate.py:455",
+        "scripts/release_gate.py:206",
+        "scripts/release_gate.py:463",
         "scripts/resilient_stage.py:492",
-        "scripts/validate_pages_artifact.py:1213",
-        "scripts/validate_pages_artifact.py:1250",
-        "src/configstream/output/metadata.py:566",
-        "src/configstream/output/metadata.py:603"
+        "scripts/validate_pages_artifact.py:1284",
+        "scripts/validate_pages_artifact.py:1321",
+        "src/configstream/output/metadata.py:588",
+        "src/configstream/output/metadata.py:625"
       ],
       "type": null
     },
@@ -989,7 +989,7 @@
     },
     {
       "declared_in_settings": true,
-      "default": 15.0,
+      "default": 15,
       "name": "LAB_TEST_TIMEOUT_SECONDS",
       "required": false,
       "sensitive": false,
@@ -1181,7 +1181,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:60"
+        "scripts/finalize_release_outputs.py:63"
       ],
       "type": null
     },
@@ -1214,7 +1214,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:697"
+        "scripts/finalize_release_outputs.py:703"
       ],
       "type": null
     },
@@ -1526,10 +1526,10 @@
     {
       "declared_in_settings": true,
       "default": {
-        "current_status": 10.0,
-        "historical_success": 40.0,
-        "latency": 30.0,
-        "security": 20.0
+        "current_status": 10,
+        "historical_success": 40,
+        "latency": 30,
+        "security": 20
       },
       "name": "SCORE_WEIGHTS",
       "required": false,
@@ -1615,7 +1615,7 @@
     },
     {
       "declared_in_settings": true,
-      "default": 5.0,
+      "default": 5,
       "name": "SHUTDOWN_GRACE_SECONDS",
       "required": false,
       "sensitive": false,
@@ -1676,7 +1676,7 @@
       "sensitive": true,
       "sources": [
         "scripts/audit_pipeline_outputs.py:323",
-        "scripts/deploy_artifact_smoke.py:260",
+        "scripts/deploy_artifact_smoke.py:327",
         "src/configstream/config.py:139"
       ],
       "type": "Optional[str]"
@@ -1962,7 +1962,7 @@
     },
     {
       "declared_in_settings": true,
-      "default": 60.0,
+      "default": 60,
       "name": "WS_IDLE_TIMEOUT_SECONDS",
       "required": false,
       "sensitive": false,
@@ -1984,7 +1984,7 @@
     },
     {
       "declared_in_settings": true,
-      "default": 5.0,
+      "default": 5,
       "name": "WS_SEND_TIMEOUT_SECONDS",
       "required": false,
       "sensitive": false,

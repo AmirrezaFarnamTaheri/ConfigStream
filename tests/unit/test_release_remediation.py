@@ -185,7 +185,7 @@ def test_finalize_sanitizes_counts_sources_and_transients(tmp_path: Path) -> Non
         },
     )
     write_json(
-        output / "singbox.json",
+        output / "singbox-profile.json",
         {
             "outbounds": [
                 {
@@ -197,7 +197,7 @@ def test_finalize_sanitizes_counts_sources_and_transients(tmp_path: Path) -> Non
             ]
         },
     )
-    (output / "clash.yaml").write_text(
+    (output / "clash-profile.yaml").write_text(
         "proxies: []\nproxy-groups: []\n", encoding="utf-8"
     )
     (output / ".metadata.json.lock").write_text("", encoding="utf-8")
@@ -229,6 +229,7 @@ def test_finalize_sanitizes_counts_sources_and_transients(tmp_path: Path) -> Non
     assert evidence["public_verified"] == 0
     assert not list(output.rglob("*.lock"))
     assert (output / "xray.json").is_file()
+    assert (output / "xray-profile.json").is_file()
     health = json.loads((output / "health.json").read_text(encoding="utf-8"))
     assert health["release_blockers"] == []
 
@@ -266,9 +267,9 @@ def test_release_gate_rejects_skipped_or_missing_native_validation(
             }
         },
     )
-    for name in ("singbox.json", "xray.json"):
+    for name in ("singbox-profile.json", "xray-profile.json"):
         write_json(root / name, {})
-    (root / "clash.yaml").write_text("proxies: []\n", encoding="utf-8")
+    (root / "clash-profile.yaml").write_text("proxies: []\nproxy-groups: []\nrules: []\n", encoding="utf-8")
     files = []
     for path in root.iterdir():
         if path.name == "artifact_manifest.json":
@@ -286,8 +287,8 @@ def test_release_gate_rejects_skipped_or_missing_native_validation(
         report,
         {
             "checks": [
-                {"core": "sing-box", "path": "singbox.json", "status": "skipped"},
-                {"core": "mihomo", "path": "clash.yaml", "status": "passed"},
+                {"core": "sing-box", "path": "singbox-profile.json", "status": "skipped"},
+                {"core": "mihomo", "path": "clash-profile.yaml", "status": "passed"},
             ]
         },
     )

@@ -7,9 +7,9 @@
       "status": "stable",
       "artifact_type": "full_config",
       "pipeline_outputs": [
-        "singbox.json",
-        "singbox-dns-safe.json",
-        "singbox-dns-hardened.json",
+        "singbox-profile.json",
+        "singbox-profile-dns-safe.json",
+        "singbox-profile-dns-hardened.json",
         "singbox-vpn.json",
         "singbox-vpn-dns-safe.json",
         "singbox-vpn-dns-hardened.json",
@@ -19,29 +19,29 @@
         "chains.json",
         "chains-dns-safe.json",
         "chains-dns-hardened.json",
-        "chosen/singbox.json",
+        "chosen/singbox-profile.json",
         "countries/*.json",
         "protocols/*.json"
       ],
       "structural_validator": "scripts/validate_pages_artifact.py",
       "optional_native_validator": "sing-box check -c <artifact>",
       "native_validation_status": "mandatory-release-ci",
-      "notes": "All listed artifacts are complete sing-box configurations, not bare outbound fragments or ConfigStream record arrays. Generators emit modern route actions and WireGuard endpoints directly; release finalization remains a defensive normalizer, and native checks target Sing-box 1.14.1 across root, chosen, country, and protocol configs."
+      "notes": "Full-config validation applies to explicit *-profile, VPN, chain, country, and protocol artifacts. The canonical singbox*.json short names are independent-node subscriptions and are validated separately."
     },
     {
       "core": "clash",
       "status": "stable",
       "artifact_type": "full_config",
       "pipeline_outputs": [
-        "clash.yaml",
-        "clash-dns-safe.yaml",
-        "clash-dns-hardened.yaml",
-        "chosen/clash.yaml"
+        "clash-profile.yaml",
+        "clash-profile-dns-safe.yaml",
+        "clash-profile-dns-hardened.yaml",
+        "chosen/clash-profile.yaml"
       ],
       "structural_validator": "scripts/validate_pages_artifact.py",
       "optional_native_validator": "mihomo -t -f <artifact>",
       "native_validation_status": "mandatory-release-ci",
-      "notes": "Uses dialer-proxy for supported chains; deprecated relay groups and unresolved references are rejected.",
+      "notes": "Runnable Mihomo profiles use explicit *-profile filenames. Canonical clash*.yaml files are proxies-only node subscriptions with dependency-bearing dialer-proxy entries excluded.",
       "display_name": "Mihomo / Clash Meta"
     },
     {
@@ -49,12 +49,12 @@
       "status": "stable",
       "artifact_type": "full_config",
       "pipeline_outputs": [
-        "xray.json"
+        "xray-profile.json"
       ],
       "structural_validator": "scripts/validate_pages_artifact.py",
       "optional_native_validator": "xray run -test -config <artifact>",
       "native_validation_status": "mandatory-release-ci",
-      "notes": "Modern flat VMess/VLESS settings with outbound, chaining, and routing reference validation. Chains use streamSettings.sockopt.dialerProxy (removed proxySettings is rejected), legacy HTTP/H2 is not silently relabeled as XHTTP, and release CI validates with Xray v26.9.9."
+      "notes": "Native Xray validation targets xray-profile.json. Canonical xray.json is an outbounds-only subscription designed for per-outbound import by subscription managers."
     }
   ],
   "planned_pipeline_outputs_requiring_implementation": [],
@@ -72,10 +72,17 @@
         "base64-dns-hardened.txt",
         "nekobox.json",
         "nekobox-dns-safe.json",
-        "nekobox-dns-hardened.json"
+        "nekobox-dns-hardened.json",
+        "singbox.json",
+        "singbox-dns-safe.json",
+        "singbox-dns-hardened.json",
+        "xray.json",
+        "clash.yaml",
+        "clash-dns-safe.yaml",
+        "clash-dns-hardened.yaml"
       ],
       "structural_validator": "scripts/validate_pages_artifact.py",
-      "notes": "URI/Base64 subscriptions are parity-checked. nekobox*.json uses NekoBox's minimal outbounds/endpoints multi-node container; complete sing-box JSON remains a single profile import."
+      "notes": "Node subscriptions are parity/shape checked. Sing-box JSON omits profile-level inbounds/DNS/route keys; Xray JSON is outbounds-only; Clash YAML is proxies-only, so supported importers expand independent nodes."
     },
     {
       "client": "NekoRay",
@@ -87,10 +94,11 @@
         "base64-dns-safe.txt",
         "proxies-dns-hardened.txt",
         "base64-dns-hardened.txt",
-        "singbox.json"
+        "singbox.json",
+        "xray.json"
       ],
       "structural_validator": "scripts/validate_pages_artifact.py",
-      "notes": "Share-link subscriptions are parity-checked; singbox.json is a complete profile document rather than a multi-node subscription container."
+      "notes": "Share-link and JSON node subscriptions are validated as independent-node feeds rather than runnable client profiles."
     }
   ]
 }

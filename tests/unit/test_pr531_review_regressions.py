@@ -51,8 +51,8 @@ def test_missing_required_native_target_fails_closed(
         if item["error"] == "required native artifact is unavailable"
     }
     assert missing == {
-        ("sing-box", "singbox.json"),
-        ("mihomo", "clash.yaml"),
+        ("sing-box", "singbox-profile.json"),
+        ("mihomo", "clash-profile.yaml"),
         ("xray", "xray.json"),
     }
 
@@ -76,9 +76,9 @@ def test_missing_native_validator_uses_required_artifact_path(
         if item["error"] == "required native validator binary is unavailable"
     }
     assert missing_tools == {
-        "sing-box": "singbox.json",
-        "mihomo": "clash.yaml",
-        "xray": "xray.json",
+        "sing-box": "singbox-profile.json",
+        "mihomo": "clash-profile.yaml",
+        "xray": "xray-profile.json",
     }
 
 

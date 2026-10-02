@@ -29,19 +29,45 @@ def _minimal_valid_matrix() -> dict[str, object]:
     outputs = []
     for rel_path in REQUIRED_EXISTS:
         family = "test"
+        is_client_config = False
         if rel_path.startswith("singbox-vpn"):
             family = "singbox-vpn"
-        elif rel_path.startswith("singbox"):
+            is_client_config = True
+        elif rel_path.startswith(("singbox-profile", "singbox-chains")):
             family = "singbox"
+            is_client_config = True
         elif rel_path.startswith("chains"):
             family = "chains"
+            is_client_config = True
+        elif rel_path.startswith("clash-profile"):
+            family = "clash"
+            is_client_config = True
+        elif rel_path == "xray-profile.json":
+            family = "xray"
+            is_client_config = True
+        elif rel_path == "chosen/singbox-profile.json":
+            family = "singbox"
+            is_client_config = True
+        elif rel_path == "chosen/clash-profile.yaml":
+            family = "clash"
+            is_client_config = True
+        elif rel_path.startswith("countries/") and rel_path.endswith(".json") and not rel_path.endswith(".list.json"):
+            family = "singbox"
+            is_client_config = True
+        elif rel_path.startswith("protocols/") and rel_path.endswith(".json") and not rel_path.endswith(".list.json"):
+            family = "singbox"
+            is_client_config = True
+        elif rel_path.startswith("singbox"):
+            family = "singbox"
         elif rel_path.startswith("clash"):
             family = "clash"
+        elif rel_path == "xray.json":
+            family = "xray"
         outputs.append(
             {
                 "path": rel_path,
                 "family": family,
-                "category": "control" if rel_path.endswith(".json") else "subscription",
+                "category": "client-config" if is_client_config else ("control" if rel_path.endswith(".json") else "subscription"),
                 "format": "json" if rel_path.endswith(".json") else "text",
                 "required": True,
                 "nonempty": rel_path in REQUIRED_NONEMPTY,
@@ -57,7 +83,11 @@ def _minimal_valid_matrix() -> dict[str, object]:
                 **(
                     {
                         "core_format": (
-                            "clash" if rel_path.startswith("clash") else "sing-box"
+                            "clash"
+                            if family == "clash"
+                            else "xray"
+                            if family == "xray"
+                            else "sing-box"
                         ),
                         "artifact_type": (
                             "full_config_alias"
@@ -65,7 +95,7 @@ def _minimal_valid_matrix() -> dict[str, object]:
                             else "full_config"
                         ),
                     }
-                    if rel_path.startswith(("singbox", "chains", "clash"))
+                    if is_client_config
                     else {}
                 ),
                 **(
@@ -174,7 +204,7 @@ def test_validate_output_matrix_requires_core_metadata_for_client_configs(
     singbox = next(
         item
         for item in outputs
-        if isinstance(item, dict) and item["path"] == "singbox.json"
+        if isinstance(item, dict) and item["path"] == "singbox-profile.json"
     )
     singbox.pop("core_format")
     _write_json(tmp_path / "matrix.json", matrix)

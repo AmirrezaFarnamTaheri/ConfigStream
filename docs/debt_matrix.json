@@ -304,7 +304,7 @@
     },
     {
       "path": "scripts/validate_pages_artifact.py",
-      "line": 873,
+      "line": 889,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -864,7 +864,7 @@
     },
     {
       "path": "src/configstream/output/metadata.py",
-      "line": 151,
+      "line": 167,
       "marker": "LARGE_FUNCTION",
       "category": "production",
       "priority": "P1 - High",
@@ -872,7 +872,7 @@
     },
     {
       "path": "src/configstream/output/metadata.py",
-      "line": 375,
+      "line": 391,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -880,7 +880,7 @@
     },
     {
       "path": "src/configstream/output/metadata.py",
-      "line": 535,
+      "line": 551,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",

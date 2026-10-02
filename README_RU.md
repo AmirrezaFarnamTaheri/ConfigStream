@@ -23,8 +23,8 @@ ConfigStream — это независимая платформа для авт�
 | **Топ 100 узлов (Top 100)** | [`top100.txt`](https://raw.githubusercontent.com/AmirrezaFarnamTaheri/ConfigStream/main/output/top100.txt) | — | Быстрый выбор |
 
 ### Конфигурации для продвинутых клиентов (Clash / Sing-box)
-- **Конфигурация Clash / Mihomo:** `https://raw.githubusercontent.com/AmirrezaFarnamTaheri/ConfigStream/main/output/clash.yaml`
-- **Конфигурация Sing-box (v1.13+):** `https://raw.githubusercontent.com/AmirrezaFarnamTaheri/ConfigStream/main/output/singbox.json`
+- **Подписка Clash / Mihomo с отдельными узлами:** `https://raw.githubusercontent.com/AmirrezaFarnamTaheri/ConfigStream/main/output/clash.yaml`
+- **JSON-подписка Sing-box с отдельными узлами:** `https://raw.githubusercontent.com/AmirrezaFarnamTaheri/ConfigStream/main/output/singbox.json`
 
 ---
 
@@ -48,7 +48,7 @@ ConfigStream — это независимая платформа для авт�
 ## 📱 Инструкция по настройке клиентов
 
 ### 1. Hiddify (Android, Windows, macOS, Linux, iOS)
-1. Скопируйте ссылку на Base64 или Singbox подписку.
+1. Добавьте `singbox.json`, `xray.json`, `clash.yaml`, Base64 или `nekobox.json` как URL подписки. После **Обновить подписку** поддерживаемые прокси импортируются и обновляются как отдельные записи. Полный профиль Sing-box опубликован отдельно как `singbox-profile.json`.
 2. В приложении нажмите **+ (Новый профиль)** $\rightarrow$ **Добавить из буфера обмена**.
 
 ### 2. v2rayNG / v2rayN / Streisand / Shadowrocket

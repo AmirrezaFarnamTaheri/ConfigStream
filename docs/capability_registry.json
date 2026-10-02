@@ -225,10 +225,11 @@
         "README.md"
       ],
       "outputs": [
-        "xray.json"
+        "xray.json",
+        "xray-profile.json"
       ],
       "limitations": [
-        "Xray output is release-validated structurally and by the pinned native client check; browser-only checks remain weaker than native validation."
+        "xray.json is structurally validated as an outbounds-only subscription; xray-profile.json is also validated by the pinned native client check; browser-only checks remain weaker than native validation."
       ],
       "cleanup_decision": "Keep Xray output stable only while generator, structural validator, native client gate, artifact manifest coverage, and documentation remain synchronized."
     },

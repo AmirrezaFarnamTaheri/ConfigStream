@@ -91,9 +91,6 @@ function initCopyButtons() {
             textToCopy = decodeURIComponent(config);
         } else if (file) {
             const FILE_MAP = {
-                'subscribe/singbox': 'singbox.json',
-                'subscribe/singbox-vpn': 'singbox-vpn.json',
-                'subscribe/clash': 'clash.yaml',
                 'subscribe/base64': 'base64.txt',
                 'subscribe/shadowrocket': 'shadowrocket.txt',
                 'subscribe/surge': 'surge.conf',
@@ -114,7 +111,7 @@ function initCopyButtons() {
                 }
                 await artifact.verifyFile(targetFile);
             } catch (error) {
-                console.warn('[Copy] Subscription link blocked:', error);
+                console.warn('[Copy] Artifact link blocked:', error);
                 button.setAttribute('title', `Copy blocked: ${error.message || error}`);
                 return;
             }

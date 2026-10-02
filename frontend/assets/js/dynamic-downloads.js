@@ -3,8 +3,10 @@ function initDynamicDownloads() {
     const dropdown = document.getElementById('client-selector-dropdown') ||
                      document.getElementById('client-selector');
     const desc = document.getElementById('client-desc');
-    const btn = document.getElementById('dynamic-copy-btn');
+    const btn = document.getElementById('dynamic-action-btn');
     const iconContainer = document.getElementById('dynamic-icon');
+    const actionIconContainer = document.getElementById('dynamic-action-icon');
+    const actionLabel = document.getElementById('dynamic-action-label');
     const profileSelector = document.getElementById('dns-profile-selector');
     const dnsToggle = document.getElementById('dns-safe-toggle');
 
@@ -17,11 +19,21 @@ function initDynamicDownloads() {
     const clients = {
         singbox: {
             descKey: "downloads.client.singbox.desc",
-            desc: "Complete sing-box JSON profile with routing and DNS.",
+            desc: "Sing-box JSON subscription. Updating the subscription imports every standalone outbound/endpoint as an independent proxy entry.",
             file: "singbox.json",
             dnsFile: "singbox-dns-safe.json",
             dnsHardenedFile: "singbox-dns-hardened.json",
-            icon: "shield"
+            icon: "shield",
+            action: "node"
+        },
+        xray: {
+            descKey: "downloads.client.xray.desc",
+            desc: "Xray JSON subscription. The outbounds-only payload is expanded into independent subscription entries by compatible clients such as v2rayN.",
+            file: "xray.json",
+            dnsFile: null,
+            dnsHardenedFile: null,
+            icon: "code",
+            action: "node"
         },
         nekobox: {
             descKey: "downloads.client.nekobox.desc",
@@ -29,7 +41,8 @@ function initDynamicDownloads() {
             file: "nekobox.json",
             dnsFile: "nekobox-dns-safe.json",
             dnsHardenedFile: "nekobox-dns-hardened.json",
-            icon: "server"
+            icon: "server",
+            action: "node"
         },
         singboxvpn: {
             descKey: "downloads.client.singboxvpn.desc",
@@ -37,15 +50,17 @@ function initDynamicDownloads() {
             file: "singbox-vpn.json",
             dnsFile: "singbox-vpn-dns-safe.json",
             dnsHardenedFile: "singbox-vpn-dns-hardened.json",
-            icon: "lock"
+            icon: "lock",
+            action: "download"
         },
         clash: {
             descKey: "downloads.client.clash.desc",
-            desc: "Clash YAML config (Clash Meta, Mihomo, Stash).",
+            desc: "Clash/Mihomo proxies-only subscription. Updating the URL refreshes the independent proxy list.",
             file: "clash.yaml",
             dnsFile: "clash-dns-safe.yaml",
             dnsHardenedFile: "clash-dns-hardened.yaml",
-            icon: "layers"
+            icon: "layers",
+            action: "node"
         },
         base64: {
             descKey: "downloads.client.base64.desc",
@@ -53,7 +68,8 @@ function initDynamicDownloads() {
             file: "base64.txt",
             dnsFile: "base64-dns-safe.txt",
             dnsHardenedFile: "base64-dns-hardened.txt",
-            icon: "file-text"
+            icon: "file-text",
+            action: "node"
         },
         plaintext: {
             descKey: "downloads.client.plaintext.desc",
@@ -61,7 +77,8 @@ function initDynamicDownloads() {
             file: "proxies.txt",
             dnsFile: "proxies-dns-safe.txt",
             dnsHardenedFile: "proxies-dns-hardened.txt",
-            icon: "list"
+            icon: "list",
+            action: "node"
         },
         shadowrocket: {
             descKey: "downloads.client.shadowrocket.desc",
@@ -69,7 +86,8 @@ function initDynamicDownloads() {
             file: "shadowrocket.txt",
             dnsFile: "shadowrocket-dns-safe.txt",
             dnsHardenedFile: "shadowrocket-dns-hardened.txt",
-            icon: "send"
+            icon: "send",
+            action: "copy"
         },
         surge: {
             descKey: "downloads.client.surge.desc",
@@ -77,7 +95,8 @@ function initDynamicDownloads() {
             file: "surge.conf",
             dnsFile: "surge-dns-safe.conf",
             dnsHardenedFile: "surge-dns-hardened.conf",
-            icon: "zap"
+            icon: "zap",
+            action: "copy"
         },
         loon: {
             descKey: "downloads.client.loon.desc",
@@ -85,7 +104,8 @@ function initDynamicDownloads() {
             file: "loon.conf",
             dnsFile: "loon-dns-safe.conf",
             dnsHardenedFile: "loon-dns-hardened.conf",
-            icon: "moon"
+            icon: "moon",
+            action: "copy"
         },
         quantumultx: {
             descKey: "downloads.client.quantumultx.desc",
@@ -93,7 +113,8 @@ function initDynamicDownloads() {
             file: "quantumult.conf",
             dnsFile: "quantumult-dns-safe.conf",
             dnsHardenedFile: "quantumult-dns-hardened.conf",
-            icon: "box"
+            icon: "box",
+            action: "copy"
         },
         sip008: {
             descKey: "downloads.client.sip008.desc",
@@ -101,7 +122,8 @@ function initDynamicDownloads() {
             file: "sip008.json",
             dnsFile: "sip008-dns-safe.json",
             dnsHardenedFile: null,
-            icon: "code"
+            icon: "code",
+            action: "copy"
         },
         chains: {
             descKey: "downloads.client.chains.desc",
@@ -109,7 +131,8 @@ function initDynamicDownloads() {
             file: "singbox-chains.json",
             dnsFile: "singbox-chains-dns-safe.json",
             dnsHardenedFile: "singbox-chains-dns-hardened.json",
-            icon: "link-2"
+            icon: "link-2",
+            action: "download"
         },
         sideproducts: {
             descKey: "downloads.client.sideproducts.desc",
@@ -117,7 +140,8 @@ function initDynamicDownloads() {
             file: "side_products.zip",
             dnsFile: "side_products-dns-safe.zip",
             dnsHardenedFile: "side_products-dns-hardened.zip",
-            icon: "package"
+            icon: "package",
+            action: "download"
         }
     };
     
@@ -154,7 +178,51 @@ function initDynamicDownloads() {
         } else if (profile === 'dns-safe' && client.dnsFile) {
             target = client.dnsFile;
         }
+        btn.dataset.baseFile = client.file;
+        if (client.dnsFile) {
+            btn.dataset.dnsFile = client.dnsFile;
+        } else {
+            delete btn.dataset.dnsFile;
+        }
+        if (client.dnsHardenedFile) {
+            btn.dataset.dnsHardenedFile = client.dnsHardenedFile;
+        } else {
+            delete btn.dataset.dnsHardenedFile;
+        }
         btn.dataset.file = target;
+
+        const isDownload = client.action === "download";
+        const isNodeSubscription = client.action === "node";
+        btn.dataset.action = isDownload ? "download" : "copy";
+        btn.classList.toggle('copy-btn', !isDownload);
+
+        const actionKey = isDownload
+            ? "downloads.download"
+            : isNodeSubscription
+                ? "downloads.copyNodeSubscription"
+                : "table.copy";
+        const fallbackAction = isDownload
+            ? "Download"
+            : isNodeSubscription
+                ? "Copy Node Subscription URL"
+                : "Copy Link";
+        if (actionLabel) {
+            actionLabel.dataset.i18n = actionKey;
+            const translated = window.i18n && typeof window.i18n.t === 'function'
+                ? window.i18n.t(actionKey)
+                : null;
+            actionLabel.textContent = translated && translated !== actionKey ? translated : fallbackAction;
+        }
+        btn.setAttribute(
+            'aria-label',
+            isDownload ? `Download ${target}` : `Copy link for ${target}`,
+        );
+        if (actionIconContainer) {
+            actionIconContainer.textContent = '';
+            const actionIcon = document.createElement('i');
+            actionIcon.setAttribute('data-feather', isDownload ? 'download-cloud' : 'copy');
+            actionIconContainer.appendChild(actionIcon);
+        }
 
         // Update main icon container
         if (iconContainer) {
@@ -171,6 +239,23 @@ function initDynamicDownloads() {
             window.inlineIcons.replace();
         }
     };
+
+    btn.addEventListener('click', () => {
+        if (btn.dataset.action !== 'download') return;
+        const target = btn.dataset.file;
+        if (!target) return;
+
+        // Route full-config/archive downloads through the same manifest-verified
+        // <a download> path used by the static download controls.
+        const anchor = document.createElement('a');
+        anchor.href = target;
+        anchor.download = target.split('/').pop();
+        anchor.dataset.file = target;
+        anchor.hidden = true;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+    });
 
     dropdown.addEventListener('change', (e) => updateUI(e.target.value));
     if (profileSelector) {
