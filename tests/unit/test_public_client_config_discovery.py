@@ -31,7 +31,7 @@ def test_discovers_every_public_full_client_config_and_excludes_record_lists(
         "chains.json",
         "countries/IR.json",
         "protocols/vless.json",
-        "chosen/singbox-profile.json",
+        "chosen/singbox.json",
         "chosen/singbox-profile.json",
         "countries/IR.list.json",
         "protocols/vless.list.json",
@@ -60,6 +60,7 @@ def test_discovers_every_public_full_client_config_and_excludes_record_lists(
         "clash-profile-dns-safe.yaml",
         "clash-profile.yaml",
     ]
+
 
 def test_nested_singbox_payload_uses_same_modernization_contract() -> None:
     payload = {
@@ -95,7 +96,7 @@ def test_finalizer_modernizes_nested_public_singbox_configs(tmp_path: Path) -> N
     for relative in (
         "countries/IR.json",
         "protocols/vless.json",
-        "chosen/singbox.json",
+        "chosen/singbox-profile.json",
     ):
         payload = json.loads((output / relative).read_text(encoding="utf-8"))
         assert payload["outbounds"] == [{"type": "direct", "tag": "direct"}]
