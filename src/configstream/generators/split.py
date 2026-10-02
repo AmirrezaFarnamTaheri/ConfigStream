@@ -345,9 +345,7 @@ def generate_split_outputs(
     singbox_dns_profile: Optional[Dict[str, Any]] = None,
     clash_dns_profile: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Path]:
-    """
-    Generates split outputs (Tank/Sniper strategies) and Clash.
-    """
+    """Generate split outputs for Tank/Sniper strategies and Clash."""
     files: Dict[str, Path] = {}
     suffix = f"-{name_suffix}" if name_suffix else ""
     key_suffix_str = f"_{key_suffix}" if key_suffix else ""
