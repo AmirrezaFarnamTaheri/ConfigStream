@@ -1526,10 +1526,10 @@
     {
       "declared_in_settings": true,
       "default": {
-        "current_status": 10,
-        "historical_success": 40,
-        "latency": 30,
-        "security": 20
+        "current_status": 10.0,
+        "historical_success": 40.0,
+        "latency": 30.0,
+        "security": 20.0
       },
       "name": "SCORE_WEIGHTS",
       "required": false,
