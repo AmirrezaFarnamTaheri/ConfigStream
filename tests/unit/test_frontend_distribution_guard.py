@@ -100,7 +100,7 @@ def test_client_format_links_are_node_subscription_actions() -> None:
 
     def selected_client_object(key: str) -> str:
         match = re.search(
-            rf"(?ms)^\\s{{8}}{re.escape(key)}:\\s*\\{{(?P<body>.*?)^\\s{{8}}\\}},",
+            rf"(?ms)^[ \t]*{re.escape(key)}:[ \t]*\{{(?P<body>.*?)^[ \t]*\}},[ \t]*$",
             dynamic,
         )
         assert match is not None, key
