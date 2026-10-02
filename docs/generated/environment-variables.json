@@ -480,7 +480,7 @@
     },
     {
       "declared_in_settings": true,
-      "default": 4,
+      "default": 4.0,
       "name": "DNS_SAFE_RESOLVE_TIMEOUT",
       "required": false,
       "sensitive": false,
@@ -559,7 +559,7 @@
     },
     {
       "declared_in_settings": true,
-      "default": 2,
+      "default": 2.0,
       "name": "EVENT_STREAM_FLUSH_TIMEOUT_SECONDS",
       "required": false,
       "sensitive": false,
@@ -989,7 +989,7 @@
     },
     {
       "declared_in_settings": true,
-      "default": 15,
+      "default": 15.0,
       "name": "LAB_TEST_TIMEOUT_SECONDS",
       "required": false,
       "sensitive": false,
@@ -1615,7 +1615,7 @@
     },
     {
       "declared_in_settings": true,
-      "default": 5,
+      "default": 5.0,
       "name": "SHUTDOWN_GRACE_SECONDS",
       "required": false,
       "sensitive": false,
@@ -1962,7 +1962,7 @@
     },
     {
       "declared_in_settings": true,
-      "default": 60,
+      "default": 60.0,
       "name": "WS_IDLE_TIMEOUT_SECONDS",
       "required": false,
       "sensitive": false,
@@ -1984,7 +1984,7 @@
     },
     {
       "declared_in_settings": true,
-      "default": 5,
+      "default": 5.0,
       "name": "WS_SEND_TIMEOUT_SECONDS",
       "required": false,
       "sensitive": false,
