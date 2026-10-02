@@ -328,9 +328,7 @@ def _write_tank_profile(
         _attach_dns_profile(config, singbox_dns_profile, has_proxy_selector)
 
     path = output_dir / f"singbox-vpn{suffix}.json"
-    AtomicFileWriter.write_text(
-        path, json.dumps(config, indent=2, ensure_ascii=False)
-    )
+    AtomicFileWriter.write_text(path, json.dumps(config, indent=2, ensure_ascii=False))
     return {f"singbox_vpn{key_suffix_str}": path}
 
 
