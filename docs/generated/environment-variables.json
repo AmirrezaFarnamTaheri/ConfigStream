@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "bc3268abe19c996746792978c852cb23495fbf8fc3fbe31d1defb67c42b0e6f5",
+  "source_digest": "002068e284256c9c8de2beba53f387499b85291b935f429b4b776510d8e02a46",
   "variable_count": 172,
   "variables": [
     {
@@ -380,7 +380,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/release_gate.py:384",
+        "scripts/release_gate.py:388",
         "scripts/snapshot_pages_release.py:506",
         "scripts/validate_frontend_placeholders.py:76",
         "scripts/validate_pages_artifact.py:226",
@@ -782,10 +782,10 @@
         "scripts/generate_evidence_bundle.py:20",
         "scripts/native_client_checks.py:248",
         "scripts/release_gate.py:208",
-        "scripts/release_gate.py:469",
+        "scripts/release_gate.py:473",
         "scripts/resilient_stage.py:491",
-        "scripts/validate_pages_artifact.py:1286",
-        "scripts/validate_pages_artifact.py:1323",
+        "scripts/validate_pages_artifact.py:1295",
+        "scripts/validate_pages_artifact.py:1332",
         "src/configstream/output/metadata.py:590",
         "src/configstream/output/metadata.py:627"
       ],
@@ -803,10 +803,10 @@
         "scripts/generate_evidence_bundle.py:19",
         "scripts/native_client_checks.py:247",
         "scripts/release_gate.py:207",
-        "scripts/release_gate.py:466",
+        "scripts/release_gate.py:470",
         "scripts/resilient_stage.py:490",
-        "scripts/validate_pages_artifact.py:1285",
-        "scripts/validate_pages_artifact.py:1322",
+        "scripts/validate_pages_artifact.py:1294",
+        "scripts/validate_pages_artifact.py:1331",
         "src/configstream/output/metadata.py:589",
         "src/configstream/output/metadata.py:626"
       ],
@@ -824,10 +824,10 @@
         "scripts/generate_evidence_bundle.py:21",
         "scripts/native_client_checks.py:246",
         "scripts/release_gate.py:206",
-        "scripts/release_gate.py:463",
+        "scripts/release_gate.py:467",
         "scripts/resilient_stage.py:492",
-        "scripts/validate_pages_artifact.py:1284",
-        "scripts/validate_pages_artifact.py:1321",
+        "scripts/validate_pages_artifact.py:1293",
+        "scripts/validate_pages_artifact.py:1330",
         "src/configstream/output/metadata.py:588",
         "src/configstream/output/metadata.py:625"
       ],
