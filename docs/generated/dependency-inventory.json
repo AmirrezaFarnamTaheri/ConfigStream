@@ -73,7 +73,7 @@
         "source": "src/go/tester/go.mod"
       },
       {
-        "constraint": "v0.56.0",
+        "constraint": "v0.57.0",
         "name": "golang.org/x/crypto",
         "source": "src/go/tester/go.mod"
       }
