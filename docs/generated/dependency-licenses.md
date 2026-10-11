@@ -146,7 +146,7 @@ Unknown licenses requiring external resolution: **148**
 | python | `frozenlist` | `1.8.0` | required | unknown |
 | python | `geographiclib` | `2.1` | required | unknown |
 | python | `geoip2` | `5.3.0` | required | unknown |
-| python | `geopy` | `2.4.1` | required | unknown |
+| python | `geopy` | `2.5.0` | required | unknown |
 | python | `h11` | `0.16.0` | required | unknown |
 | python | `h2` | `4.4.1` | required | unknown |
 | python | `hpack` | `4.2.0` | required | unknown |
@@ -160,7 +160,7 @@ Unknown licenses requiring external resolution: **148**
 | python | `maxminddb` | `3.1.1` | required | unknown |
 | python | `mdurl` | `0.1.2` | required | unknown |
 | python | `msgpack` | `1.2.1` | required | unknown |
-| python | `multidict` | `6.7.1` | required | unknown |
+| python | `multidict` | `6.9.1` | required | unknown |
 | python | `nest-asyncio` | `1.6.0` | required | unknown |
 | python | `orjson` | `3.11.9` | required | unknown |
 | python | `packaging` | `25.0` | required | unknown |

@@ -3333,7 +3333,7 @@
       "version": "5.3.0"
     },
     {
-      "bom-ref": "pkg:pypi/geopy@2.4.1",
+      "bom-ref": "pkg:pypi/geopy@2.5.0",
       "name": "geopy",
       "properties": [
         {
@@ -3349,10 +3349,10 @@
           "value": "requirements-prod.txt"
         }
       ],
-      "purl": "pkg:pypi/geopy@2.4.1",
+      "purl": "pkg:pypi/geopy@2.5.0",
       "scope": "required",
       "type": "library",
-      "version": "2.4.1"
+      "version": "2.5.0"
     },
     {
       "bom-ref": "pkg:pypi/h11@0.16.0",
@@ -3641,7 +3641,7 @@
       "version": "1.2.1"
     },
     {
-      "bom-ref": "pkg:pypi/multidict@6.7.1",
+      "bom-ref": "pkg:pypi/multidict@6.9.1",
       "name": "multidict",
       "properties": [
         {
@@ -3657,10 +3657,10 @@
           "value": "requirements-prod.txt"
         }
       ],
-      "purl": "pkg:pypi/multidict@6.7.1",
+      "purl": "pkg:pypi/multidict@6.9.1",
       "scope": "required",
       "type": "library",
-      "version": "6.7.1"
+      "version": "6.9.1"
     },
     {
       "bom-ref": "pkg:pypi/nest-asyncio@1.6.0",

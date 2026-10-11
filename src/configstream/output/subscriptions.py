@@ -13,7 +13,7 @@ from ..constants import (
     canonical_protocol_name,
 )
 from ..generators.plaintext import generate_plaintext_subscription
-from ..security_validator import _safe_proxy_ref, SecurityValidator
+from ..security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 
