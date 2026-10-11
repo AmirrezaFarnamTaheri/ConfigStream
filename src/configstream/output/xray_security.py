@@ -52,7 +52,6 @@ XRAY_PRIVATE_DOMAINS = (
 _SINGLE_LABEL_DOMAIN = re.compile(r"^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$")
 
 
-
 # Xray-core v26.9.9 rejects REALITY over WebSocket, HTTPUpgrade and mKCP
 # during outbound construction. Do not rewrite transports or downgrade security;
 # consumers must omit unsupported nodes from Xray-specific exports instead.

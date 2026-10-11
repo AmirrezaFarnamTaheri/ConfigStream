@@ -28,12 +28,19 @@ const outcomes=Object.fromEntries(modes.map(type=>{
 console.log(JSON.stringify(outcomes));
 """
     result = subprocess.run(
-        [node, "--input-type=module", "-e", script], cwd=ROOT,
-        capture_output=True, text=True, check=True, timeout=30,
+        [node, "--input-type=module", "-e", script],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+        timeout=30,
     )
     outcomes = json.loads(result.stdout)
     assert {k: outcomes[k] for k in ("raw", "tcp", "grpc", "xhttp")} == {
-        "raw": "raw", "tcp": "raw", "grpc": "grpc", "xhttp": "xhttp",
+        "raw": "raw",
+        "tcp": "raw",
+        "grpc": "grpc",
+        "xhttp": "xhttp",
     }
     for mode in ("ws", "websocket", "httpupgrade", "kcp", "mkcp"):
         assert "REALITY" in outcomes[mode]

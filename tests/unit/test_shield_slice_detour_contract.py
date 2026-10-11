@@ -52,7 +52,9 @@ def _shield_chain(shield_tag: str, payload_tag: str) -> list[dict[str, object]]:
     ]
 
 
-def _shielded_revived_proxy(index: int, shield_tag: str, *, working: bool = False) -> Proxy:
+def _shielded_revived_proxy(
+    index: int, shield_tag: str, *, working: bool = False
+) -> Proxy:
     payload_tag = f"🇽🇽 | REVIVED-VLESS+TCP+WARP | SHIELDED | {index:08x}"
     chain = _shield_chain(shield_tag, payload_tag)
     return Proxy(
@@ -150,7 +152,6 @@ def test_duplicate_shield_tags_uniquify_without_dangling_detours(
     assert errors == [], errors[:5]
 
 
-
 def test_unverified_shielded_candidate_is_diagnostic_only(tmp_path: Path) -> None:
     """No reintroduction of an unverified candidate via country/protocol import profiles."""
     proxy = _shielded_revived_proxy(9, "SHIELD-XX-9", working=False)
@@ -159,6 +160,10 @@ def test_unverified_shielded_candidate_is_diagnostic_only(tmp_path: Path) -> Non
     tags = {str(item.get("tag")) for item in _config_entries(country)}
     assert "SHIELD-XX-9" not in tags
     proto = _assert_contract_holds(generated["proto_revived"])
-    assert "SHIELD-XX-9" not in {str(item.get("tag")) for item in _config_entries(proto)}
-    rows = json.loads((tmp_path / "protocols" / "revived.list.json").read_text(encoding="utf-8"))
+    assert "SHIELD-XX-9" not in {
+        str(item.get("tag")) for item in _config_entries(proto)
+    }
+    rows = json.loads(
+        (tmp_path / "protocols" / "revived.list.json").read_text(encoding="utf-8")
+    )
     assert len(rows) == 1 and rows[0]["is_working"] is False

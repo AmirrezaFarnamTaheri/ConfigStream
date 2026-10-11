@@ -83,7 +83,7 @@ def _xray_detour_cycles(outbounds: list[dict[str, Any]]) -> list[str]:
         current = start
         while current in edges and current not in completed:
             if current in positions:
-                cycle = path[positions[current]:] + [current]
+                cycle = path[positions[current] :] + [current]
                 cycles.append(" -> ".join(cycle))
                 break
             positions[current] = len(path)
@@ -896,7 +896,9 @@ def validate_xray_json_subscription(
             )
         stream = outbound.get("streamSettings")
         if stream is not None and not isinstance(stream, dict):
-            errors.append(f"{file_name}.outbounds[{index}] streamSettings must be an object")
+            errors.append(
+                f"{file_name}.outbounds[{index}] streamSettings must be an object"
+            )
             continue
         stream_obj = stream if isinstance(stream, dict) else {}
         sockopt = stream_obj.get("sockopt")

@@ -7,17 +7,26 @@ import json
 
 import pytest
 
-from configstream.output.client_formats import generate_xray_config, validate_xray_config
+from configstream.output.client_formats import (
+    generate_xray_config,
+    validate_xray_config,
+)
 
 
 def _vless(network: str) -> dict:
     return {
-        "protocol": "vless", "address": "93.184.216.34", "port": 443,
+        "protocol": "vless",
+        "address": "93.184.216.34",
+        "port": 443,
         "uuid": "00000000-0000-0000-0000-00000000f003",
-        "remarks": network, "is_working": True,
+        "remarks": network,
+        "is_working": True,
         "details": {
-            "security": "reality", "net": network, "sni": "example.com",
-            "pbk": "fixture-key", "sid": "12345678",
+            "security": "reality",
+            "net": network,
+            "sni": "example.com",
+            "pbk": "fixture-key",
+            "sid": "12345678",
         },
     }
 
@@ -44,12 +53,22 @@ def test_supported_reality_transport_remains_enabled(network: str) -> None:
 @pytest.mark.parametrize("method", ["websocket", "httpupgrade", "mkcp", None, 1, []])
 def test_validator_rejects_invalid_reality_method(method: object) -> None:
     config = {
-        "outbounds": [{
-            "tag": "invalid-reality", "protocol": "vless",
-            "settings": {"address": "93.184.216.34", "port": 443, "id": "fixture-id"},
-            "streamSettings": {"security": "reality", "method": method,
-                               "realitySettings": {"password": "fixture"}},
-        }],
+        "outbounds": [
+            {
+                "tag": "invalid-reality",
+                "protocol": "vless",
+                "settings": {
+                    "address": "93.184.216.34",
+                    "port": 443,
+                    "id": "fixture-id",
+                },
+                "streamSettings": {
+                    "security": "reality",
+                    "method": method,
+                    "realitySettings": {"password": "fixture"},
+                },
+            }
+        ],
     }
     errors = validate_xray_config(config)
     assert any("REALITY" in error for error in errors)
@@ -57,15 +76,33 @@ def test_validator_rejects_invalid_reality_method(method: object) -> None:
 
 def test_incompatible_reality_hop_rejects_whole_chain() -> None:
     record = {
-        "protocol": "chain", "is_working": True,
-        "config": json.dumps({"outbounds": [
-            {"tag": "relay", "type": "vless", "server": "93.184.216.34",
-             "server_port": 443, "uuid": "00000000-0000-0000-0000-00000000f006",
-             "transport": {"type": "ws", "path": "/ws"},
-             "tls": {"enabled": True, "reality": {"enabled": True, "public_key": "fixture"}}},
-            {"tag": "exit", "type": "socks", "server": "127.0.0.1",
-             "server_port": 1080, "detour": "relay"},
-        ]}),
+        "protocol": "chain",
+        "is_working": True,
+        "config": json.dumps(
+            {
+                "outbounds": [
+                    {
+                        "tag": "relay",
+                        "type": "vless",
+                        "server": "93.184.216.34",
+                        "server_port": 443,
+                        "uuid": "00000000-0000-0000-0000-00000000f006",
+                        "transport": {"type": "ws", "path": "/ws"},
+                        "tls": {
+                            "enabled": True,
+                            "reality": {"enabled": True, "public_key": "fixture"},
+                        },
+                    },
+                    {
+                        "tag": "exit",
+                        "type": "socks",
+                        "server": "127.0.0.1",
+                        "server_port": 1080,
+                        "detour": "relay",
+                    },
+                ]
+            }
+        ),
     }
     config, report = generate_xray_config([record])
     assert report["emitted_records"] == 0

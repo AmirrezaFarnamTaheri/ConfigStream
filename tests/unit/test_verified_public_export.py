@@ -42,11 +42,16 @@ def test_export_pool_keeps_working_nodes_without_uri_and_not_failed_fallback() -
     assert get_export_pool([verified_no_uri, failed]) == [verified_no_uri]
 
 
-def test_categorized_import_profiles_exclude_failed_but_preserve_diagnostic_rows(tmp_path) -> None:
+def test_categorized_import_profiles_exclude_failed_but_preserve_diagnostic_rows(
+    tmp_path,
+) -> None:
     verified = _proxy("verified", working=True)
     failed = _proxy("failed", working=False)
     generate_categorized_lists([failed, verified], tmp_path)
-    for path in (tmp_path / "countries" / "US.json", tmp_path / "protocols" / "vless.json"):
+    for path in (
+        tmp_path / "countries" / "US.json",
+        tmp_path / "protocols" / "vless.json",
+    ):
         outbounds = json.loads(path.read_text(encoding="utf-8"))["outbounds"]
         tags = {item.get("tag") for item in outbounds}
         assert "verified" in tags
@@ -54,6 +59,8 @@ def test_categorized_import_profiles_exclude_failed_but_preserve_diagnostic_rows
     uri_text = (tmp_path / "protocols" / "vless.txt").read_text(encoding="utf-8")
     assert "verified.example" in uri_text
     assert "failed.example" not in uri_text
-    diagnostic_rows = json.loads((tmp_path / "protocols" / "vless.list.json").read_text(encoding="utf-8"))
+    diagnostic_rows = json.loads(
+        (tmp_path / "protocols" / "vless.list.json").read_text(encoding="utf-8")
+    )
     assert len(diagnostic_rows) == 2
     assert {item["is_working"] for item in diagnostic_rows} == {True, False}

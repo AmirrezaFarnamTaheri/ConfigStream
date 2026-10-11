@@ -278,7 +278,9 @@ def test_chosen_proxies_txt_respects_protocol_priority_order(tmp_path) -> None:
     assert chosen_lines[2].startswith("http://")
 
 
-def test_uri_artifacts_do_not_fallback_to_failed_when_working_pool_has_no_uris(tmp_path) -> None:
+def test_uri_artifacts_do_not_fallback_to_failed_when_working_pool_has_no_uris(
+    tmp_path,
+) -> None:
     """A verified WireGuard node must not export an unrelated failed revived URI."""
     proxies = [
         Proxy(
