@@ -69,6 +69,16 @@ Plaintext subscription files and their Base64 counterparts are contract pairs:
 
 Each plaintext file must be valid UTF-8 and contain syntactically valid share-link schemes. Each Base64 file must decode as UTF-8 and match its paired plaintext file exactly. Empty paired files are valid when no usable subscription lines are available.
 
+## Verified exports versus diagnostic records
+
+Client-importable subscription and full-profile artifacts (root, chosen, country,
+and protocol variants) select only records currently marked working by the
+pipeline. An inability to encode a verified WireGuard or other node as a share
+link must not trigger a fallback to failed, untested, or revival-candidate
+records. Plaintext/Base64 subscriptions may therefore be empty without being
+corrupt. Country/protocol `*.list.json` files retain all source records with
+explicit `is_working` fields for diagnostics; they are not client profiles.
+
 ## Compatibility and regression evidence
 
 Fixtures and regression tests exercise valid and invalid endpoint references, selector fallback, Mihomo chaining, Xray structure, NekoBox node-container shape, subscription parity, metadata schema compliance, public sanitisation, and complete generated Pages artifacts. The pre-fix CI runs demonstrated the previous contract mismatches; the repair-focused suite passes only after the generator, validator, fixture, matrix, and documentation assumptions are aligned.
