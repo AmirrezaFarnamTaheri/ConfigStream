@@ -1,15 +1,15 @@
 {
   "generated_from": "current tracked tree",
   "summary": {
-    "total": 247,
+    "total": 245,
     "markers": {
-      "BROAD_EXCEPTION": 236,
+      "BROAD_EXCEPTION": 234,
       "LARGE_FUNCTION": 9,
       "PLACEHOLDER": 2
     },
     "categories": {
       "other": 12,
-      "production": 198,
+      "production": 196,
       "tooling": 37
     }
   },
@@ -888,15 +888,7 @@
     },
     {
       "path": "src/configstream/output/subscriptions.py",
-      "line": 41,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/output/subscriptions.py",
-      "line": 178,
+      "line": 151,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -904,7 +896,7 @@
     },
     {
       "path": "src/configstream/output_handler.py",
-      "line": 132,
+      "line": 124,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -912,7 +904,7 @@
     },
     {
       "path": "src/configstream/output_handler.py",
-      "line": 140,
+      "line": 222,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -920,7 +912,7 @@
     },
     {
       "path": "src/configstream/output_handler.py",
-      "line": 211,
+      "line": 257,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -928,7 +920,7 @@
     },
     {
       "path": "src/configstream/output_handler.py",
-      "line": 245,
+      "line": 329,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -936,7 +928,7 @@
     },
     {
       "path": "src/configstream/output_handler.py",
-      "line": 316,
+      "line": 460,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -944,15 +936,7 @@
     },
     {
       "path": "src/configstream/output_handler.py",
-      "line": 447,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/output_handler.py",
-      "line": 601,
+      "line": 614,
       "marker": "LARGE_FUNCTION",
       "category": "production",
       "priority": "P1 - High",
@@ -960,7 +944,7 @@
     },
     {
       "path": "src/configstream/output_handler.py",
-      "line": 658,
+      "line": 671,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -968,7 +952,7 @@
     },
     {
       "path": "src/configstream/output_handler.py",
-      "line": 672,
+      "line": 685,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -976,7 +960,7 @@
     },
     {
       "path": "src/configstream/output_handler.py",
-      "line": 741,
+      "line": 754,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
