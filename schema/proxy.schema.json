@@ -1185,6 +1185,9 @@
         "shielded_verified": {
           "type": "boolean"
         },
+        "chain_verified": {
+          "type": "boolean"
+        },
         "origin_proxy": {
           "type": "object",
           "additionalProperties": true
