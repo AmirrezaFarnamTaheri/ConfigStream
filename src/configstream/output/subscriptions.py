@@ -25,40 +25,13 @@ def generate_base64_subscription(proxies: List[Proxy]) -> str:
 
 
 def get_export_pool(proxies: List[Proxy]) -> List[Proxy]:
-    """
-    Selects the pool of proxies to export in subscription files.
-    """
-    working = [p for p in proxies if p.is_working]
-    if working:
-        from configstream.adapters.shadowrocket import ShadowrocketAdapter
-        from configstream.generators.plaintext import _extract_uri
+    """Return eligible verified records for importable client artifacts.
 
-        adapter = ShadowrocketAdapter()
-        has_valid_uri = False
-        for p in working:
-            try:
-                uri = _extract_uri(p, adapter)
-            except Exception as exc:
-                logger.debug(
-                    "Skipped export URI probe for %s after %s",
-                    _safe_proxy_ref(p),
-                    exc.__class__.__name__,
-                )
-                uri = None
-            if uri and uri.strip():
-                has_valid_uri = True
-                break
-        if has_valid_uri:
-            return working
-        else:
-            return proxies
-
-    non_revived = [
-        p
-        for p in proxies
-        if not (p.protocol == "revived" or (p.details or {}).get("is_revived"))
-    ]
-    return non_revived if non_revived else proxies
+    Source and diagnostic datasets retain unsuccessful candidates separately.
+    A verified node without an available share URI must not cause unrelated
+    failed or untested nodes to leak into the public subscription pool.
+    """
+    return [proxy for proxy in proxies if proxy.is_working]
 
 
 def order_export_proxies(proxies: List[Proxy]) -> List[Proxy]:
