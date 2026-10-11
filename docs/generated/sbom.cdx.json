@@ -2689,7 +2689,7 @@
       "version": "1.2.8"
     },
     {
-      "bom-ref": "pkg:npm/source-map-js@1.2.1",
+      "bom-ref": "pkg:npm/source-map-js@1.2.2",
       "licenses": [
         {
           "license": {
@@ -2712,10 +2712,10 @@
           "value": "package-lock.json"
         }
       ],
-      "purl": "pkg:npm/source-map-js@1.2.1",
+      "purl": "pkg:npm/source-map-js@1.2.2",
       "scope": "optional",
       "type": "library",
-      "version": "1.2.1"
+      "version": "1.2.2"
     },
     {
       "bom-ref": "pkg:npm/tinyglobby@0.2.17",
