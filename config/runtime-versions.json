@@ -20,9 +20,9 @@
   },
   "go": {
     "language": "1.26.0",
-    "toolchain": "1.26.8",
-    "ci": "1.26.8",
-    "container": "1.26.8",
+    "toolchain": "1.26.9",
+    "ci": "1.26.9",
+    "container": "1.26.9",
     "container_variant": "alpine3.24"
   },
   "rust": {

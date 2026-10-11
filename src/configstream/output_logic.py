@@ -13,6 +13,7 @@ from .generators import (
     generate_clash_config,
     generate_split_outputs,
 )
+from .generators.clash import generate_clash_node_subscription
 from .dns_profiles import (
     build_singbox_dns_profile,
     build_clash_dns_profile,
@@ -33,7 +34,10 @@ from .output.metadata import (
     write_public_artifact_contract as write_public_artifact_contract,
 )
 from .output.public_lists import generate_categorized_lists
-from .output.client_formats import generate_nekobox_json_subscription
+from .output.client_formats import (
+    generate_nekobox_json_subscription,
+    generate_singbox_json_subscription,
+)
 from .output.native_configs import (
     build_dns_safe_proxies as _build_dns_safe_proxies,
     build_dns_hardened_proxies as _build_dns_hardened_proxies,
@@ -113,13 +117,31 @@ def generate_categorized_outputs(
         smart_chains=smart_chains,
     )
     generated_files.update(split_files)
-    if "singbox" in split_files:
-        generated_files["singbox_full"] = split_files["singbox"]
-        generated_files["master"] = split_files["singbox"]
-    if "clash" in split_files:
-        generated_files["clash_full"] = split_files["clash"]
+    if "singbox_profile" in split_files:
+        generated_files["singbox_full"] = split_files["singbox_profile"]
+        generated_files["master"] = split_files["singbox_profile"]
+    if "clash_profile" in split_files:
+        generated_files["clash_full"] = split_files["clash_profile"]
 
     ordered_pool = _order_export_proxies(export_pool)
+
+    # The canonical client-format subscription URLs are derived from the exact
+    # same ordered export pool as raw/Base64.  generate_split_outputs also builds
+    # richer runnable profiles and smart-chain graphs, but those must not leak
+    # into the node-subscription surface.
+    singbox_subscription_path = output_dir / "singbox.json"
+    AtomicFileWriter.write_text(
+        singbox_subscription_path,
+        generate_singbox_json_subscription(ordered_pool),
+    )
+    generated_files["singbox"] = singbox_subscription_path
+
+    clash_subscription_path = output_dir / "clash.yaml"
+    AtomicFileWriter.write_text(
+        clash_subscription_path,
+        generate_clash_node_subscription(ordered_pool, ignore_status=True),
+    )
+    generated_files["clash"] = clash_subscription_path
 
     # 3. Subscriptions
     raw_content = generate_plaintext_subscription(ordered_pool)
@@ -146,17 +168,29 @@ def generate_categorized_outputs(
         proxies, CHOSEN_TOP_PER_PROTOCOL, CHOSEN_TOTAL_TARGET
     )
 
+    chosen_ordered = _order_export_proxies(chosen)
     chosen_paths = {
         "base64.txt": (generate_base64_subscription(chosen), "chosen_base64"),
         "proxies.txt": (generate_plaintext_subscription(chosen), "chosen_proxies_txt"),
-        "singbox.json": (generate_singbox_config(chosen), "chosen_singbox"),
+        "singbox.json": (
+            generate_singbox_json_subscription(chosen_ordered),
+            "chosen_singbox",
+        ),
+        "singbox-profile.json": (
+            generate_singbox_config(chosen),
+            "chosen_singbox_profile",
+        ),
         "nekobox.json": (
-            generate_nekobox_json_subscription(_order_export_proxies(chosen)),
+            generate_nekobox_json_subscription(chosen_ordered),
             "chosen_nekobox_json",
         ),
         "clash.yaml": (
-            generate_clash_config(chosen, ignore_status=True),
+            generate_clash_node_subscription(chosen, ignore_status=True),
             "chosen_clash",
+        ),
+        "clash-profile.yaml": (
+            generate_clash_config(chosen, ignore_status=True),
+            "chosen_clash_profile",
         ),
     }
     for name, (content, key) in chosen_paths.items():
@@ -335,6 +369,21 @@ def _gen_dns_variation(
 
     # Subscriptions
     ordered = _order_export_proxies(_get_export_pool(proxies))
+
+    singbox_subscription_path = output_dir / f"singbox-{suffix}.json"
+    AtomicFileWriter.write_text(
+        singbox_subscription_path,
+        generate_singbox_json_subscription(ordered),
+    )
+    generated_files[f"singbox_{suffix_key}"] = singbox_subscription_path
+
+    clash_subscription_path = output_dir / f"clash-{suffix}.yaml"
+    AtomicFileWriter.write_text(
+        clash_subscription_path,
+        generate_clash_node_subscription(ordered, ignore_status=True),
+    )
+    generated_files[f"clash_{suffix_key}"] = clash_subscription_path
+
     raw = generate_plaintext_subscription(ordered)
     base64 = generate_base64_subscription(ordered)
 

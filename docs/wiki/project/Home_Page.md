@@ -22,7 +22,7 @@ Three primary "Action Cards" dominate the view, tailored for the most popular us
     *   *Engine*: Sing-box (Tun Mode).
 
 *   **The Sniper (Routing Mode)**
-    *   *File*: `singbox.json`
+    *   *File*: `singbox-profile.json`
     *   *Purpose*: Selective routing. Uses Geosite/GeoIP rules to route only blocked traffic through proxies while keeping local traffic direct. Optimized for speed and battery life.
     *   *Engine*: Sing-box (Rule Mode).
 
@@ -55,8 +55,8 @@ A condensed version of the Analytics page, showing:
 
 #### 5. Download Dropdown
 A secondary download section with a dropdown selector for all output formats:
-*   **Sing-box (JSON)** / **Sing-box VPN** — Primary configs.
-*   **Clash (YAML)** — For Clash Meta / Clash Verge users.
+*   **Sing-box JSON Subscription** / **Sing-box Profile** / **Sing-box VPN** — Independent nodes plus explicit runnable profiles.
+*   **Clash / Mihomo Subscription** / **Clash Profile** — Independent proxies plus the separate runnable profile for Clash Meta / Mihomo clients.
 *   **Base64 / Plain Text** — Universal subscription formats.
 *   **Shadowrocket / Surge / Quantumult X / Loon** — iOS/macOS client-specific formats.
 *   **Smart Chains / Revived / Full Dataset** — Advanced outputs.

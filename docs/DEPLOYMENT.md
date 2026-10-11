@@ -75,8 +75,10 @@ Ideal for local development or running on a dedicated server/VPS with isolation.
 ### Access
 -   Dashboard: `http://localhost:8000`
 -   Subscription: `http://localhost:8000/base64.txt`
--   Sing-box config: `http://localhost:8000/singbox.json`
--   Clash config: `http://localhost:8000/clash.yaml`
+-   Sing-box node subscription: `http://localhost:8000/singbox.json`
+-   Clash/Mihomo node subscription: `http://localhost:8000/clash.yaml`
+-   Sing-box runnable profile: `http://localhost:8000/singbox-profile.json`
+-   Clash/Mihomo runnable profile: `http://localhost:8000/clash-profile.yaml`
 
 ---
 

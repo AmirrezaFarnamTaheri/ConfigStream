@@ -522,6 +522,11 @@ export function singboxOutboundToXray(sbOut) {
             stream.kcpSettings = {};
         }
         if (stream.method === 'raw') stream.rawSettings = { header: { type: 'none' } };
+        // Xray-core v26.9.9 rejects REALITY over WS, HTTPUpgrade and mKCP.
+        // Do not quietly change transport or security on a user-created chain.
+        if (stream.security === 'reality' && !['raw', 'xhttp', 'grpc'].includes(stream.method)) {
+            throw new TypeError(`Xray REALITY supports only raw, xhttp and grpc transports (got ${stream.method})`);
+        }
         return stream;
     }
 

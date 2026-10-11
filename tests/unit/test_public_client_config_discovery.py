@@ -25,30 +25,40 @@ def test_discovers_every_public_full_client_config_and_excludes_record_lists(
 ) -> None:
     for relative in (
         "singbox.json",
+        "singbox-profile.json",
         "singbox-dns-safe.json",
+        "singbox-profile-dns-safe.json",
         "chains.json",
         "countries/IR.json",
         "protocols/vless.json",
         "chosen/singbox.json",
+        "chosen/singbox-profile.json",
         "countries/IR.list.json",
         "protocols/vless.list.json",
     ):
         _write(tmp_path / relative)
-    for relative in ("clash.yaml", "clash-dns-safe.yaml", "chosen/clash.yaml"):
+    for relative in (
+        "clash.yaml",
+        "clash-profile.yaml",
+        "clash-dns-safe.yaml",
+        "clash-profile-dns-safe.yaml",
+        "chosen/clash.yaml",
+        "chosen/clash-profile.yaml",
+    ):
         _write(tmp_path / relative, "proxies: []\n")
 
     assert _relative(tmp_path, discover_singbox_configs(tmp_path)) == [
         "chains.json",
-        "chosen/singbox.json",
+        "chosen/singbox-profile.json",
         "countries/IR.json",
         "protocols/vless.json",
-        "singbox-dns-safe.json",
-        "singbox.json",
+        "singbox-profile-dns-safe.json",
+        "singbox-profile.json",
     ]
     assert _relative(tmp_path, discover_mihomo_configs(tmp_path)) == [
-        "chosen/clash.yaml",
-        "clash-dns-safe.yaml",
-        "clash.yaml",
+        "chosen/clash-profile.yaml",
+        "clash-profile-dns-safe.yaml",
+        "clash-profile.yaml",
     ]
 
 
@@ -79,24 +89,24 @@ def test_finalizer_modernizes_nested_public_singbox_configs(tmp_path: Path) -> N
     _write(output / "metadata.json", "{}")
     _write(output / "countries/IR.json", json.dumps(legacy))
     _write(output / "protocols/vless.json", json.dumps(legacy))
-    _write(output / "chosen/singbox.json", json.dumps(legacy))
+    _write(output / "chosen/singbox-profile.json", json.dumps(legacy))
 
     finalize(output, tmp_path, 0.8)
 
     for relative in (
         "countries/IR.json",
         "protocols/vless.json",
-        "chosen/singbox.json",
+        "chosen/singbox-profile.json",
     ):
         payload = json.loads((output / relative).read_text(encoding="utf-8"))
         assert payload["outbounds"] == [{"type": "direct", "tag": "direct"}]
 
 
-def test_nekobox_node_container_is_not_discovered_as_full_singbox_config(
+def test_node_subscription_containers_are_not_discovered_as_full_singbox_configs(
     tmp_path: Path,
 ) -> None:
     (tmp_path / "singbox.json").write_text(
-        '{"outbounds": [{"type": "direct", "tag": "direct"}]}',
+        '{"outbounds": [{"type": "vless", "tag": "node"}], "endpoints": []}',
         encoding="utf-8",
     )
     (tmp_path / "nekobox.json").write_text(
@@ -109,5 +119,5 @@ def test_nekobox_node_container_is_not_discovered_as_full_singbox_config(
         for path in discover_singbox_configs(tmp_path)
     }
 
-    assert "singbox.json" in discovered
+    assert "singbox.json" not in discovered
     assert "nekobox.json" not in discovered

@@ -11,7 +11,7 @@ mypy_extensions==1.1.0
 mccabe==0.7.0
 pycodestyle==2.14.0
 pyflakes==3.4.0
-types-PyYAML==6.0.12.20260518
+types-PyYAML==6.0.12.20260906
 types-aiofiles==25.1.0.20260518
 types-cachetools==7.0.0.20260713
 types-orjson==3.6.2
@@ -22,7 +22,7 @@ wrapt==2.2.2
 # Testing
 backports.asyncio.runner==1.2.0; python_version < "3.11"
 coverage==7.16.1
-hypothesis==6.156.1
+hypothesis==6.168.1
 iniconfig==2.3.0
 playwright==1.61.0
 pluggy==1.6.0

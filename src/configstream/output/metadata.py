@@ -24,7 +24,7 @@ from ..constants import (
 
 logger = logging.getLogger(__name__)
 
-PUBLIC_CONTRACT_SCHEMA_VERSION = "1.0"
+PUBLIC_CONTRACT_SCHEMA_VERSION = "1.1"
 
 
 def _json_snapshot_sha256(payload: Any) -> str:
@@ -45,6 +45,26 @@ def _file_sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _is_client_config_path(rel_path: str) -> bool:
+    """Return whether a public artifact is a complete client/core config."""
+    name = rel_path.rsplit("/", 1)[-1]
+    if rel_path.startswith(("countries/", "protocols/")):
+        return rel_path.endswith(".json") and not rel_path.endswith(".list.json")
+    if rel_path in {
+        "xray-profile.json",
+        "chosen/singbox-profile.json",
+        "chosen/clash-profile.yaml",
+    }:
+        return True
+    return (
+        (name.startswith("singbox-profile") and name.endswith(".json"))
+        or (name.startswith("singbox-vpn") and name.endswith(".json"))
+        or (name.startswith("singbox-chains") and name.endswith(".json"))
+        or (name.startswith("chains") and name.endswith(".json"))
+        or (name.startswith("clash-profile") and name.endswith(".yaml"))
+    )
+
+
 def _artifact_category(rel_path: str) -> str:
     if rel_path in {"metadata.json", "health.json", "artifact_manifest.json"}:
         return "control"
@@ -56,6 +76,8 @@ def _artifact_category(rel_path: str) -> str:
         return "docs"
     if rel_path.startswith("data/"):
         return "analytics"
+    if _is_client_config_path(rel_path):
+        return "client-config"
     if rel_path.endswith(".zip"):
         return "side-product"
     return "subscription"

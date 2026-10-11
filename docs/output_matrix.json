@@ -172,7 +172,7 @@
       "nonempty": false,
       "schema_validation": false,
       "degraded_valid": true,
-      "notes": "NekoBox multi-node JSON subscription. A minimal object exposes standalone nodes through outbounds/endpoints arrays; unlike singbox.json it has no routing, DNS, or inbound profile policy.",
+      "notes": "NekoBox multi-node JSON subscription. A minimal object exposes standalone nodes through outbounds/endpoints arrays with no routing, DNS, inbound, helper-group, or detour policy, so current NekoBox expands the children as independent subscription items.",
       "client_compatibility": [
         "NekoBox"
       ],
@@ -217,9 +217,25 @@
       "nonempty": true,
       "schema_validation": false,
       "degraded_valid": true,
+      "notes": "Sing-box JSON node subscription; minimal outbounds/endpoints container with no inbound, DNS, route, selector, helper, or detour dependencies. Subscription updaters expand proxies as independent entries.",
+      "client_compatibility": [
+        "NekoBox",
+        "v2rayN"
+      ],
+      "validation": "minimal outbounds/endpoints node container; unique tags; no profile keys, helper groups, or detours"
+    },
+    {
+      "path": "singbox-profile.json",
+      "family": "singbox",
+      "category": "client-config",
+      "format": "json",
+      "required": true,
+      "nonempty": true,
+      "schema_validation": false,
+      "degraded_valid": true,
       "core_format": "sing-box",
       "artifact_type": "full_config",
-      "notes": "Complete Sing-box smart-routing profile imported as one full configuration, not a multi-node subscription. Generators emit modern route actions and WireGuard endpoints directly; JSON structure, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated."
+      "notes": "Complete Sing-box runnable client profile with routing/DNS policy, preserved separately from the node subscription."
     },
     {
       "path": "singbox-dns-safe.json",
@@ -230,9 +246,25 @@
       "nonempty": true,
       "schema_validation": false,
       "degraded_valid": true,
+      "notes": "Sing-box JSON node subscription (dns-safe); minimal outbounds/endpoints container with no inbound, DNS, route, selector, helper, or detour dependencies. Subscription updaters expand proxies as independent entries.",
+      "client_compatibility": [
+        "NekoBox",
+        "v2rayN"
+      ],
+      "validation": "minimal outbounds/endpoints node container; unique tags; no profile keys, helper groups, or detours"
+    },
+    {
+      "path": "singbox-profile-dns-safe.json",
+      "family": "singbox",
+      "category": "client-config",
+      "format": "json",
+      "required": true,
+      "nonempty": true,
+      "schema_validation": false,
+      "degraded_valid": true,
       "core_format": "sing-box",
       "artifact_type": "full_config",
-      "notes": "Sing-box DNS-safe configuration; JSON syntax, outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated."
+      "notes": "Complete Sing-box dns-safe runnable client profile with routing/DNS policy, preserved separately from the node subscription."
     },
     {
       "path": "singbox-dns-hardened.json",
@@ -243,14 +275,30 @@
       "nonempty": true,
       "schema_validation": false,
       "degraded_valid": true,
+      "notes": "Sing-box JSON node subscription (dns-hardened); minimal outbounds/endpoints container with no inbound, DNS, route, selector, helper, or detour dependencies. Subscription updaters expand proxies as independent entries.",
+      "client_compatibility": [
+        "NekoBox",
+        "v2rayN"
+      ],
+      "validation": "minimal outbounds/endpoints node container; unique tags; no profile keys, helper groups, or detours"
+    },
+    {
+      "path": "singbox-profile-dns-hardened.json",
+      "family": "singbox",
+      "category": "client-config",
+      "format": "json",
+      "required": true,
+      "nonempty": true,
+      "schema_validation": false,
+      "degraded_valid": true,
       "core_format": "sing-box",
       "artifact_type": "full_config",
-      "notes": "Sing-box DNS-hardened configuration; JSON syntax, outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated."
+      "notes": "Complete Sing-box dns-hardened runnable client profile with routing/DNS policy, preserved separately from the node subscription."
     },
     {
       "path": "singbox-vpn.json",
       "family": "singbox-vpn",
-      "category": "subscription",
+      "category": "client-config",
       "format": "json",
       "required": true,
       "nonempty": true,
@@ -263,7 +311,7 @@
     {
       "path": "singbox-vpn-dns-safe.json",
       "family": "singbox-vpn",
-      "category": "subscription",
+      "category": "client-config",
       "format": "json",
       "required": true,
       "nonempty": true,
@@ -276,7 +324,7 @@
     {
       "path": "singbox-vpn-dns-hardened.json",
       "family": "singbox-vpn",
-      "category": "subscription",
+      "category": "client-config",
       "format": "json",
       "required": true,
       "nonempty": true,
@@ -295,14 +343,26 @@
       "nonempty": true,
       "schema_validation": false,
       "degraded_valid": true,
-      "core_format": "clash",
-      "artifact_type": "full_config",
-      "notes": "Clash universal configuration; YAML syntax, proxy/group list shape, unique names, group references, and rule policy references are validated.",
+      "notes": "Clash/Mihomo node subscription; proxies-only YAML with no listener, DNS, routing, or proxy-group policy.",
       "client_compatibility": [
         "Mihomo",
         "Clash Meta",
         "NekoBox"
-      ]
+      ],
+      "validation": "proxies list; unique names; no dialer-proxy dependencies"
+    },
+    {
+      "path": "clash-profile.yaml",
+      "family": "clash",
+      "category": "client-config",
+      "format": "yaml",
+      "required": true,
+      "nonempty": true,
+      "schema_validation": false,
+      "degraded_valid": true,
+      "core_format": "clash",
+      "artifact_type": "full_config",
+      "notes": "Complete Clash/Mihomo runnable profile, preserved separately from the proxies-only subscription."
     },
     {
       "path": "clash-dns-safe.yaml",
@@ -313,14 +373,26 @@
       "nonempty": true,
       "schema_validation": false,
       "degraded_valid": true,
-      "core_format": "clash",
-      "artifact_type": "full_config",
-      "notes": "Clash DNS-safe configuration; YAML syntax, proxy/group list shape, unique names, group references, and rule policy references are validated.",
+      "notes": "Clash/Mihomo node subscription (dns-safe); proxies-only YAML with no listener, DNS, routing, or proxy-group policy.",
       "client_compatibility": [
         "Mihomo",
         "Clash Meta",
         "NekoBox"
-      ]
+      ],
+      "validation": "proxies list; unique names; no dialer-proxy dependencies"
+    },
+    {
+      "path": "clash-profile-dns-safe.yaml",
+      "family": "clash",
+      "category": "client-config",
+      "format": "yaml",
+      "required": true,
+      "nonempty": true,
+      "schema_validation": false,
+      "degraded_valid": true,
+      "core_format": "clash",
+      "artifact_type": "full_config",
+      "notes": "Complete Clash/Mihomo dns-safe runnable profile, preserved separately from the proxies-only subscription."
     },
     {
       "path": "clash-dns-hardened.yaml",
@@ -331,19 +403,31 @@
       "nonempty": true,
       "schema_validation": false,
       "degraded_valid": true,
-      "core_format": "clash",
-      "artifact_type": "full_config",
-      "notes": "Clash DNS-hardened configuration; YAML syntax, proxy/group list shape, unique names, group references, and rule policy references are validated.",
+      "notes": "Clash/Mihomo node subscription (dns-hardened); proxies-only YAML with no listener, DNS, routing, or proxy-group policy.",
       "client_compatibility": [
         "Mihomo",
         "Clash Meta",
         "NekoBox"
-      ]
+      ],
+      "validation": "proxies list; unique names; no dialer-proxy dependencies"
+    },
+    {
+      "path": "clash-profile-dns-hardened.yaml",
+      "family": "clash",
+      "category": "client-config",
+      "format": "yaml",
+      "required": true,
+      "nonempty": true,
+      "schema_validation": false,
+      "degraded_valid": true,
+      "core_format": "clash",
+      "artifact_type": "full_config",
+      "notes": "Complete Clash/Mihomo dns-hardened runnable profile, preserved separately from the proxies-only subscription."
     },
     {
       "path": "singbox-chains.json",
       "family": "chains",
-      "category": "subscription",
+      "category": "client-config",
       "format": "json",
       "required": true,
       "nonempty": true,
@@ -356,7 +440,7 @@
     {
       "path": "singbox-chains-dns-safe.json",
       "family": "chains",
-      "category": "subscription",
+      "category": "client-config",
       "format": "json",
       "required": true,
       "nonempty": true,
@@ -369,7 +453,7 @@
     {
       "path": "singbox-chains-dns-hardened.json",
       "family": "chains",
-      "category": "subscription",
+      "category": "client-config",
       "format": "json",
       "required": true,
       "nonempty": true,
@@ -382,7 +466,7 @@
     {
       "path": "chains.json",
       "family": "chains",
-      "category": "subscription",
+      "category": "client-config",
       "format": "json",
       "required": true,
       "nonempty": true,
@@ -395,7 +479,7 @@
     {
       "path": "chains-dns-safe.json",
       "family": "chains",
-      "category": "subscription",
+      "category": "client-config",
       "format": "json",
       "required": true,
       "nonempty": true,
@@ -408,7 +492,7 @@
     {
       "path": "chains-dns-hardened.json",
       "family": "chains",
-      "category": "subscription",
+      "category": "client-config",
       "format": "json",
       "required": true,
       "nonempty": true,
@@ -563,8 +647,20 @@
     },
     {
       "path": "chosen/singbox.json",
-      "family": "singbox",
+      "family": "chosen",
       "category": "subscription",
+      "format": "json",
+      "required": true,
+      "nonempty": true,
+      "schema_validation": false,
+      "degraded_valid": true,
+      "notes": "Chosen top-N Sing-box JSON node subscription; independent outbounds/endpoints only.",
+      "validation": "minimal outbounds/endpoints node container"
+    },
+    {
+      "path": "chosen/singbox-profile.json",
+      "family": "singbox",
+      "category": "client-config",
       "format": "json",
       "required": true,
       "nonempty": true,
@@ -572,12 +668,24 @@
       "degraded_valid": true,
       "core_format": "sing-box",
       "artifact_type": "full_config",
-      "notes": "Chosen top-N complete sing-box configuration; finalized and validated with the same contract as root sing-box artifacts."
+      "notes": "Chosen top-N complete Sing-box runnable profile."
     },
     {
       "path": "chosen/clash.yaml",
-      "family": "clash",
+      "family": "chosen",
       "category": "subscription",
+      "format": "yaml",
+      "required": true,
+      "nonempty": true,
+      "schema_validation": false,
+      "degraded_valid": true,
+      "notes": "Chosen top-N Clash/Mihomo proxies-only node subscription.",
+      "validation": "proxies-only YAML; no dialer-proxy dependencies"
+    },
+    {
+      "path": "chosen/clash-profile.yaml",
+      "family": "clash",
+      "category": "client-config",
       "format": "yaml",
       "required": true,
       "nonempty": true,
@@ -585,7 +693,7 @@
       "degraded_valid": true,
       "core_format": "clash",
       "artifact_type": "full_config",
-      "notes": "Chosen top-N complete Mihomo/Clash configuration; repaired and validated with the same contract as root Clash artifacts."
+      "notes": "Chosen top-N complete Clash/Mihomo runnable profile."
     },
     {
       "path": "data/clean_ips.json",
@@ -689,7 +797,7 @@
     {
       "path": "countries/*.json",
       "family": "singbox",
-      "category": "subscription",
+      "category": "client-config",
       "format": "json",
       "required": false,
       "nonempty": false,
@@ -713,7 +821,7 @@
     {
       "path": "protocols/*.json",
       "family": "singbox",
-      "category": "subscription",
+      "category": "client-config",
       "format": "json",
       "required": false,
       "nonempty": false,
@@ -743,9 +851,25 @@
       "nonempty": true,
       "schema_validation": false,
       "degraded_valid": true,
+      "notes": "Xray JSON node subscription; outbounds-only object with no inbound/routing policy or dialerProxy dependencies. Current v2rayN expands each valid outbound into an independent subscription item.",
+      "client_compatibility": [
+        "v2rayN",
+        "NekoBox"
+      ],
+      "validation": "outbounds-only JSON; no system outbounds; no dialerProxy dependencies"
+    },
+    {
+      "path": "xray-profile.json",
+      "family": "xray",
+      "category": "client-config",
+      "format": "json",
+      "required": true,
+      "nonempty": true,
+      "schema_validation": false,
+      "degraded_valid": true,
       "core_format": "xray",
       "artifact_type": "full_config",
-      "notes": "Complete Xray client profile imported as one full configuration, not a multi-node subscription. It uses modern flat VMess/VLESS settings and streamSettings.sockopt.dialerProxy for chains; removed proxySettings and unsafe legacy HTTP/H2-to-XHTTP relabeling are rejected. Structural references and the pinned Xray v26.9.9 native release check are enforced; plaintext Trojan and unencrypted VLESS public destinations follow Xray v26.9.9 private-destination rules, and incompatible chains are excluded as a whole."
+      "notes": "Complete runnable Xray client profile with local inbound and routing policy, preserved separately from the outbounds-only node subscription."
     }
   ],
   "remaining_work": []

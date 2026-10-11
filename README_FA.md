@@ -22,9 +22,9 @@
 | **امن و دارای PFS (Secure)** | [`secure/configs.txt`](https://raw.githubusercontent.com/AmirrezaFarnamTaheri/ConfigStream/main/output/secure/configs.txt) | [`secure/configs_base64.txt`](https://raw.githubusercontent.com/AmirrezaFarnamTaheri/ConfigStream/main/output/secure/configs_base64.txt) | Reality, Hysteria2, TUIC |
 | **۱۰۰ کانفیگ برتر (Top 100)** | [`top100.txt`](https://raw.githubusercontent.com/AmirrezaFarnamTaheri/ConfigStream/main/output/top100.txt) | — | انتخاب سریع |
 
-### اشتراک‌های کلاینت‌های تخصصی (Clash / Sing-box)
-- **اشتراک Clash / Mihomo:** `https://raw.githubusercontent.com/AmirrezaFarnamTaheri/ConfigStream/main/output/clash.yaml`
-- **اشتراک Sing-box (v1.13+):** `https://raw.githubusercontent.com/AmirrezaFarnamTaheri/ConfigStream/main/output/singbox.json`
+### اشتراک‌های فرمت کلاینت و پروفایل‌های کامل
+- **اشتراک Clash / Mihomo (گره‌های مستقل):** `https://raw.githubusercontent.com/AmirrezaFarnamTaheri/ConfigStream/main/output/clash.yaml`
+- **اشتراک Sing-box JSON (گره‌های مستقل):** `https://raw.githubusercontent.com/AmirrezaFarnamTaheri/ConfigStream/main/output/singbox.json`
 
 ---
 
@@ -49,7 +49,7 @@
 ## 📱 راهنمای راه‌اندازی در کلاینت‌های محبوب
 
 ### ۱. کلاینت Hiddify (اندروید، ویندوز، مک، لینوکس، iOS)
-1. لینک اشتراک Base64 یا Singbox را کپی کنید.
+1. لینک `singbox.json`، `xray.json`، `clash.yaml`، Base64 یا `nekobox.json` را به‌عنوان اشتراک اضافه کنید؛ با **Update Subscription** همهٔ گره‌های پشتیبانی‌شده به‌صورت ورودی‌های مستقل وارد و به‌روزرسانی می‌شوند. پروفایل کامل Sing-box در `singbox-profile.json` جداست.
 2. در نرم‌افزار روی دکمهٔ **+ (افزودن پروفایل)** بزنید.
 3. گزینهٔ **افزودن از کلیپ‌بورد (Add from Clipboard)** را انتخاب کنید.
 

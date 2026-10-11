@@ -207,11 +207,12 @@ flowchart LR
 
 ### 8.2 Public Client Artifact Contracts
 As codified in [`docs/client_format_contracts.md`](docs/client_format_contracts.md):
-1. **Sing-box JSON**: Emits validated `outbounds` and `endpoints`. Stale selector/URL-test groups fall back safely to `direct`.
-2. **Mihomo YAML**: Emits modern `dialer-proxy` chains, eliminating legacy `relay` groups.
-3. **Xray JSON**: Flat VMess/VLESS settings with non-empty outbounds and built-in routing rules.
-4. **NekoBox Multi-node JSON**: `nekobox*.json` emits a minimal JSON object containing only independent `outbounds` and modern `endpoints` arrays; current NekoBox expands those arrays into separate nodes, while full `singbox*.json` and `xray.json` remain complete profile documents.
-5. **Subscription Pairs**: Strict 1:1 UTF-8 plaintext $\leftrightarrow$ Base64 parity across `proxies.txt`, `proxies-dns-safe.txt`, and `proxies-dns-hardened.txt`.
+1. **Sing-box JSON subscription**: `singbox*.json` emits a minimal `outbounds` / `endpoints` node container with no inbound, routing, DNS, helper-group, or detour policy; supported nodes update independently.
+2. **Mihomo YAML subscription**: `clash*.yaml` emits a proxies-only node list with no listeners, DNS, routing, proxy groups, or `dialer-proxy` dependencies.
+3. **Xray JSON subscription**: `xray.json` is outbounds-only and excludes inbound/routing policy plus `dialerProxy` dependencies so compatible clients expand independent entries.
+4. **Runnable profiles**: `singbox-profile*.json`, `clash-profile*.yaml`, and `xray-profile.json` retain the complete native-core routing/DNS/profile behavior under explicit profile filenames.
+5. **NekoBox Multi-node JSON**: `nekobox*.json` emits a minimal JSON object containing only independent `outbounds` and modern `endpoints` arrays; current NekoBox expands those arrays into separate nodes.
+6. **Subscription Pairs**: Strict 1:1 UTF-8 plaintext $\leftrightarrow$ Base64 parity across `proxies.txt`, `proxies-dns-safe.txt`, and `proxies-dns-hardened.txt`.
 
 ### 8.3 Error Semantics & Boundary Validation
 - **Boundary Validation**: Deep validation and sanitization are enforced at the system edges (untrusted remote URLs, CLI inputs, Pages release boundary). Internal functions operate on typed immutable Pydantic/Go struct instances.

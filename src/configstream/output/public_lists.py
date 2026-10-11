@@ -41,8 +41,9 @@ def generate_categorized_lists(
 
     for cc in sorted(by_country.keys()):
         plist = by_country[cc]
+        verified = [proxy for proxy in plist if proxy.is_working]
         cpath = country_dir / f"{cc}.json"
-        AtomicFileWriter.write_text(cpath, generate_singbox_config(plist))
+        AtomicFileWriter.write_text(cpath, generate_singbox_config(verified))
 
         lpath = country_dir / f"{cc}.list.json"
         arr = [serialize_proxy(p) for p in plist]
@@ -57,8 +58,9 @@ def generate_categorized_lists(
 
     for proto in sorted(by_protocol.keys(), key=protocol_sort_key):
         plist = by_protocol[proto]
+        verified = [proxy for proxy in plist if proxy.is_working]
         ppath = proto_dir / f"{proto}.json"
-        AtomicFileWriter.write_text(ppath, generate_singbox_config(plist))
+        AtomicFileWriter.write_text(ppath, generate_singbox_config(verified))
 
         lpath = proto_dir / f"{proto}.list.json"
         arr = [serialize_proxy(p) for p in plist]
@@ -67,7 +69,7 @@ def generate_categorized_lists(
 
         generated_files[f"proto_{proto}"] = ppath
 
-        proto_uris = generate_plaintext_subscription(plist)
+        proto_uris = generate_plaintext_subscription(verified)
         if proto_uris.strip():
             uri_path = proto_dir / f"{proto}.txt"
             AtomicFileWriter.write_text(uri_path, proto_uris)

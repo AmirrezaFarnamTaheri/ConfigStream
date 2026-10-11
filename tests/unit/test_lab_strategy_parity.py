@@ -88,7 +88,8 @@ def test_lab_manual_clean_ip_table_uses_text_nodes() -> None:
         "function populateWarpIpSelect()", 1
     )[0]
     assert "tbody.replaceChildren()" in render_table
-    assert "ip.ip + ':' + ip.port" in render_table
+    assert "formatCleanIpEndpoint(ip)" in render_table
+    assert "parsePublishedCleanIp" in lab_js
     assert "textContent =" in render_table
     assert "innerHTML" not in render_table
     assert "parseManualCleanIpLine" in lab_js

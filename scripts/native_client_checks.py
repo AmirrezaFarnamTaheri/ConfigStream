@@ -190,7 +190,9 @@ def main() -> int:
     if singbox_binary is not None and singbox_digest is not None:
         singbox_paths = discover_singbox_configs(root)
         if not singbox_paths:
-            checks.append(missing_artifact("sing-box", "singbox.json", singbox_digest))
+            checks.append(
+                missing_artifact("sing-box", "singbox-profile.json", singbox_digest)
+            )
         for path in singbox_paths:
             checks.append(
                 run(
@@ -207,7 +209,9 @@ def main() -> int:
     if mihomo_binary is not None and mihomo_digest is not None:
         mihomo_paths = discover_mihomo_configs(root)
         if not mihomo_paths:
-            checks.append(missing_artifact("mihomo", "clash.yaml", mihomo_digest))
+            checks.append(
+                missing_artifact("mihomo", "clash-profile.yaml", mihomo_digest)
+            )
         for path in mihomo_paths:
             checks.append(
                 run(
@@ -221,7 +225,7 @@ def main() -> int:
 
     xray_binary = binaries["xray"]
     xray_digest = binary_digests["xray"]
-    xray_path = root / "xray.json"
+    xray_path = root / "xray-profile.json"
     if xray_binary is not None and xray_digest is not None:
         if xray_path.is_file() and not xray_path.is_symlink():
             checks.append(
@@ -234,7 +238,7 @@ def main() -> int:
                 )
             )
         else:
-            checks.append(missing_artifact("xray", "xray.json", xray_digest))
+            checks.append(missing_artifact("xray", "xray-profile.json", xray_digest))
     summary = {
         "passed": sum(item["status"] == "passed" for item in checks),
         "failed": sum(item["status"] == "failed" for item in checks),
@@ -299,9 +303,9 @@ def main() -> int:
 
 def _required_native_target(core: str) -> str:
     return {
-        "sing-box": "singbox.json",
-        "mihomo": "clash.yaml",
-        "xray": "xray.json",
+        "sing-box": "singbox-profile.json",
+        "mihomo": "clash-profile.yaml",
+        "xray": "xray-profile.json",
     }[core]
 
 

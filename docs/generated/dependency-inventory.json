@@ -41,7 +41,7 @@
     ],
     "container": [
       {
-        "constraint": "golang:1.26.8-alpine3.24",
+        "constraint": "golang:1.26.9-alpine3.24",
         "name": "go_builder",
         "source": "config/container-images.json"
       },
@@ -73,7 +73,7 @@
         "source": "src/go/tester/go.mod"
       },
       {
-        "constraint": "v0.56.0",
+        "constraint": "v0.57.0",
         "name": "golang.org/x/crypto",
         "source": "src/go/tester/go.mod"
       }
@@ -105,7 +105,7 @@
         "source": "package.json"
       },
       {
-        "constraint": "^8.3.0",
+        "constraint": "^8.3.1",
         "name": "vite",
         "scope": "devDependencies",
         "source": "package.json"

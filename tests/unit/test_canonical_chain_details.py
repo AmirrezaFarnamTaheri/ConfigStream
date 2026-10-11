@@ -96,7 +96,7 @@ def test_split_generator_uses_canonical_chain_details(tmp_path) -> None:
 
     files = generate_split_outputs([revived], tmp_path)
 
-    for key in ("singbox", "singbox_vpn"):
+    for key in ("singbox_profile", "singbox_vpn"):
         payload = json.loads(files[key].read_text(encoding="utf-8"))
         outbounds = payload.get("outbounds", [])
         endpoints = payload.get("endpoints", [])

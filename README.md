@@ -127,11 +127,11 @@ Key points:
 GitHub Pages is the primary publication target. A pipeline run is requested every four hours and on every push to `main`, but a full run takes roughly three hours, so `Preempt Stale ConfigStream Runs` supersedes an in-flight scheduled run as soon as a newer commit lands: in practice the site refreshes on pushes, and a quiet repository refreshes on the next four-hourly tick. The frontend blocks distribution once the artifact is older than 12 hours, and users should treat `health.json`, `metadata.json`, and `artifact_manifest.json` as the authority for current health, freshness, source commit, and artifact identity. Every artifact manifest is Ed25519-signed in CI and verified against the pinned `CS_PUBLIC_KEY` trust anchor before publication, before the last-known-good snapshot, and again in the visitor's browser; `config/pages-trust-policy.json` disables unsigned publication, so a missing signing key fails the deploy instead of publishing unverified data. Per-file SHA-256 hashes in the sealed manifest are re-checked in the browser on every download.
 
 Primary outputs:
-- singbox.json: complete sing-box smart-routing profile (one profile document)
+- singbox.json: Sing-box JSON node subscription (independent outbounds/endpoints)
 - singbox-vpn.json: complete sing-box TUN or VPN profile
-- xray.json: complete Xray client profile (one profile document; not a node subscription)
+- xray.json: Xray/V2Ray outbounds-only node subscription
 - nekobox.json: NekoBox multi-node JSON subscription (minimal outbounds/endpoints container)
-- clash.yaml: Clash-compatible
+- clash.yaml: Clash/Mihomo proxies-only node subscription
 - base64.txt: universal share-link subscription
 - chosen/base64.txt: curated low-latency subset
 
@@ -144,7 +144,8 @@ Derived outputs:
 
 Output notes:
 - Base64 and plaintext subscriptions include both native and revived proxy URIs for maximum coverage.
-- `nekobox*.json` is a minimal JSON object containing only independent `outbounds`/`endpoints` arrays, which NekoBox expands into separate nodes. Complete `singbox*.json` and `xray.json` documents remain full client profiles and are not interchangeable with node subscriptions.
+- **Subscriptions are node lists.** The canonical `singbox*.json`, `xray.json`, `clash*.yaml`, `nekobox*.json`, Base64, and plaintext URLs are all subscription surfaces whose supported proxies import as independent entries when the client updates the subscription.
+- Runnable full configurations are deliberately separate: `singbox-profile*.json`, `xray-profile.json`, and `clash-profile*.yaml`. `singbox-vpn*.json` and chain artifacts also remain full profiles.
 - JSON datasets expose metadata and stats used by the frontend and external tooling.
 - DNS-safe variants are available for all major outputs with the `-dns-safe` suffix (IP-only / pre-resolved endpoints). This is a strict subset — proxies that fail resolution are dropped.
 - DNS-hardened variants are available for all major outputs with the `-dns-hardened` suffix. They embed DoH/DoT/DoQ resolvers and prefer IP when available while keeping unresolved entries intact.
@@ -159,42 +160,51 @@ Stable capability claims are tracked in `docs/capability_registry.json`; core/cl
 
 | Output | Family | Format | Non-empty | Validation | Notes |
 | --- | --- | --- | --- | --- | --- |
-| `chains-dns-hardened.json` | chains | json | yes | json, references | Compatibility alias for singbox-chains-dns-hardened.json. |
-| `chains-dns-safe.json` | chains | json | yes | json, references | Compatibility alias for singbox-chains-dns-safe.json. |
-| `chains.json` | chains | json | yes | json, references | Compatibility alias for singbox-chains.json; JSON syntax is validated. |
-| `singbox-chains-dns-hardened.json` | chains | json | yes | json, references | DNS-hardened Sing-box chain outbounds; outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
-| `singbox-chains-dns-safe.json` | chains | json | yes | json, references | DNS-safe Sing-box chain outbounds; outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
-| `singbox-chains.json` | chains | json | yes | json, references | Sing-box chain outbounds; JSON syntax, outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
 | `chosen/base64-dns-hardened.txt` | chosen | base64 | no | presence | Chosen DNS-hardened base64 output. |
 | `chosen/base64-dns-safe.txt` | chosen | base64 | no | presence | Chosen DNS-safe base64 output. |
 | `chosen/base64.txt` | chosen | base64 | no | presence | Chosen top-N base64 output; empty is valid when chosen lines are unavailable. |
+| `chosen/clash.yaml` | chosen | yaml | yes | yaml | Chosen top-N Clash/Mihomo proxies-only node subscription. |
 | `chosen/nekobox-dns-hardened.json` | chosen | json | no | json | Chosen DNS-hardened NekoBox multi-node JSON subscription. |
 | `chosen/nekobox-dns-safe.json` | chosen | json | no | json | Chosen DNS-safe NekoBox multi-node JSON subscription. |
 | `chosen/nekobox.json` | chosen | json | no | json | Chosen top-N NekoBox multi-node JSON subscription. |
 | `chosen/proxies.txt` | chosen | text | no | presence | Chosen top-N newline-delimited share-link subscription; empty is valid when no proxies are selected. |
-| `chosen/clash.yaml` | clash | yaml | yes | yaml, references | Chosen top-N complete Mihomo/Clash configuration; repaired and validated with the same contract as root Clash artifacts. |
-| `clash-dns-hardened.yaml` | clash | yaml | yes | yaml, references | Clash DNS-hardened configuration; YAML syntax, proxy/group list shape, unique names, group references, and rule policy references are validated. |
-| `clash-dns-safe.yaml` | clash | yaml | yes | yaml, references | Clash DNS-safe configuration; YAML syntax, proxy/group list shape, unique names, group references, and rule policy references are validated. |
-| `clash.yaml` | clash | yaml | yes | yaml, references | Clash universal configuration; YAML syntax, proxy/group list shape, unique names, group references, and rule policy references are validated. |
+| `chosen/singbox.json` | chosen | json | yes | json | Chosen top-N Sing-box JSON node subscription; independent outbounds/endpoints only. |
+| `clash-dns-hardened.yaml` | clash | yaml | yes | yaml | Clash/Mihomo node subscription (dns-hardened); proxies-only YAML with no listener, DNS, routing, or proxy-group policy. |
+| `clash-dns-safe.yaml` | clash | yaml | yes | yaml | Clash/Mihomo node subscription (dns-safe); proxies-only YAML with no listener, DNS, routing, or proxy-group policy. |
+| `clash.yaml` | clash | yaml | yes | yaml | Clash/Mihomo node subscription; proxies-only YAML with no listener, DNS, routing, or proxy-group policy. |
 | `base64-dns-hardened.txt` | dns-hardened | base64 | no | presence | DNS-hardened subset; empty is valid under degraded data. |
 | `proxies-dns-hardened.txt` | dns-hardened | text | no | presence | DNS-hardened URI subscription lines. |
 | `base64-dns-safe.txt` | dns-safe | base64 | no | presence | DNS-safe subset; empty is valid under degraded data. |
 | `proxies-dns-safe.txt` | dns-safe | text | no | presence | DNS-safe URI subscription lines. |
 | `nekobox-dns-hardened.json` | nekobox | json | no | json | DNS-hardened NekoBox multi-node JSON subscription; empty is valid when no compatible nodes are available. |
 | `nekobox-dns-safe.json` | nekobox | json | no | json | DNS-safe NekoBox multi-node JSON subscription; empty is valid when no compatible nodes are available. |
-| `nekobox.json` | nekobox | json | no | json | NekoBox multi-node JSON subscription. A minimal object exposes standalone nodes through outbounds/endpoints arrays; unlike singbox.json it has no routing, DNS, or inbound profile policy. |
-| `chosen/singbox.json` | singbox | json | yes | json, references | Chosen top-N complete sing-box configuration; finalized and validated with the same contract as root sing-box artifacts. |
+| `nekobox.json` | nekobox | json | no | json | NekoBox multi-node JSON subscription. A minimal object exposes standalone nodes through outbounds/endpoints arrays with no routing, DNS, inbound, helper-group, or detour policy, so current NekoBox expands the children as independent subscription items. |
+| `singbox-dns-hardened.json` | singbox | json | yes | json | Sing-box JSON node subscription (dns-hardened); minimal outbounds/endpoints container with no inbound, DNS, route, selector, helper, or detour dependencies. Subscription updaters expand proxies as independent entries. |
+| `singbox-dns-safe.json` | singbox | json | yes | json | Sing-box JSON node subscription (dns-safe); minimal outbounds/endpoints container with no inbound, DNS, route, selector, helper, or detour dependencies. Subscription updaters expand proxies as independent entries. |
+| `singbox.json` | singbox | json | yes | json | Sing-box JSON node subscription; minimal outbounds/endpoints container with no inbound, DNS, route, selector, helper, or detour dependencies. Subscription updaters expand proxies as independent entries. |
+| `base64.txt` | universal | base64 | no | presence | May be empty when no usable subscription lines exist. |
+| `proxies.txt` | universal | text | no | presence | URI subscription lines. |
+| `xray.json` | xray | json | yes | json | Xray JSON node subscription; outbounds-only object with no inbound/routing policy or dialerProxy dependencies. Current v2rayN expands each valid outbound into an independent subscription item. |
+| `chains-dns-hardened.json` | chains | json | yes | json, references | Compatibility alias for singbox-chains-dns-hardened.json. |
+| `chains-dns-safe.json` | chains | json | yes | json, references | Compatibility alias for singbox-chains-dns-safe.json. |
+| `chains.json` | chains | json | yes | json, references | Compatibility alias for singbox-chains.json; JSON syntax is validated. |
+| `singbox-chains-dns-hardened.json` | chains | json | yes | json, references | DNS-hardened Sing-box chain outbounds; outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
+| `singbox-chains-dns-safe.json` | chains | json | yes | json, references | DNS-safe Sing-box chain outbounds; outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
+| `singbox-chains.json` | chains | json | yes | json, references | Sing-box chain outbounds; JSON syntax, outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
+| `chosen/clash-profile.yaml` | clash | yaml | yes | yaml, references | Chosen top-N complete Clash/Mihomo runnable profile. |
+| `clash-profile-dns-hardened.yaml` | clash | yaml | yes | yaml, references | Complete Clash/Mihomo dns-hardened runnable profile, preserved separately from the proxies-only subscription. |
+| `clash-profile-dns-safe.yaml` | clash | yaml | yes | yaml, references | Complete Clash/Mihomo dns-safe runnable profile, preserved separately from the proxies-only subscription. |
+| `clash-profile.yaml` | clash | yaml | yes | yaml, references | Complete Clash/Mihomo runnable profile, preserved separately from the proxies-only subscription. |
+| `chosen/singbox-profile.json` | singbox | json | yes | json, references | Chosen top-N complete Sing-box runnable profile. |
 | `countries/*.json` | singbox | json | no | json, references | Country-specific complete sing-box configurations; excludes the sibling *.list.json ConfigStream API arrays. |
 | `protocols/*.json` | singbox | json | no | json, references | Protocol-specific complete sing-box configurations; excludes the sibling *.list.json ConfigStream API arrays. |
-| `singbox-dns-hardened.json` | singbox | json | yes | json, references | Sing-box DNS-hardened configuration; JSON syntax, outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
-| `singbox-dns-safe.json` | singbox | json | yes | json, references | Sing-box DNS-safe configuration; JSON syntax, outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
-| `singbox.json` | singbox | json | yes | json, references | Complete Sing-box smart-routing profile imported as one full configuration, not a multi-node subscription. Generators emit modern route actions and WireGuard endpoints directly; JSON structure, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
+| `singbox-profile-dns-hardened.json` | singbox | json | yes | json, references | Complete Sing-box dns-hardened runnable client profile with routing/DNS policy, preserved separately from the node subscription. |
+| `singbox-profile-dns-safe.json` | singbox | json | yes | json, references | Complete Sing-box dns-safe runnable client profile with routing/DNS policy, preserved separately from the node subscription. |
+| `singbox-profile.json` | singbox | json | yes | json, references | Complete Sing-box runnable client profile with routing/DNS policy, preserved separately from the node subscription. |
 | `singbox-vpn-dns-hardened.json` | singbox-vpn | json | yes | json, references | VPN-mode DNS-hardened Sing-box configuration; outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
 | `singbox-vpn-dns-safe.json` | singbox-vpn | json | yes | json, references | VPN-mode DNS-safe Sing-box configuration; outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
 | `singbox-vpn.json` | singbox-vpn | json | yes | json, references | VPN-mode Sing-box configuration; outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
-| `base64.txt` | universal | base64 | no | presence | May be empty when no usable subscription lines exist. |
-| `proxies.txt` | universal | text | no | presence | URI subscription lines. |
-| `xray.json` | xray | json | yes | json, references | Complete Xray client profile imported as one full configuration, not a multi-node subscription. It uses modern flat VMess/VLESS settings and streamSettings.sockopt.dialerProxy for chains; removed proxySettings and unsafe legacy HTTP/H2-to-XHTTP relabeling are rejected. Structural references and the pinned Xray v26.9.9 native release check are enforced; plaintext Trojan and unencrypted VLESS public destinations follow Xray v26.9.9 private-destination rules, and incompatible chains are excluded as a whole. |
+| `xray-profile.json` | xray | json | yes | json, references | Complete runnable Xray client profile with local inbound and routing policy, preserved separately from the outbounds-only node subscription. |
 | `side_products-dns-hardened.zip` | side-products | zip | yes | zip, zip members | DNS-hardened side-product bundle; ZIP integrity, safe member paths, required proxies.txt, optional OpenVPN/WireGuard member patterns, and deploy-secret markers are validated. |
 | `side_products-dns-safe.zip` | side-products | zip | yes | zip, zip members | DNS-safe side-product bundle; ZIP integrity, safe member paths, required proxies.txt, optional OpenVPN/WireGuard member patterns, and deploy-secret markers are validated. |
 | `side_products.zip` | side-products | zip | yes | zip, zip members | Side-product bundle; ZIP integrity, safe member paths, required proxies.txt, optional OpenVPN/WireGuard member patterns, and deploy-secret markers are validated. |

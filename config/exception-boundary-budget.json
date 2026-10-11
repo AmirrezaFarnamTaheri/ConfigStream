@@ -39,8 +39,8 @@
     "src/configstream/intelligence/vectors.py": 1,
     "src/configstream/intelligence/washer/core.py": 8,
     "src/configstream/output/metadata.py": 2,
-    "src/configstream/output/subscriptions.py": 2,
-    "src/configstream/output_handler.py": 9,
+    "src/configstream/output/subscriptions.py": 1,
+    "src/configstream/output_handler.py": 8,
     "src/configstream/output_logic.py": 5,
     "src/configstream/output_transport.py": 1,
     "src/configstream/pipeline/consumer.py": 8,
@@ -67,8 +67,8 @@
     "src/configstream/utils/__init__.py": 4
   },
   "policy": {
-    "required_boundary_behavior": "catch only at a recovery or translation boundary; preserve cancellation and fail closed for security/publication",
-    "rule": "exact ratchet: new boundaries and stale ceilings fail CI",
+    "required_boundary_behavior": "catch only at a recovery or translation boundary; preserve cancellation and fail closed for security/publication; never silently discard a broad exception with pass",
+    "rule": "exact ratchet: new boundaries and stale ceilings fail CI; silent broad pass handlers are forbidden",
     "scope": [
       "src/configstream/**/*.py",
       "scripts/**/*.py"
@@ -76,5 +76,5 @@
     "target_total": 0
   },
   "schema_version": 1,
-  "total_ceiling": 224
+  "total_ceiling": 222
 }

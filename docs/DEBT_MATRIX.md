@@ -3,20 +3,20 @@
 ## Executive Summary
 This matrix represents **actionable** technical debt. Noise from test mocks, documentation placeholders, and historical reports has been filtered out.
 
-- Total actionable markers: **247**
-- `BROAD_EXCEPTION`: **236**
-- `LARGE_FUNCTION`: **9**
+- Total actionable markers: **244**
+- `BROAD_EXCEPTION`: **234**
+- `LARGE_FUNCTION`: **8**
 - `PLACEHOLDER`: **2**
 
 ## Categories
 
 - `other`: **12**
-- `production`: **198**
+- `production`: **195**
 - `tooling`: **37**
 
 ## Actionable Priorities
 
-### P1 - High (198)
+### P1 - High (195)
 - `src/configstream/adapters/loon.py`
 - `src/configstream/adapters/quantumult.py`
 - `src/configstream/adapters/shadowrocket.py`
@@ -27,7 +27,7 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - `src/configstream/backup.py`
 - `src/configstream/bot_cli.py`
 - `src/configstream/cli.py`
-- ... and 48 more files.
+- ... and 47 more files.
 
 ### P2 - Routine (49)
 - `scripts/check_license_headers.py`
@@ -84,7 +84,6 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 | `src/configstream/fetcher_worker.py` | 1 | BROAD_EXCEPTION |
 | `src/configstream/generators/clash.py` | 2 | BROAD_EXCEPTION |
 | `src/configstream/generators/singbox.py` | 1 | BROAD_EXCEPTION |
-| `src/configstream/generators/split.py` | 1 | LARGE_FUNCTION |
 | `src/configstream/geoip.py` | 3 | BROAD_EXCEPTION |
 | `src/configstream/hard_stop.py` | 3 | BROAD_EXCEPTION |
 | `src/configstream/history/export.py` | 4 | BROAD_EXCEPTION |
@@ -94,8 +93,8 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 | `src/configstream/intelligence/vectors.py` | 1 | BROAD_EXCEPTION |
 | `src/configstream/intelligence/washer/core.py` | 8 | BROAD_EXCEPTION |
 | `src/configstream/output/metadata.py` | 3 | BROAD_EXCEPTION, LARGE_FUNCTION |
-| `src/configstream/output/subscriptions.py` | 2 | BROAD_EXCEPTION |
-| `src/configstream/output_handler.py` | 10 | BROAD_EXCEPTION, LARGE_FUNCTION |
+| `src/configstream/output/subscriptions.py` | 1 | BROAD_EXCEPTION |
+| `src/configstream/output_handler.py` | 9 | BROAD_EXCEPTION, LARGE_FUNCTION |
 | `src/configstream/output_logic.py` | 5 | BROAD_EXCEPTION |
 | `src/configstream/output_transport.py` | 1 | BROAD_EXCEPTION |
 | `src/configstream/parsers/extraction.py` | 1 | LARGE_FUNCTION |
@@ -186,7 +185,7 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - L21 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `scripts/validate_pages_artifact.py`
-- L873 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
+- L952 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/adapters/loon.py`
 - L32 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
@@ -264,9 +263,6 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 ### `src/configstream/generators/singbox.py`
 - L157 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
-### `src/configstream/generators/split.py`
-- L220 [`LARGE_FUNCTION`] **P1 - High**: `Function generate_split_outputs spans 327 lines (threshold: 300).`
-
 ### `src/configstream/geoip.py`
 - L98 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 - L162 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
@@ -314,32 +310,30 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - L832 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/output/metadata.py`
-- L151 [`LARGE_FUNCTION`] **P1 - High**: `Function save_metadata spans 365 lines (threshold: 300).`
-- L375 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L535 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L173 [`LARGE_FUNCTION`] **P1 - High**: `Function save_metadata spans 365 lines (threshold: 300).`
+- L397 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L557 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/output/subscriptions.py`
-- L41 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L178 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L151 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/output_handler.py`
-- L132 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L140 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L211 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L245 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L316 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L447 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L601 [`LARGE_FUNCTION`] **P1 - High**: `Function generate_pipeline_outputs spans 356 lines (threshold: 300).`
-- L658 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L672 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L741 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L124 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L222 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L257 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L329 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L460 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L614 [`LARGE_FUNCTION`] **P1 - High**: `Function generate_pipeline_outputs spans 356 lines (threshold: 300).`
+- L671 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L685 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L754 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/output_logic.py`
-- L188 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L404 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L417 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L426 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L435 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L222 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L453 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L466 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L475 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L484 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/output_transport.py`
 - L51 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`

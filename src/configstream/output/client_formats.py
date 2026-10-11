@@ -15,7 +15,7 @@ from urllib.parse import urlsplit
 from ..converters import to_singbox_outbound
 from ..converters.singbox import wireguard_outbound_to_endpoint
 from ..models import Proxy
-from .xray_security import transport_security_error
+from .xray_security import reality_transport_error, transport_security_error
 
 _URI_SCHEME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*$")
 _XRAY_BUILTIN_TAGS = {"direct", "block"}
@@ -59,6 +59,38 @@ def _unique_tag(base: str, seen: set[str]) -> str:
         suffix += 1
     seen.add(tag)
     return tag
+
+
+def _xray_detour_cycles(outbounds: list[dict[str, Any]]) -> list[str]:
+    """Find detour cycles without recursion, including indirect cycles."""
+    edges: dict[str, str] = {}
+    for outbound in outbounds:
+        tag = outbound.get("tag")
+        stream = outbound.get("streamSettings")
+        if not isinstance(tag, str) or not isinstance(stream, dict):
+            continue
+        sockopt = stream.get("sockopt")
+        target = sockopt.get("dialerProxy") if isinstance(sockopt, dict) else None
+        if isinstance(target, str) and target:
+            edges[tag] = target
+    completed: set[str] = set()
+    cycles: list[str] = []
+    for start in edges:
+        if start in completed:
+            continue
+        positions: dict[str, int] = {}
+        path: list[str] = []
+        current = start
+        while current in edges and current not in completed:
+            if current in positions:
+                cycle = path[positions[current] :] + [current]
+                cycles.append(" -> ".join(cycle))
+                break
+            positions[current] = len(path)
+            path.append(current)
+            current = edges[current]
+        completed.update(path)
+    return cycles
 
 
 def _normalise_alpn(value: Any) -> list[str]:
@@ -192,6 +224,9 @@ def _xray_stream_settings(outbound: dict[str, Any]) -> dict[str, Any] | None:
     else:
         stream["security"] = "none"
 
+    # Do not downgrade TLS or mutate transport semantics for Xray compatibility.
+    if reality_transport_error(stream["security"], method):
+        return None
     return stream
 
 
@@ -451,6 +486,8 @@ def generate_xray_config(
 
         tag_map: dict[str, str] = {}
         pending: list[tuple[dict[str, Any], str]] = []
+        original_tags: set[str] = set()
+        ambiguous_tags = False
         for candidate in candidates:
             original = str(candidate.get("tag") or "")
             base = _clean_tag(candidate.get("tag"), f"{protocol}-{len(seen) + 1}")
@@ -463,7 +500,14 @@ def generate_xray_config(
                 suffix += 1
             pending.append((candidate, tag))
             if original:
+                if original in original_tags:
+                    ambiguous_tags = True
+                original_tags.add(original)
                 tag_map[original] = tag
+        # Renaming duplicate tags would silently redirect detour dependencies.
+        if ambiguous_tags:
+            unsupported[protocol] += 1
+            continue
         converted_batch: list[dict[str, Any]] = []
         for candidate, tag in pending:
             detour = candidate.get("detour")
@@ -487,6 +531,7 @@ def generate_xray_config(
             not converted_batch
             or len(converted_batch) != len(pending)
             or missing_detour
+            or _xray_detour_cycles(converted_batch)
         ):
             unsupported[protocol] += 1
         else:
@@ -543,6 +588,44 @@ def generate_xray_config(
         "unsupported": dict(unsupported),
     }
     return config, report
+
+
+def generate_xray_json_subscription(
+    records: list[dict[str, Any]],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Render an Xray JSON subscription as independently importable outbounds.
+
+    The absence of ``inbounds`` is intentional: current v2rayN treats an
+    object with both inbounds/outbounds as one custom configuration, but
+    expands an outbounds-only document into subscription items.  Outbounds
+    that depend on another outbound through ``dialerProxy`` are omitted so
+    every emitted entry remains usable on its own.
+    """
+    full, report = generate_xray_config(records)
+    independent: list[dict[str, Any]] = []
+    dependency_omitted = 0
+    for outbound in full.get("outbounds", []):
+        if not isinstance(outbound, dict):
+            continue
+        protocol = str(outbound.get("protocol") or "").lower()
+        if protocol in {"freedom", "blackhole", "dns", "loopback"}:
+            continue
+        dialer = (
+            outbound.get("streamSettings", {}).get("sockopt", {}).get("dialerProxy")
+        )
+        if dialer:
+            dependency_omitted += 1
+            continue
+        independent.append(outbound)
+
+    subscription = {"outbounds": independent}
+    subscription_report = {
+        **report,
+        "target": "Xray/v2rayN outbound subscription",
+        "outbound_count": len(independent),
+        "dependency_omitted": dependency_omitted,
+    }
+    return subscription, subscription_report
 
 
 def validate_xray_config(payload: object, file_name: str = "xray.json") -> list[str]:
@@ -691,6 +774,11 @@ def validate_xray_config(payload: object, file_name: str = "xray.json") -> list[
                             )
                         )
             stream_method = stream_settings.get("method")
+            compatibility_error = reality_transport_error(
+                stream_settings.get("security"), stream_method
+            )
+            if compatibility_error:
+                errors.append(f"{file_name} outbounds[{index}] {compatibility_error}")
             if (
                 not isinstance(stream_method, str)
                 or stream_method not in _XRAY_STREAM_METHOD_SETTINGS
@@ -727,6 +815,8 @@ def validate_xray_config(payload: object, file_name: str = "xray.json") -> list[
     for location, reference in references:
         if reference not in tags and reference not in _XRAY_BUILTIN_TAGS:
             errors.append(f"{file_name} {location} references unknown tag: {reference}")
+    for cycle in _xray_detour_cycles([ob for ob in outbounds if isinstance(ob, dict)]):
+        errors.append(f"{file_name} contains a dialerProxy detour cycle: {cycle}")
     return errors
 
 
@@ -775,6 +865,56 @@ def validate_mihomo_config(payload: object, file_name: str) -> list[str]:
                         errors.append(
                             f"{file_name} proxies[{index}] wireguard missing {key}"
                         )
+    return errors
+
+
+def validate_xray_json_subscription(
+    payload: object, file_name: str = "xray.json"
+) -> list[str]:
+    """Validate the outbounds-only Xray subscription contract."""
+    if not isinstance(payload, dict):
+        return [f"{file_name} must be a JSON object"]
+    unexpected = sorted(str(key) for key in payload if key != "outbounds")
+    errors: list[str] = []
+    if unexpected:
+        errors.append(
+            f"{file_name} contains profile-level/unsupported top-level keys: "
+            + ", ".join(unexpected)
+        )
+    outbounds = payload.get("outbounds")
+    if not isinstance(outbounds, list):
+        errors.append(f"{file_name}.outbounds must be an array")
+        return errors
+    for index, outbound in enumerate(outbounds):
+        if not isinstance(outbound, dict):
+            errors.append(f"{file_name}.outbounds[{index}] must be an object")
+            continue
+        protocol = str(outbound.get("protocol") or "").lower()
+        if protocol in {"", "freedom", "blackhole", "dns", "loopback"}:
+            errors.append(
+                f"{file_name}.outbounds[{index}] is not an independent proxy outbound"
+            )
+        stream = outbound.get("streamSettings")
+        if stream is not None and not isinstance(stream, dict):
+            errors.append(
+                f"{file_name}.outbounds[{index}] streamSettings must be an object"
+            )
+            continue
+        stream_obj = stream if isinstance(stream, dict) else {}
+        sockopt = stream_obj.get("sockopt")
+        if sockopt is not None and not isinstance(sockopt, dict):
+            errors.append(f"{file_name}.outbounds[{index}] sockopt must be an object")
+            continue
+        dialer = sockopt.get("dialerProxy") if isinstance(sockopt, dict) else None
+        if dialer:
+            errors.append(
+                f"{file_name}.outbounds[{index}] depends on dialerProxy {dialer}"
+            )
+        compatibility_error = reality_transport_error(
+            stream_obj.get("security"), stream_obj.get("method")
+        )
+        if compatibility_error:
+            errors.append(f"{file_name}.outbounds[{index}] {compatibility_error}")
     return errors
 
 
@@ -839,6 +979,23 @@ def generate_nekobox_json_subscription(proxies: list[Proxy]) -> str:
     return json.dumps(payload, indent=2, ensure_ascii=False) + "\n"
 
 
+def generate_singbox_json_subscription(proxies: list[Proxy]) -> str:
+    """Render a Sing-box JSON subscription whose entries are independent nodes.
+
+    The wire shape intentionally matches the proven NekoBox/v2rayN
+    outbounds/endpoints container and contains no inbound, DNS or route policy
+    that could make a subscription updater classify it as one full profile.
+    """
+    return generate_nekobox_json_subscription(proxies)
+
+
+def validate_singbox_json_subscription(
+    payload: object, file_name: str = "singbox.json"
+) -> list[str]:
+    """Validate a Sing-box node subscription with the minimal container contract."""
+    return validate_nekobox_json_subscription(payload, file_name)
+
+
 def validate_nekobox_json_subscription(
     payload: object, file_name: str = "nekobox.json"
 ) -> list[str]:
@@ -901,6 +1058,42 @@ def validate_nekobox_json_subscription(
             if any(str(key).startswith("_") for key in item):
                 errors.append(f"{location} contains private ConfigStream metadata")
 
+    return errors
+
+
+def validate_clash_node_subscription(
+    payload: object, file_name: str = "clash.yaml"
+) -> list[str]:
+    """Validate proxies-only Clash/Mihomo subscription YAML."""
+    if not isinstance(payload, dict):
+        return [f"{file_name} must be a YAML mapping"]
+    errors: list[str] = []
+    unexpected = sorted(str(key) for key in payload if key != "proxies")
+    if unexpected:
+        errors.append(
+            f"{file_name} contains profile-level/unsupported top-level keys: "
+            + ", ".join(unexpected)
+        )
+    proxies = payload.get("proxies")
+    if not isinstance(proxies, list):
+        errors.append(f"{file_name}.proxies must be a list")
+        return errors
+    names: set[str] = set()
+    for index, proxy in enumerate(proxies):
+        if not isinstance(proxy, dict):
+            errors.append(f"{file_name}.proxies[{index}] must be an object")
+            continue
+        name = str(proxy.get("name") or "").strip()
+        if not name:
+            errors.append(f"{file_name}.proxies[{index}] missing name")
+        elif name in names:
+            errors.append(f"{file_name} duplicate proxy name: {name}")
+        else:
+            names.add(name)
+        if not str(proxy.get("type") or "").strip():
+            errors.append(f"{file_name}.proxies[{index}] missing type")
+        if proxy.get("dialer-proxy") not in (None, ""):
+            errors.append(f"{file_name}.proxies[{index}] depends on dialer-proxy")
     return errors
 
 

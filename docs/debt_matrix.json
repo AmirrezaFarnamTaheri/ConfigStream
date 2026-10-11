@@ -1,15 +1,15 @@
 {
   "generated_from": "current tracked tree",
   "summary": {
-    "total": 247,
+    "total": 244,
     "markers": {
-      "BROAD_EXCEPTION": 236,
-      "LARGE_FUNCTION": 9,
+      "BROAD_EXCEPTION": 234,
+      "LARGE_FUNCTION": 8,
       "PLACEHOLDER": 2
     },
     "categories": {
       "other": 12,
-      "production": 198,
+      "production": 195,
       "tooling": 37
     }
   },
@@ -304,7 +304,7 @@
     },
     {
       "path": "scripts/validate_pages_artifact.py",
-      "line": 873,
+      "line": 952,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -615,14 +615,6 @@
       "text": "Broad exception boundary requires semantic review and structured outcome."
     },
     {
-      "path": "src/configstream/generators/split.py",
-      "line": 220,
-      "marker": "LARGE_FUNCTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Function generate_split_outputs spans 327 lines (threshold: 300)."
-    },
-    {
       "path": "src/configstream/geoip.py",
       "line": 98,
       "marker": "BROAD_EXCEPTION",
@@ -864,7 +856,7 @@
     },
     {
       "path": "src/configstream/output/metadata.py",
-      "line": 151,
+      "line": 173,
       "marker": "LARGE_FUNCTION",
       "category": "production",
       "priority": "P1 - High",
@@ -872,7 +864,7 @@
     },
     {
       "path": "src/configstream/output/metadata.py",
-      "line": 375,
+      "line": 397,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -880,7 +872,7 @@
     },
     {
       "path": "src/configstream/output/metadata.py",
-      "line": 535,
+      "line": 557,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -888,15 +880,7 @@
     },
     {
       "path": "src/configstream/output/subscriptions.py",
-      "line": 41,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/output/subscriptions.py",
-      "line": 178,
+      "line": 151,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -904,7 +888,7 @@
     },
     {
       "path": "src/configstream/output_handler.py",
-      "line": 132,
+      "line": 124,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -912,7 +896,7 @@
     },
     {
       "path": "src/configstream/output_handler.py",
-      "line": 140,
+      "line": 222,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -920,7 +904,7 @@
     },
     {
       "path": "src/configstream/output_handler.py",
-      "line": 211,
+      "line": 257,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -928,7 +912,7 @@
     },
     {
       "path": "src/configstream/output_handler.py",
-      "line": 245,
+      "line": 329,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -936,7 +920,7 @@
     },
     {
       "path": "src/configstream/output_handler.py",
-      "line": 316,
+      "line": 460,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -944,15 +928,7 @@
     },
     {
       "path": "src/configstream/output_handler.py",
-      "line": 447,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/output_handler.py",
-      "line": 601,
+      "line": 614,
       "marker": "LARGE_FUNCTION",
       "category": "production",
       "priority": "P1 - High",
@@ -960,7 +936,7 @@
     },
     {
       "path": "src/configstream/output_handler.py",
-      "line": 658,
+      "line": 671,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -968,7 +944,7 @@
     },
     {
       "path": "src/configstream/output_handler.py",
-      "line": 672,
+      "line": 685,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -976,7 +952,7 @@
     },
     {
       "path": "src/configstream/output_handler.py",
-      "line": 741,
+      "line": 754,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -984,7 +960,7 @@
     },
     {
       "path": "src/configstream/output_logic.py",
-      "line": 188,
+      "line": 222,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -992,7 +968,7 @@
     },
     {
       "path": "src/configstream/output_logic.py",
-      "line": 404,
+      "line": 453,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1000,7 +976,7 @@
     },
     {
       "path": "src/configstream/output_logic.py",
-      "line": 417,
+      "line": 466,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1008,7 +984,7 @@
     },
     {
       "path": "src/configstream/output_logic.py",
-      "line": 426,
+      "line": 475,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1016,7 +992,7 @@
     },
     {
       "path": "src/configstream/output_logic.py",
-      "line": 435,
+      "line": 484,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",

@@ -98,7 +98,7 @@ def test_hardened_split_profiles_define_referenced_dns_rule_sets(
     files = generate_split_outputs(
         [], tmp_path, singbox_dns_profile=build_singbox_dns_profile()
     )
-    for key in ("singbox", "singbox_vpn"):
+    for key in ("singbox_profile", "singbox_vpn"):
         config = json.loads(files[key].read_text(encoding="utf-8"))
         definitions = config["route"]["rule_set"]
         defined_tags = {item["tag"] for item in definitions}

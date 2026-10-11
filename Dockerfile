@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 # Stage 1: Build Go Tester
-FROM golang:1.26.8-alpine3.24@sha256:34efdd6036c92e155c8b0162a5da7626586b612ea636590035602c970eece564 AS builder
+FROM golang:1.26.9-alpine3.24@sha256:cdfd4fe2da6b225d8b40c6b7a105736e548e83ff56d5d8f9394446eeb5eb84e0 AS builder
 
 WORKDIR /app
 # Leverage Docker cache for Go modules

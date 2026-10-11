@@ -52,7 +52,9 @@ def _shield_chain(shield_tag: str, payload_tag: str) -> list[dict[str, object]]:
     ]
 
 
-def _shielded_revived_proxy(index: int, shield_tag: str) -> Proxy:
+def _shielded_revived_proxy(
+    index: int, shield_tag: str, *, working: bool = False
+) -> Proxy:
     payload_tag = f"🇽🇽 | REVIVED-VLESS+TCP+WARP | SHIELDED | {index:08x}"
     chain = _shield_chain(shield_tag, payload_tag)
     return Proxy(
@@ -71,7 +73,7 @@ def _shielded_revived_proxy(index: int, shield_tag: str) -> Proxy:
             # the converter fallback path.
             "chain_outbounds": [dict(hop) for hop in chain],
         },
-        is_working=False,
+        is_working=working,
     )
 
 
@@ -96,7 +98,7 @@ def _config_entries(payload: dict[str, object]) -> list[dict[str, object]]:
 
 
 def test_revived_slice_keeps_shield_detour_resolvable(tmp_path: Path) -> None:
-    proxies = [_shielded_revived_proxy(1, "SHIELD-XX-0")]
+    proxies = [_shielded_revived_proxy(1, "SHIELD-XX-0", working=True)]
     generated = generate_categorized_lists(proxies, tmp_path)
 
     country = _assert_contract_holds(generated["country_XX"])
@@ -129,9 +131,9 @@ def test_duplicate_shield_tags_uniquify_without_dangling_detours(
     # Multiple washer batches reuse the same SHIELD indices, so slices can
     # contain several chains referencing the "same" shield tag.
     proxies = [
-        _shielded_revived_proxy(1, "SHIELD-XX-0"),
-        _shielded_revived_proxy(2, "SHIELD-XX-0"),
-        _shielded_revived_proxy(3, "SHIELD-XX-1"),
+        _shielded_revived_proxy(1, "SHIELD-XX-0", working=True),
+        _shielded_revived_proxy(2, "SHIELD-XX-0", working=True),
+        _shielded_revived_proxy(3, "SHIELD-XX-1", working=True),
     ]
     generated = generate_categorized_lists(proxies, tmp_path)
     country = _assert_contract_holds(generated["country_XX"])
@@ -148,3 +150,20 @@ def test_duplicate_shield_tags_uniquify_without_dangling_detours(
     )
     errors = validate_singbox_config(rendered, "singbox.json")
     assert errors == [], errors[:5]
+
+
+def test_unverified_shielded_candidate_is_diagnostic_only(tmp_path: Path) -> None:
+    """No reintroduction of an unverified candidate via country/protocol import profiles."""
+    proxy = _shielded_revived_proxy(9, "SHIELD-XX-9", working=False)
+    generated = generate_categorized_lists([proxy], tmp_path)
+    country = _assert_contract_holds(generated["country_XX"])
+    tags = {str(item.get("tag")) for item in _config_entries(country)}
+    assert "SHIELD-XX-9" not in tags
+    proto = _assert_contract_holds(generated["proto_revived"])
+    assert "SHIELD-XX-9" not in {
+        str(item.get("tag")) for item in _config_entries(proto)
+    }
+    rows = json.loads(
+        (tmp_path / "protocols" / "revived.list.json").read_text(encoding="utf-8")
+    )
+    assert len(rows) == 1 and rows[0]["is_working"] is False

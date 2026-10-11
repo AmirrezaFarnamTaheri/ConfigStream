@@ -28,12 +28,14 @@ def resolve_public_config(root: Path, path: Path) -> tuple[Path | None, str | No
 def discover_singbox_configs(root: Path) -> list[Path]:
     """Return every public full sing-box config, excluding proxy-record arrays."""
     paths = {
-        *root.glob("singbox*.json"),
+        *root.glob("singbox-profile*.json"),
+        *root.glob("singbox-vpn*.json"),
+        *root.glob("singbox-chains*.json"),
         *root.glob("chains*.json"),
         *root.glob("countries/*.json"),
         *root.glob("protocols/*.json"),
     }
-    chosen = root / "chosen/singbox.json"
+    chosen = root / "chosen/singbox-profile.json"
     if chosen.is_file() or chosen.is_symlink():
         paths.add(chosen)
     return _present({path for path in paths if ".list" not in path.stem})
@@ -41,8 +43,8 @@ def discover_singbox_configs(root: Path) -> list[Path]:
 
 def discover_mihomo_configs(root: Path) -> list[Path]:
     """Return every public full Mihomo/Clash config."""
-    paths = {*root.glob("clash*.yaml")}
-    chosen = root / "chosen/clash.yaml"
+    paths = {*root.glob("clash-profile*.yaml")}
+    chosen = root / "chosen/clash-profile.yaml"
     if chosen.is_file() or chosen.is_symlink():
         paths.add(chosen)
     return _present(paths)

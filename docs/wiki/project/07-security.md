@@ -54,7 +54,7 @@ Standard Python `requests` or `ssl` libraries have a very distinct TLS fingerpri
 ### 5. Intranet Bridge
 Some proxies are located inside restrictive domestic networks (e.g., Iran, China) and cannot reach the global internet directly, but *can* reach other domestic servers.
 *   **Mechanism**: We chain these "Intranet" proxies through a "Bridge" proxy (a domestic server with international access, or a relay).
-*   **Routing**: We create specific routing rules in `singbox.json` to tunnel traffic intelligently.
+*   **Routing**: We create specific routing rules in the runnable `singbox-profile.json` artifact to tunnel traffic intelligently. The short `singbox.json` URL remains a node subscription with independent entries.
 
 ## Secrets Management
 

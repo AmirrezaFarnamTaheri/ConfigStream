@@ -24,7 +24,7 @@ If your client fails to import the configuration:
     1.  Copy the "Universal Subscription" link.
     2.  Open v2rayNG -> Menu -> Subscription Group Setup -> Add.
     3.  Paste link -> Update Subscription.
-*   **NekoBox**: Use `nekobox.json` when you want each proxy imported as a separate node. Importing a complete `singbox.json` intentionally creates one full/custom profile.
+*   **NekoBox**: `nekobox.json` and `singbox.json` are node subscriptions. Paste either URL into the subscription manager and run **Update Subscription**; each supported outbound imports as an independent proxy entry.
 *   **Clash Meta**: Required for our Clash configs (standard Clash doesn't support VLESS).
 
 ### iOS
@@ -41,10 +41,10 @@ If your client fails to import the configuration:
 ## Advanced Usage
 
 ### How to use the standard Sing-box profile
-`singbox.json` is a complete smart-routing profile with a local mixed inbound, selectors, DNS, and routing policy. It is one profile document, not a multi-node subscription. For system-wide TUN/VPN routing, use `singbox-vpn.json` instead.
-1.  Download `singbox.json`.
-2.  Validate it with `sing-box check -c singbox.json`.
-3.  Run it with `sing-box run -c singbox.json`, or import it into a client that supports complete sing-box profiles.
+`singbox.json` is the multi-node Sing-box subscription. Add its URL to the subscription manager and use **Update Subscription** to refresh independent proxy entries. The runnable smart-routing profile is `singbox-profile.json`; for system-wide TUN/VPN routing use `singbox-vpn.json`.
+1.  Add `singbox.json` as a subscription URL when you want independent nodes.
+2.  Download `singbox-profile.json` only when you explicitly want one runnable full configuration.
+3.  Validate the full profile with `sing-box check -c singbox-profile.json`.
 
 ### How to use "The Tank" (VPN Mode)
 The `singbox-vpn.json` is a "Tank". It routes **everything** through the proxy.

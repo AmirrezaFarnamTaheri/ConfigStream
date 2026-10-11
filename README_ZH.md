@@ -23,8 +23,8 @@ ConfigStream 是一个主权级、零运维预算的抗审查开源代理聚合�
 | **延迟前 100 强 (Top 100)** | [`top100.txt`](https://raw.githubusercontent.com/AmirrezaFarnamTaheri/ConfigStream/main/output/top100.txt) | — | 极速精选 |
 
 ### 核心客户端专属配置 (Clash / Sing-box)
-- **Clash / Mihomo 配置文件:** `https://raw.githubusercontent.com/AmirrezaFarnamTaheri/ConfigStream/main/output/clash.yaml`
-- **Sing-box 1.13+ 核心配置:** `https://raw.githubusercontent.com/AmirrezaFarnamTaheri/ConfigStream/main/output/singbox.json`
+- **Clash / Mihomo 独立节点订阅:** `https://raw.githubusercontent.com/AmirrezaFarnamTaheri/ConfigStream/main/output/clash.yaml`
+- **Sing-box JSON 独立节点订阅:** `https://raw.githubusercontent.com/AmirrezaFarnamTaheri/ConfigStream/main/output/singbox.json`
 
 ---
 
@@ -52,7 +52,7 @@ ConfigStream 是一个主权级、零运维预算的抗审查开源代理聚合�
 2. 将 `clash.yaml` 订阅链接粘贴到 URL 输入框中，点击 **Import (导入)**。
 
 ### 2. Sing-box / Hiddify
-1. 复制 Base64 或 `singbox.json` 订阅链接。
+1. 可将 `singbox.json`、`xray.json`、`clash.yaml`、Base64 或 `nekobox.json` 作为订阅 URL 添加；执行 **更新订阅** 后，支持的代理会作为独立节点导入并刷新。完整 Sing-box 运行配置另存为 `singbox-profile.json`。
 2. 点击 **+ (添加配置)** $\rightarrow$ **从剪贴板添加**。
 
 ### 3. v2rayN / Shadowrocket / Streisand

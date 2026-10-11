@@ -15,6 +15,12 @@ export function parseManualCleanIpLine(line) {
     const host = match[1].replace(/^\[|\]$/g, '');
     const port = parseInt(match[2] || '443', 10);
     if (!Number.isInteger(port) || port < 1 || port > 65535) return null;
+    if (match[1].startsWith('[')) {
+        // URL's authority parser validates IPv6 syntax, not only its alphabet.
+        try { new URL(`http://[${host}]/`); } catch { return null; }
+    } else if (/^\d+(?:\.\d+){3}$/.test(host)) {
+        if (!host.split('.').every(part => Number(part) <= 255)) return null;
+    }
 
     return {
         ip: host,
@@ -22,6 +28,24 @@ export function parseManualCleanIpLine(line) {
         latency: null,
         status: 'untested'
     };
+}
+
+// Accept either a host:port string or the public {ip, port} record. Published
+// candidate endpoints have not been tested from the visitor's network.
+export function parsePublishedCleanIp(entry) {
+    if (typeof entry === 'string') return parseManualCleanIpLine(entry);
+    if (!entry || typeof entry !== 'object') return null;
+    const host = String(entry.ip || '').trim();
+    if (!host) return null;
+    const port = Number(entry.port);
+    if (!Number.isInteger(port) || port < 1 || port > 65535) return null;
+    const text = host.includes(':') ? `[${host}]:${port}` : `${host}:${port}`;
+    return parseManualCleanIpLine(text);
+}
+
+export function formatCleanIpEndpoint(entry) {
+    const host = String(entry.ip || '');
+    return `${host.includes(':') ? `[${host}]` : host}:${entry.port}`;
 }
 
 export function renderCleanIpTable() {
@@ -36,7 +60,7 @@ export function renderCleanIpTable() {
         const statusText = ip.status === 'ok' ? 'OK' : ip.status === 'fail' ? 'Failed' : 'Untested';
         
         const tdIp = document.createElement('td');
-        tdIp.textContent = ip.ip + ':' + ip.port;
+        tdIp.textContent = formatCleanIpEndpoint(ip);
         const tdLat = document.createElement('td');
         tdLat.textContent = ip.latency !== null ? ip.latency + 'ms' : '-';
         const tdStatus = document.createElement('td');
@@ -55,8 +79,8 @@ export function populateWarpIpSelect() {
     select.replaceChildren();
     state.cleanIps.forEach((ip, i) => {
         const opt = document.createElement('option');
-        opt.value = ip.ip + ':' + ip.port;
-        opt.textContent = ip.ip + ':' + ip.port + (ip.latency ? ` (${ip.latency}ms)` : '');
+        opt.value = formatCleanIpEndpoint(ip);
+        opt.textContent = formatCleanIpEndpoint(ip) + (ip.latency !== null ? ` (${ip.latency}ms)` : '');
         if (i === 0) opt.selected = true;
         select.appendChild(opt);
     });
@@ -87,20 +111,13 @@ export async function handleStep2Next() {
             if (resp.ok) {
                 const data = await resp.json();
                 if (Array.isArray(data) && data.length > 0) {
-                    state.cleanIps = data.slice(0, 20).map(entry => {
-                        const str = typeof entry === 'string' ? entry : (entry.ip + ':' + entry.port);
-                        const parts = str.split(':');
-                        return { ip: parts[0], port: parseInt(parts[1]) || 443, latency: null, status: 'ok' };
-                    });
+                    state.cleanIps = data.slice(0, 200).map(parsePublishedCleanIp).filter(Boolean).slice(0, 20);
                 }
             }
         } catch { /* fallback */ }
 
         if (state.cleanIps.length === 0) {
-            state.cleanIps = DEFAULT_CLEAN_IPS.map(s => {
-                const parts = s.split(':');
-                return { ip: parts[0], port: parseInt(parts[1]) || 443, latency: null, status: 'ok' };
-            });
+            state.cleanIps = DEFAULT_CLEAN_IPS.map(parsePublishedCleanIp).filter(Boolean);
         }
     } else if (method === 'scan') {
         showResultHTML('step2Result', 'info',
@@ -125,6 +142,6 @@ export async function handleStep2Next() {
     renderCleanIpTable();
     populateWarpIpSelect();
 
-    showResultText('step2Result', 'success', `Found ${state.cleanIps.length} clean IP(s). Select one in the next step.`);
+    showResultText('step2Result', 'success', `Loaded ${state.cleanIps.length} untested candidate endpoint(s). Actual reachability depends on your network.`);
     setTimeout(() => goToStep(3), 600);
 }

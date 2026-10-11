@@ -278,7 +278,7 @@ def test_split_configs_set_resolver_for_multi_dns_profile(tmp_path: Path) -> Non
         [], tmp_path, singbox_dns_profile=build_singbox_dns_profile()
     )
 
-    for key in ("singbox", "singbox_vpn"):
+    for key in ("singbox_profile", "singbox_vpn"):
         payload = json.loads(files[key].read_text(encoding="utf-8"))
         assert payload["route"]["default_domain_resolver"] == "local_local"
 

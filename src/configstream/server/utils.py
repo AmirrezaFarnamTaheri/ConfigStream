@@ -157,6 +157,7 @@ ROOT_OUTPUT_FILES = {
     "nekobox.json": "application/json",
     "nekobox-dns-safe.json": "application/json",
     "nekobox-dns-hardened.json": "application/json",
+    "xray.json": "application/json",
     "singbox.json": "application/json",
     "singbox-vpn.json": "application/json",
     "singbox-chains.json": "application/json",

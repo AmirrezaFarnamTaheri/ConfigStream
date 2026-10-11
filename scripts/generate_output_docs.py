@@ -19,12 +19,13 @@ END_MARKER = "<!-- OUTPUT_MATRIX:END -->"
 
 CATEGORY_ORDER = {
     "subscription": 0,
-    "side-product": 1,
-    "control": 2,
-    "api": 3,
-    "analytics": 4,
-    "frontend": 5,
-    "docs": 6,
+    "client-config": 1,
+    "side-product": 2,
+    "control": 3,
+    "api": 4,
+    "analytics": 5,
+    "frontend": 6,
+    "docs": 7,
 }
 
 
