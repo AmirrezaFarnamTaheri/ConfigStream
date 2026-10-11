@@ -278,8 +278,8 @@ def test_chosen_proxies_txt_respects_protocol_priority_order(tmp_path) -> None:
     assert chosen_lines[2].startswith("http://")
 
 
-def test_uri_artifacts_fallback_to_all_when_working_pool_has_no_uris(tmp_path) -> None:
-    """proxies.txt/base64.txt should not be empty when only non-URI working protocols exist."""
+def test_uri_artifacts_do_not_fallback_to_failed_when_working_pool_has_no_uris(tmp_path) -> None:
+    """A verified WireGuard node must not export an unrelated failed revived URI."""
     proxies = [
         Proxy(
             config="not-a-uri",
@@ -311,13 +311,11 @@ def test_uri_artifacts_fallback_to_all_when_working_pool_has_no_uris(tmp_path) -
 
     files = generate_categorized_outputs(proxies, tmp_path)
     raw = files["proxies_txt"].read_text(encoding="utf-8")
-    assert "vless://" in raw
-    assert "revived.example:443" in raw
-
+    assert "revived.example" not in raw
     b64 = files["base64"].read_text(encoding="utf-8").strip()
     decoded = base64.b64decode(b64).decode("utf-8")
-    assert "vless://" in decoded
-    assert "revived.example:443" in decoded
+    assert decoded == raw
+    assert "revived.example" not in decoded
 
 
 def test_dns_safe_uses_detached_proxy_clones():

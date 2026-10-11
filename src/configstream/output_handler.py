@@ -30,6 +30,7 @@ from configstream.utils import AtomicFileWriter
 from configstream.utils.net import (
     normalize_host as _normalize_host,
     is_ip_literal as _is_ip_literal,
+    is_global_ip as _is_global_ip,
 )
 
 # SingBoxTester is imported lazily inside generate_pipeline_outputs to avoid
@@ -106,17 +107,8 @@ def _is_revived(p: Proxy) -> bool:
 
 
 def _is_clean_ip(host: str) -> bool:
-    """Quick validation that a string looks like a real IPv4/IPv6 address."""
-    host = host.strip()
-    if not host:
-        return False
-    # IPv4: exactly 3 dots, all octets 0-255
-    if host[0].isdigit() and host.count(".") == 3:
-        return all(p.isdigit() and 0 <= int(p) <= 255 for p in host.split("."))
-    # IPv6: at least 2 colons, only hex/colon/dot chars
-    if host.count(":") >= 2 and all(c in "0123456789abcdefABCDEF:." for c in host):
-        return True
-    return False
+    """Accept only syntactically valid, globally routable IP literals."""
+    return _is_global_ip(str(host).strip())
 
 
 def _save_clean_ips(clean_ips: List[tuple[str, int]], path: Path) -> None:
@@ -137,9 +129,10 @@ def _save_clean_ips(clean_ips: List[tuple[str, int]], path: Path) -> None:
             continue
         try:
             port_i = int(port)
-        except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception")
-            port_i = 2408
+        except (TypeError, ValueError, OverflowError):
+            continue
+        if not 1 <= port_i <= 65535:
+            continue
         key = f"{ip_s}:{port_i}"
         if key in seen:
             continue
@@ -155,38 +148,56 @@ def _save_clean_ips(clean_ips: List[tuple[str, int]], path: Path) -> None:
 def _group_chain_obs(
     outbounds: List[Dict[str, Any]],
 ) -> List[List[Dict[str, Any]]]:
-    """Group flat outbound list into chains by following detour relationships."""
+    """Group valid detour DAG paths, excluding invalid and ambiguous chains.
+
+    A synthetic user-facing chain must preserve *every* declared hop. Silently
+    shortening a cycle or resolving duplicate tags with last-write-wins changes
+    the connection route; reject that chain rather than misrepresent it.
+    """
     if not outbounds:
         return []
-    by_tag: Dict[str, Dict[str, Any]] = {
-        ob["tag"]: ob for ob in outbounds if isinstance(ob, dict) and ob.get("tag")
+    by_tag: Dict[str, Dict[str, Any]] = {}
+    duplicate_tags: set[str] = set()
+    for outbound in outbounds:
+        if not isinstance(outbound, dict):
+            continue
+        tag = outbound.get("tag")
+        if not isinstance(tag, str) or not tag:
+            continue
+        if tag in by_tag:
+            duplicate_tags.add(tag)
+        else:
+            by_tag[tag] = outbound
+
+    detour_targets: set[str] = {
+        detour
+        for outbound in by_tag.values()
+        if isinstance((detour := outbound.get("detour")), str) and detour
     }
-    detour_targets: set[str] = set()
-    for ob in outbounds:
-        dt = ob.get("detour")
-        if isinstance(dt, str) and dt:
-            detour_targets.add(dt)
-    # Entry points: outbounds whose tag is NOT a detour target of someone else
-    entry_points = [
-        ob
-        for ob in outbounds
-        if isinstance(ob, dict) and ob.get("tag") and ob["tag"] not in detour_targets
-    ]
     chains: List[List[Dict[str, Any]]] = []
-    for entry in entry_points:
+    for tag, entry in by_tag.items():
+        if tag in detour_targets:
+            continue
+        current = entry
         chain: List[Dict[str, Any]] = []
-        current: Optional[Dict[str, Any]] = entry
         visited: set[str] = set()
-        while current:
-            tag = current.get("tag", "")
-            if tag in visited:
+        valid = True
+        while True:
+            name = current["tag"]
+            if name in visited or name in duplicate_tags:
+                valid = False
                 break
-            visited.add(tag)
+            visited.add(name)
             chain.append(current)
-            dt = current.get("detour")
-            current = by_tag.get(dt) if dt else None
-        chain.reverse()  # inner hops first, entry point last
-        chains.append(chain)
+            target = current.get("detour")
+            if target in (None, ""):
+                break
+            if not isinstance(target, str) or target not in by_tag:
+                valid = False
+                break
+            current = by_tag[target]
+        if valid:
+            chains.append(list(reversed(chain)))
     return chains
 
 
@@ -211,11 +222,12 @@ def _chain_to_proxy_entry(
     except Exception:
         logging.getLogger(__name__).debug("Suppressed broad exception")
         port = 0
-    tags = ["chain"]
+    # Generated topology is not proof of a successful end-to-end handshake.
+    tags = ["chain", "candidate", "unverified"]
     if any(ob.get("type") == "wireguard" for ob in chain):
         tags.append("warp")
     if is_shielded_candidate:
-        tags.extend(["shielded", "candidate"])
+        tags.append("shielded")
     remarks = tag
     # Enrich from chain metadata (washer adds _origin_country_code, _origin_latency)
     origin_data: Dict[str, Any] = {}
@@ -236,7 +248,7 @@ def _chain_to_proxy_entry(
                 address=str(server or ""),
                 port=port,
                 remarks=tag,
-                is_working=not is_shielded_candidate,
+                is_working=False,
                 process=process,
                 tags=tags.copy(),
                 details=details,
@@ -267,7 +279,7 @@ def _chain_to_proxy_entry(
         "asn": "",
         "org": "",
         "latency": None,
-        "is_working": not is_shielded_candidate,
+        "is_working": False,
         "tags": tags,
         "last_checked": "",
         "source": None,
@@ -278,6 +290,7 @@ def _chain_to_proxy_entry(
             "chain_depth": len(chain),
             "shielded_candidate": is_shielded_candidate,
             "shielded_verified": False,
+            "chain_verified": False,
         },
         "config": mini_config,
         "remarks": remarks,

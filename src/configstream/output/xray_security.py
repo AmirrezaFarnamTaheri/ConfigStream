@@ -52,6 +52,22 @@ XRAY_PRIVATE_DOMAINS = (
 _SINGLE_LABEL_DOMAIN = re.compile(r"^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$")
 
 
+
+# Xray-core v26.9.9 rejects REALITY over WebSocket, HTTPUpgrade and mKCP
+# during outbound construction. Do not rewrite transports or downgrade security;
+# consumers must omit unsupported nodes from Xray-specific exports instead.
+XRAY_REALITY_METHODS = frozenset({"raw", "xhttp", "grpc"})
+
+
+def reality_transport_error(security: Any, method: Any) -> str | None:
+    """Reject REALITY transport combinations unsupported by the pinned Xray."""
+    if security == "reality" and (
+        not isinstance(method, str) or method not in XRAY_REALITY_METHODS
+    ):
+        return f"REALITY supports only raw, xhttp and grpc transports (got {method!r})"
+    return None
+
+
 def requires_transport_security(address: Any) -> bool:
     """Return whether Xray requires encryption for this destination."""
     if not isinstance(address, str) or not address.strip():

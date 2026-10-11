@@ -71,6 +71,16 @@ Plaintext subscription files and their Base64 counterparts are contract pairs:
 
 Each plaintext file must be valid UTF-8 and contain syntactically valid share-link schemes. Each Base64 file must decode as UTF-8 and match its paired plaintext file exactly. Empty paired files are valid when no usable subscription lines are available.
 
+## Verified versus diagnostic artifacts
+
+Public node subscriptions (`singbox.json`, `xray.json`, `clash.yaml`,
+`nekobox.json`) and full runnable `*-profile` artifacts must contain only
+currently eligible, verified nodes. Failed, untested, and revived-but-unverified
+candidates remain available in explicitly diagnostic `*.list.json` datasets,
+not client-importable subscriptions. A verified endpoint with no share-link
+representation must not trigger fallback to unverified records. An empty
+Base64/plaintext pair is valid when there are no compatible verified nodes.
+
 ## Compatibility and regression evidence
 
 Fixtures and regression tests exercise valid and invalid endpoint references, selector fallback, Mihomo chaining, Xray structure, NekoBox node-container shape, subscription parity, metadata schema compliance, public sanitisation, and complete generated Pages artifacts. The pre-fix CI runs demonstrated the previous contract mismatches; the repair-focused suite passes only after the generator, validator, fixture, matrix, and documentation assumptions are aligned.

@@ -118,7 +118,7 @@ Unknown licenses requiring external resolution: **148**
 | npm | `playwright-core` | `1.63.0` | development | `Apache-2.0` |
 | npm | `postcss` | `8.5.28` | development | `MIT` |
 | npm | `rolldown` | `1.2.8` | development | `MIT` |
-| npm | `source-map-js` | `1.2.1` | development | `BSD-3-Clause` |
+| npm | `source-map-js` | `1.2.2` | development | `BSD-3-Clause` |
 | npm | `tinyglobby` | `0.2.17` | development | `MIT` |
 | npm | `vite` | `2.3.3` | optional | `MIT` |
 | npm | `vite` | `8.3.0` | development | `MIT` |
