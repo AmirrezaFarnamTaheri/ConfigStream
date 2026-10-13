@@ -57,7 +57,7 @@ jobs:
           exit 0
       - name: Upload dependency audit report
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: pip-audit-py${{ matrix.python-version }}-${{ github.run_id }}
           path: pip-audit-report.json
@@ -109,7 +109,7 @@ jobs:
             --log-opts="${LOG_OPTS}"
       - name: Upload exact Gitleaks report
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: gitleaks-exact-py${{ matrix.python-version }}-${{ github.run_id }}
           path: gitleaks-exact.sarif
@@ -158,7 +158,7 @@ jobs:
           pytest -q --junitxml=pytest-report.xml 2>&1 | tee pytest-output.txt
       - name: Upload pytest diagnostics
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: pytest-diagnostics-py${{ matrix.python-version }}-${{ github.run_id }}
           path: |
@@ -184,7 +184,7 @@ jobs:
           fi
       - name: Upload forensic audit report
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: pipeline-audit-report-py${{ matrix.python-version }}
           path: pipeline-audit-report.json
@@ -198,7 +198,7 @@ jobs:
           python -m flake8 src/ tests/ 2>&1 | tee flake8-output.txt
       - name: Upload flake8 diagnostics
         if: always() && steps.flake8.outcome != 'skipped'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: flake8-diagnostics-py${{ matrix.python-version }}-${{ github.run_id }}
           path: flake8-output.txt
@@ -223,7 +223,7 @@ jobs:
           python -m mypy . 2>&1 | tee mypy-output.txt
       - name: Upload mypy diagnostics
         if: always() && steps.mypy.outcome != 'skipped'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: mypy-diagnostics-py${{ matrix.python-version }}-${{ github.run_id }}
           path: mypy-output.txt
@@ -252,7 +252,7 @@ jobs:
           python -m black --check --diff --fast --target-version py310 "${python_files[@]}" 2>&1 | tee black-output.txt
       - name: Upload black diagnostics
         if: always() && steps.black.outcome != 'skipped'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: black-diagnostics-py${{ matrix.python-version }}-${{ github.run_id }}
           path: black-output.txt
