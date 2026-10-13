@@ -114,8 +114,8 @@ Unknown licenses requiring external resolution: **148**
 | npm | `nanoid` | `3.3.18` | development | `MIT` |
 | npm | `picocolors` | `1.1.1` | development | `ISC` |
 | npm | `picomatch` | `4.0.7` | development | `MIT` |
-| npm | `playwright` | `1.63.0` | development | `Apache-2.0` |
-| npm | `playwright-core` | `1.63.0` | development | `Apache-2.0` |
+| npm | `playwright` | `1.64.0` | development | `Apache-2.0` |
+| npm | `playwright-core` | `1.64.0` | development | `Apache-2.0` |
 | npm | `postcss` | `8.5.28` | development | `MIT` |
 | npm | `rolldown` | `1.2.11` | development | `MIT` |
 | npm | `source-map-js` | `1.2.2` | development | `BSD-3-Clause` |

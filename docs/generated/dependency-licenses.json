@@ -1032,7 +1032,7 @@
       "name": "playwright",
       "scope": "development",
       "source": "package-lock.json",
-      "version": "1.63.0"
+      "version": "1.64.0"
     },
     {
       "ecosystem": "npm",
@@ -1043,7 +1043,7 @@
       "name": "playwright-core",
       "scope": "development",
       "source": "package-lock.json",
-      "version": "1.63.0"
+      "version": "1.64.0"
     },
     {
       "ecosystem": "npm",

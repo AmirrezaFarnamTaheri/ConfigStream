@@ -2573,7 +2573,7 @@
       "version": "4.0.7"
     },
     {
-      "bom-ref": "pkg:npm/playwright@1.63.0",
+      "bom-ref": "pkg:npm/playwright@1.64.0",
       "licenses": [
         {
           "license": {
@@ -2596,13 +2596,13 @@
           "value": "package-lock.json"
         }
       ],
-      "purl": "pkg:npm/playwright@1.63.0",
+      "purl": "pkg:npm/playwright@1.64.0",
       "scope": "optional",
       "type": "library",
-      "version": "1.63.0"
+      "version": "1.64.0"
     },
     {
-      "bom-ref": "pkg:npm/playwright-core@1.63.0",
+      "bom-ref": "pkg:npm/playwright-core@1.64.0",
       "licenses": [
         {
           "license": {
@@ -2625,10 +2625,10 @@
           "value": "package-lock.json"
         }
       ],
-      "purl": "pkg:npm/playwright-core@1.63.0",
+      "purl": "pkg:npm/playwright-core@1.64.0",
       "scope": "optional",
       "type": "library",
-      "version": "1.63.0"
+      "version": "1.64.0"
     },
     {
       "bom-ref": "pkg:npm/postcss@8.5.28",
