@@ -1460,7 +1460,7 @@
       "name": "multidict",
       "scope": "required",
       "source": "requirements-prod.txt",
-      "version": "6.9.1"
+      "version": "7.1.0"
     },
     {
       "ecosystem": "python",

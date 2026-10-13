@@ -3641,7 +3641,7 @@
       "version": "1.2.1"
     },
     {
-      "bom-ref": "pkg:pypi/multidict@6.9.1",
+      "bom-ref": "pkg:pypi/multidict@7.1.0",
       "name": "multidict",
       "properties": [
         {
@@ -3657,10 +3657,10 @@
           "value": "requirements-prod.txt"
         }
       ],
-      "purl": "pkg:pypi/multidict@6.9.1",
+      "purl": "pkg:pypi/multidict@7.1.0",
       "scope": "required",
       "type": "library",
-      "version": "6.9.1"
+      "version": "7.1.0"
     },
     {
       "bom-ref": "pkg:pypi/nest-asyncio@1.6.0",
