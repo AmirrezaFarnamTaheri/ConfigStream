@@ -187,7 +187,7 @@ Unknown licenses requiring external resolution: **148**
 | python | `sniffio` | `1.3.1` | required | unknown |
 | python | `soupsieve` | `2.9.0` | required | unknown |
 | python | `starlette` | `1.3.1` | required | unknown |
-| python | `tenacity` | `9.1.4` | required | unknown |
+| python | `tenacity` | `9.2.1` | required | unknown |
 | python | `text-unidecode` | `1.3` | required | unknown |
 | python | `tomli` | `2.4.1` | required | unknown |
 | python | `typing_extensions` | `4.16.0` | required | unknown |
