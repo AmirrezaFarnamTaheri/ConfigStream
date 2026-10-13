@@ -172,7 +172,7 @@ Unknown licenses requiring external resolution: **148**
 | python | `pycparser` | `2.23` | required | unknown |
 | python | `pydantic` | `2.13.5` | required | unknown |
 | python | `pydantic-settings` | `2.14.2` | required | unknown |
-| python | `pydantic_core` | `2.46.5` | required | unknown |
+| python | `pydantic_core` | `2.50.0` | required | unknown |
 | python | `Pygments` | `2.20.0` | required | unknown |
 | python | `pyparsing` | `3.3.2` | required | unknown |
 | python | `python-dotenv` | `1.2.3` | required | unknown |
