@@ -111,12 +111,12 @@ Unknown licenses requiring external resolution: **148**
 | npm | `lightningcss-linux-x64-musl` | `1.33.0` | optional | `MPL-2.0` |
 | npm | `lightningcss-win32-arm64-msvc` | `1.33.0` | optional | `MPL-2.0` |
 | npm | `lightningcss-win32-x64-msvc` | `1.33.0` | optional | `MPL-2.0` |
-| npm | `nanoid` | `3.3.18` | development | `MIT` |
+| npm | `nanoid` | `3.3.20` | development | `MIT` |
 | npm | `picocolors` | `1.1.1` | development | `ISC` |
 | npm | `picomatch` | `4.0.7` | development | `MIT` |
 | npm | `playwright` | `1.63.0` | development | `Apache-2.0` |
 | npm | `playwright-core` | `1.63.0` | development | `Apache-2.0` |
-| npm | `postcss` | `8.5.28` | development | `MIT` |
+| npm | `postcss` | `8.5.29` | development | `MIT` |
 | npm | `rolldown` | `1.2.11` | development | `MIT` |
 | npm | `source-map-js` | `1.2.2` | development | `BSD-3-Clause` |
 | npm | `tinyglobby` | `0.2.17` | development | `MIT` |
