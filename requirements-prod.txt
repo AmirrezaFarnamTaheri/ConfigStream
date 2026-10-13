@@ -47,7 +47,7 @@ limits==5.8.0
 markdown-it-py==4.2.0
 maxminddb==3.1.1
 mdurl==0.1.2
-msgpack==1.2.1
+msgpack==1.2.3
 multidict==6.9.1
 nest-asyncio==1.6.0
 orjson==3.11.9

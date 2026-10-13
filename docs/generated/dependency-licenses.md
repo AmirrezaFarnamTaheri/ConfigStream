@@ -159,7 +159,7 @@ Unknown licenses requiring external resolution: **148**
 | python | `markdown-it-py` | `4.2.0` | required | unknown |
 | python | `maxminddb` | `3.1.1` | required | unknown |
 | python | `mdurl` | `0.1.2` | required | unknown |
-| python | `msgpack` | `1.2.1` | required | unknown |
+| python | `msgpack` | `1.2.3` | required | unknown |
 | python | `multidict` | `6.9.1` | required | unknown |
 | python | `nest-asyncio` | `1.6.0` | required | unknown |
 | python | `orjson` | `3.11.9` | required | unknown |
