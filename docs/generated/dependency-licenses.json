@@ -1487,7 +1487,7 @@
       "name": "packaging",
       "scope": "required",
       "source": "requirements-prod.txt",
-      "version": "25.0"
+      "version": "26.3"
     },
     {
       "ecosystem": "python",

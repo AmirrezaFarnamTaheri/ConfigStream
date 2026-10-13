@@ -163,7 +163,7 @@ Unknown licenses requiring external resolution: **148**
 | python | `multidict` | `6.9.1` | required | unknown |
 | python | `nest-asyncio` | `1.6.0` | required | unknown |
 | python | `orjson` | `3.11.9` | required | unknown |
-| python | `packaging` | `25.0` | required | unknown |
+| python | `packaging` | `26.3` | required | unknown |
 | python | `pathspec` | `1.1.1` | required | unknown |
 | python | `platformdirs` | `4.10.0` | required | unknown |
 | python | `propcache` | `0.4.1` | required | unknown |

@@ -3707,7 +3707,7 @@
       "version": "3.11.9"
     },
     {
-      "bom-ref": "pkg:pypi/packaging@25.0",
+      "bom-ref": "pkg:pypi/packaging@26.3",
       "name": "packaging",
       "properties": [
         {
@@ -3723,10 +3723,10 @@
           "value": "requirements-prod.txt"
         }
       ],
-      "purl": "pkg:pypi/packaging@25.0",
+      "purl": "pkg:pypi/packaging@26.3",
       "scope": "required",
       "type": "library",
-      "version": "25.0"
+      "version": "26.3"
     },
     {
       "bom-ref": "pkg:pypi/pathspec@1.1.1",
