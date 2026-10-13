@@ -1703,7 +1703,7 @@
       "name": "tenacity",
       "scope": "required",
       "source": "requirements-prod.txt",
-      "version": "9.1.4"
+      "version": "9.2.1"
     },
     {
       "ecosystem": "python",
