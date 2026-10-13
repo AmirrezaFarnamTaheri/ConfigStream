@@ -307,12 +307,12 @@ jobs:
         if: matrix.enabled == true
         with:
           persist-credentials: false
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         if: matrix.enabled == true
         with:
           name: source-matrix-${{ github.run_id }}
           path: .
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         if: matrix.enabled == true
         with:
           name: geoip-databases-${{ github.run_id }}
@@ -464,7 +464,7 @@ jobs:
           python scripts/resilient_stage.py record --name shard-jobs --status "${{ needs.pipeline.result }}"
       - name: Download shard artifacts
         id: shard_download
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         continue-on-error: true
         with:
           pattern: shard-${{ github.run_id }}-*
@@ -472,14 +472,14 @@ jobs:
           merge-multiple: true
       - name: Download WASM artifact
         id: wasm_download
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         continue-on-error: true
         with:
           name: frontend-wasm-${{ github.run_id }}
           path: wasm-artifact
       - name: Download exact runtime source matrix artifact
         id: matrix_artifact_download
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         continue-on-error: true
         with:
           name: source-matrix-${{ github.run_id }}
