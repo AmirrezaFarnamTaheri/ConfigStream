@@ -144,7 +144,7 @@ jobs:
           sudo apt-get install -y binaryen
           chmod +x scripts/build_wasm.sh
           ./scripts/build_wasm.sh
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: frontend-wasm-${{ github.run_id }}
@@ -195,7 +195,7 @@ jobs:
               if expected_type not in database_type:
                   raise SystemExit(f"unexpected GeoIP database type for {path}: {database_type}")
           PY
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: geoip-databases-${{ github.run_id }}
           path: |
@@ -269,7 +269,7 @@ jobs:
           PY
           echo "value=$(cat source-matrix.json)" >> "$GITHUB_OUTPUT"
           echo "status=$(cat matrix-status.txt)" >> "$GITHUB_OUTPUT"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: source-matrix-${{ github.run_id }}
@@ -409,7 +409,7 @@ jobs:
             if [ "$rc" -eq 0 ]; then rc=125; fi
           fi
           exit "$rc"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always() && matrix.enabled == true
         with:
           name: shard-${{ github.run_id }}-${{ matrix.batch }}-${{ matrix.part }}
@@ -575,7 +575,7 @@ jobs:
           python scripts/resilient_stage.py run --name normalize-source-timings -- python scripts/normalize_source_timing_logs.py --sources-pattern "matrix-artifact/sources/runtime/batch_*_part_*.txt" --evidence pipeline-evidence/source_timing.jsonl
           python scripts/resilient_stage.py run --name dynamic-reshard -- python scripts/dynamic_reshard.py
       - name: Upload source reshard recommendation
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         continue-on-error: true
         with:
@@ -685,7 +685,7 @@ jobs:
           ready=$(python -c 'import json; print(str(json.load(open("pipeline-evidence/release_readiness.json", encoding="utf-8"))["publish_ready"]).lower())')
           echo "publish_ready=$ready" >> "$GITHUB_OUTPUT"
       - name: Upload complete diagnostic evidence
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         continue-on-error: true
         with:
@@ -694,7 +694,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
       - name: Upload diagnostic candidate
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         continue-on-error: true
         with:
@@ -704,7 +704,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
       - name: Upload canonical pipeline output
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: steps.readiness.outputs.publish_ready == 'true' && github.ref == 'refs/heads/main'
         with:
           name: pipeline-output
