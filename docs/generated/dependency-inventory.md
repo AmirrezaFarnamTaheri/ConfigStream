@@ -77,7 +77,7 @@ Direct declarations: **67**
 | python | `google-auth` | `==2.56.0` | `requirements-publish.txt` |
 | npm | `picomatch` | `^4.0.5` | `package.json` |
 | npm | `playwright` | `^1.63.0` | `package.json` |
-| npm | `postcss` | `^8.5.28` | `package.json` |
+| npm | `postcss` | `^8.5.29` | `package.json` |
 | npm | `vite` | `^8.3.1` | `package.json` |
 | go-tester | `github.com/sagernet/sing` | `v0.4.3` | `src/go/tester/go.mod` |
 | go-tester | `github.com/sagernet/sing-box` | `v1.9.7` | `src/go/tester/go.mod` |
